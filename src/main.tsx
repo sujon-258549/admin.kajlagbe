@@ -8,6 +8,7 @@ import { store } from './redux/store.ts'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    {/* redux provider */}
     <Provider store={store}>
       <RouterProvider router={router} />
     </Provider>
