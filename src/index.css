@@ -1,0 +1,406 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --animate-spin-reverse: spin-reverse 2s linear infinite;
+  --animate-spin-slow: spin 12s linear infinite;
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes spin-reverse {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+  }
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: #000000;
+  --card: oklch(1 0 0);
+  --card-foreground: #000000;
+  --popover: oklch(1 0 0);
+  --popover-foreground: #000000;
+  --primary: #052e16; /* Swapped: User requested primary to be swapped with secondary */
+  --primary-foreground: #ffffff;
+  --secondary: #ff7f00; /* Swapped: User requested secondary to be swapped with primary */
+  --secondary-foreground: #ffffff;
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: #052e16; /* Align sidebar background with primary brand color */
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ff7f00;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(255, 127, 0, 0.1);
+  --sidebar-accent-foreground: #ff7f00;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #ff7f00;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer components {
+  .testimonial-swiper {
+    padding-bottom: 50px !important;
+  }
+  .testimonial-bullet {
+    width: 8px;
+    height: 8px;
+    display: inline-block;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 0 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .testimonial-bullet-active {
+    width: 24px;
+    background: white;
+  }
+
+  /* Custom Scrollbar Utility */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Text Stroke Utility */
+  .stroke-text-hollow {
+    -webkit-text-stroke: 2px #d1d5db;
+    color: transparent;
+  }
+
+  /* Testimonial Slider Styles */
+  .testimonial-cards-swiper {
+    overflow: visible !important;
+  }
+
+  .testimonial-cards-swiper .swiper-slide {
+    visibility: hidden; /* Hide slides by default to prevent FOUC */
+  }
+
+  .testimonial-cards-swiper .swiper-slide-visible,
+  .testimonial-cards-swiper .swiper-slide-active,
+  .testimonial-cards-swiper .swiper-slide-next,
+  .testimonial-cards-swiper .swiper-slide-prev {
+    visibility: visible;
+  }
+}
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  button {
+    cursor: pointer;
+  }
+}
+
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .main-container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main-container {
+    padding: 0 2rem;
+  }
+}
+
+/* Custom Scrollbar */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--primary) 30%, transparent);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--primary) 60%, transparent);
+  }
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Blog Content Typography */
+.blog-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .blog-content h2 {
+    font-size: 2rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.blog-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .blog-content h3 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.blog-content p {
+  color: #475569;
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+  font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+  .blog-content p {
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.blog-content blockquote {
+  background-color: var(--primary);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  position: relative;
+  font-style: normal;
+  margin: 2rem 0;
+  line-height: 1.6;
+  font-size: 1.125rem;
+}
+
+@media (min-width: 768px) {
+  .blog-content blockquote {
+    padding: 2.5rem;
+    border-radius: 1.5rem;
+    margin: 3rem 0;
+    font-size: 1.25rem;
+  }
+}
+
+.blog-content blockquote::before {
+  content: '"';
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  font-size: 6rem;
+  color: rgba(255, 255, 255, 0.1);
+  font-family: serif;
+}
+
+.blog-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #475569;
+}
+
+.blog-content li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.blog-content strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* //================shadow use this  */
+
+.box_shadow {
+  box-shadow: 1px 1px 18px rgb(0, 0, 0, 0.08);
+  border: 1px solid gray;
+}
+
+.box_shadow:hover {
+  box-shadow: 0 8px 30px rgb(0, 0, 0, 0.15);
+  border: 1px solid var(--primary);
+}
+
+input:hover,
+input:focus {
+  border-color: var(--primary) !important;
+}
+
+/* Custom Select Overrides using .custom-select class */
+.custom-select:not(.ant-select-disabled):hover .ant-select-selector,
+.custom-select.ant-select-focused .ant-select-selector,
+.custom-select.ant-select-open .ant-select-selector {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(5, 46, 22, 0.1) !important;
+  outline: 0 !important;
+}
+
+.custom-select .ant-select-selector,
+custom-select:hover .ant-select-selector {
+  transition: all 0.2s ease-in-out !important;
+  border-radius: 8px !important; /* Matches rounded-lg */
+}
+
+/* Ant Checkbox Override for Primary Theme */
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.ant-checkbox:hover .ant-checkbox-inner,
+.ant-checkbox-input:focus + .ant-checkbox-inner {
+  border-color: var(--primary) !important;
+}
+
+/* Specific to our CustomCheckbox if we need even more weight */
+.custom-checkbox .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+textarea:hover,
+textarea:focus {
+  border-color: var(--primary) !important;
+}
+
+
+

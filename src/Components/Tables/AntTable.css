@@ -1,0 +1,113 @@
+/* Custom styles for table header */
+.ant-table-wrapper .ant-table-thead > tr > th {
+  background-color: #f9f9f9;
+  color: #000000;
+  font-size: 12px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  color: #000000;
+  font-size: 12px;
+}
+
+/* Custom styles for table row hover and selection */
+.ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
+.ant-table-wrapper
+  .ant-table-tbody
+  > tr.ant-table-row
+  > .ant-table-cell-row-hover {
+  background: #f5f5f5 !important;
+  cursor: pointer;
+}
+
+/* Selection background color - especially for fixed columns */
+.ant-table-wrapper .ant-table-tbody > tr.ant-table-row-selected > td,
+.ant-table-wrapper
+  .ant-table-tbody
+  > tr.ant-table-row-selected
+  > .ant-table-cell-fix-left,
+.ant-table-wrapper
+  .ant-table-tbody
+  > tr.ant-table-row-selected
+  > .ant-table-cell-fix-right {
+  background-color: #e6faf0 !important;
+}
+
+.ant-table-wrapper {
+  background-color: #fff;
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb; /* border-gray-200 */
+  border-radius: 8px; /* rounded-lg */
+}
+
+@media (min-width: 1024px) {
+  .ant-table-wrapper.sidebar-expanded {
+    max-width: calc(100vw - 295px);
+  }
+
+  .ant-table-wrapper.sidebar-collapsed {
+    max-width: calc(100vw - 125px);
+  }
+}
+
+.fix-right-column {
+  right: -2px !important;
+}
+
+/* ===== Custom Button Hover Overrides ===== */
+
+/* outline variant: hover border + icon -> primary */
+.ant-btn.hover\:border-primary\!:hover,
+.ant-btn.hover\:border-primary\!:focus {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* danger-outline variant: hover -> darker red */
+.ant-btn.hover\:border-rose-600\!:hover,
+.ant-btn.hover\:border-rose-600\!:focus {
+  border-color: #e11d48 !important;
+  color: #e11d48 !important;
+  background-color: #fff1f2 !important;
+}
+
+/* ===== Ant Design Pagination Overrides ===== */
+
+/* Active page item */
+.ant-pagination .ant-pagination-item-active {
+  border-color: var(--primary) !important;
+}
+
+.ant-pagination .ant-pagination-item-active a {
+  color: var(--primary) !important;
+}
+
+/* Hover on page items */
+.ant-pagination .ant-pagination-item:hover {
+  border-color: var(--primary) !important;
+}
+
+.ant-pagination .ant-pagination-item:hover a {
+  color: var(--primary) !important;
+}
+
+/* Hover on prev/next buttons */
+.ant-pagination .ant-pagination-prev:hover .ant-pagination-item-link,
+.ant-pagination .ant-pagination-next:hover .ant-pagination-item-link {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* Jumpers and quick jumper input */
+.ant-pagination .ant-pagination-item-link:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+.ant-pagination-options-quick-jumper input:focus {
+  border-color: var(--primary) !important;
+  outline: 0;
+  box-shadow: 0 0 0 2px rgba(5, 46, 22, 0.1); /* light primary shadow */
+}
