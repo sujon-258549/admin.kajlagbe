@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   faBriefcase,
   faUsers,
@@ -19,6 +18,7 @@ import RecruitmentFunnelChart from "../charts/dashboard/RecruitmentFunnelChart";
 import SalaryBenchmarksChart from "../charts/dashboard/SalaryBenchmarksChart";
 import DateFilter, { type FilterType } from "../filter/DateFilter";
 import StatCard from "../card/StatCard";
+import { useState } from "react";
 
 // New Table Components
 import RecentJobsTable from "./tables/RecentJobsTable";
