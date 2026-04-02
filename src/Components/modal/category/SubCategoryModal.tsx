@@ -59,12 +59,12 @@ const SubCategoryModal = ({
       okText={editData ? "Update" : "Create"}
       cancelText="Cancel"
       okButtonProps={{
-        className: "!bg-primary !border-primary !rounded-lg !font-semibold",
+        className: "!bg-primary !border-primary !rounded-sm !font-semibold",
       }}
       cancelButtonProps={{
-        className: "!rounded-lg !font-semibold",
+        className: "!rounded-sm !font-semibold hover:!bg-primary hover:!border-primary hover:!text-white",
       }}
-      width={600}
+      width={680}
       centered
     >
       <Form form={form} layout="vertical" className="pt-4" initialValues={{ status: true }}>
@@ -137,6 +137,7 @@ const SubCategoryModal = ({
             <CustomSwitch
               checkedChildren="Active"
               unCheckedChildren="Inactive"
+              checked={editData?.status}
               size="default"
             />
           </div>
