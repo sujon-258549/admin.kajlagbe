@@ -4,17 +4,17 @@ import React from "react";
 const CustomSwitch: React.FC<SwitchProps> = ({
   style,
   checkedChildren = "Active",
-  unCheckedChildren = "Deactive",
+  unCheckedChildren = "Inactive",
   ...props
 }) => {
+  const {loading} = props;
   return (
     <AntSwitch
       checkedChildren={checkedChildren}
       unCheckedChildren={unCheckedChildren}
-      style={{
-        backgroundColor: props.checked ? "#052e16" : "#d1d5db",
-        ...style,
-      }}
+      loading={loading}
+      className="custom-switch"
+      style={style}
       {...props}
     />
   );

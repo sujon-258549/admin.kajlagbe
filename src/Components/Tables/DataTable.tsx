@@ -1,5 +1,5 @@
 import { Table } from "antd";
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./AntTable.css";
 
 export default function DataTable(props: any) {
@@ -29,6 +29,7 @@ export default function DataTable(props: any) {
   // change this clear select  sujon
   useEffect(() => {
     if (clearSelectionTrigger) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedRowKeys([]);
     }
   }, [clearSelectionTrigger]);

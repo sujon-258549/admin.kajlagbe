@@ -17,6 +17,78 @@ import {
 import { useState, useEffect } from "react";
 import { NavLink, Link, useLocation } from "react-router";
 
+const menuItems = [
+  { name: "Dashboard", icon: faTableColumns, path: "/" },
+  {
+    name: "User Management",
+    icon: faUsers,
+    path: "/users",
+    submenu: [
+      { name: "All Employee", path: "/employee/all" },
+      { name: "Roles", path: "/users/roles" },
+      { name: "Designations", path: "/users/designations" },
+      { name: "Departments", path: "/users/departments" },
+    ],
+  },
+  {
+    name: "Category",
+    icon: faBriefcase,
+    path: "/category",
+    submenu: [
+      { name: "Category", path: "/category/list" },
+      { name: "SubCategory", path: "/sub/category" },
+    ],
+  },
+  {
+    name: "Job Management",
+    icon: faBuilding,
+    path: "/job",
+    submenu: [
+      { name: "Job List", path: "/job/list" }      ],
+  },
+  {
+    name: "Subscription",
+    icon: faTasksAlt,
+    path: "/subscription",
+  },
+  {
+    name: "Apply Job",
+    icon: faToolbox,
+    path: "/apply-job",
+    submenu: [
+      { name: "Apply Job List", path: "/apply-job/list" },
+      { name: "Apply Job Categories", path: "/apply-job/categories" },
+    ],
+  },
+  {
+    name: "Productions",
+    icon: faIndustry,
+    path: "/productions",
+    submenu: [
+      { name: "Production Plan", path: "/productions/plan" },
+      { name: "Work Orders", path: "/productions/work-orders" },
+    ],
+  },
+  {
+    name: "Sales Management",
+    icon: faChartLine,
+    path: "/sales",
+    submenu: [
+      { name: "Sales Summary", path: "/sales/summary" },
+      { name: "Customer Ledger", path: "/sales/ledger" },
+    ],
+  },
+  {
+    name: "Setup Menu",
+    icon: faCogs,
+    path: "/setup",
+    submenu: [
+      { name: "General Settings", path: "/setup/general" },
+      { name: "Business Setup", path: "/setup/business" },
+    ],
+  },
+];
+
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -25,78 +97,6 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const location = useLocation();
   const [expanded, setExpanded] = useState<string | null>("Dashboard");
-
-  const menuItems = [
-    { name: "Dashboard", icon: faTableColumns, path: "/" },
-    {
-      name: "User Management",
-      icon: faUsers,
-      path: "/users",
-      submenu: [
-        { name: "All Employee", path: "/employee/all" },
-        { name: "Roles", path: "/users/roles" },
-        { name: "Designations", path: "/users/designations" },
-        { name: "Departments", path: "/users/departments" },
-      ],
-    },
-    {
-      name: "Category",
-      icon: faBriefcase,
-      path: "/category",
-      submenu: [
-        { name: "Category", path: "/category/list" },
-        { name: "SubCategory", path: "/sub/category" },
-      ],
-    },
-    {
-      name: "Job Management",
-      icon: faBuilding,
-      path: "/job",
-      submenu: [
-        { name: "Job List", path: "/job/list" }      ],
-    },
-    {
-      name: "Subscription",
-      icon: faTasksAlt,
-      path: "/subscription",
-    },
-    {
-      name: "Apply Job",
-      icon: faToolbox,
-      path: "/apply-job",
-      submenu: [
-        { name: "Apply Job List", path: "/apply-job/list" },
-        { name: "Apply Job Categories", path: "/apply-job/categories" },
-      ],
-    },
-    {
-      name: "Productions",
-      icon: faIndustry,
-      path: "/productions",
-      submenu: [
-        { name: "Production Plan", path: "/productions/plan" },
-        { name: "Work Orders", path: "/productions/work-orders" },
-      ],
-    },
-    {
-      name: "Sales Management",
-      icon: faChartLine,
-      path: "/sales",
-      submenu: [
-        { name: "Sales Summary", path: "/sales/summary" },
-        { name: "Customer Ledger", path: "/sales/ledger" },
-      ],
-    },
-    {
-      name: "Setup Menu",
-      icon: faCogs,
-      path: "/setup",
-      submenu: [
-        { name: "General Settings", path: "/setup/general" },
-        { name: "Business Setup", path: "/setup/business" },
-      ],
-    },
-  ];
 
   // Auto-expand menu based on current location
   useEffect(() => {
@@ -119,7 +119,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       {/* Mobile Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed bottom-6 right-6 z-[60] p-4 bg-primary text-white rounded-full active:scale-90 transition-all font-bold"
+        className="lg:hidden fixed bottom-6 right-6 z-60 p-4 bg-primary text-white rounded-full active:scale-90 transition-all font-bold"
       >
         {isOpen ? (
           <FontAwesomeIcon icon={faTimes} className="w-6 h-6" />
@@ -156,7 +156,6 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
           {menuItems.map((item) => {
             const hasSubmenu = !!item.submenu;
             const isExpanded = expanded === item.name;
-            const isMainActive = item.path === location.pathname;
             const isAnySubActive = item.submenu?.some(
               (sub) => sub.path === location.pathname,
             );

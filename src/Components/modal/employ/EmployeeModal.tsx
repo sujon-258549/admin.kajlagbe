@@ -1,5 +1,5 @@
 import { Modal, Form, Select } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import CustomSelect from "../../ui/Select";
@@ -33,21 +33,24 @@ const EmployeeModal = ({
 }: EmployeeModalProps) => {
   const [form] = Form.useForm();
   const isEdit = !!editData;
-  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    if (editData) {
-      form.setFieldsValue(editData);
-      setIsActive(editData.status === "Active");
-    } else {
-      form.resetFields();
-      setIsActive(true);
+    if (open) {
+      if (editData) {
+        form.setFieldsValue({
+            ...editData,
+            status: editData.status === "Active"
+        });
+      } else {
+        form.resetFields();
+        form.setFieldsValue({ status: true });
+      }
     }
-  }, [editData, form, open]);
+  }, [editData, open, form]);
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      onSubmit({ ...values, status: isActive ? "Active" : "Inactive" });
+      onSubmit({ ...values, status: values.status ? "Active" : "Inactive" });
       form.resetFields();
       onClose();
     });
@@ -85,9 +88,9 @@ const EmployeeModal = ({
       }}
       width={660}
       centered
-      destroyOnHidden
+      destroyOnClose
     >
-      <Form form={form} layout="vertical" className="pt-2">
+      <Form form={form} layout="vertical" className="pt-2" initialValues={{ status: true }}>
         {/* Name */}
         <Form.Item
           name="name"
@@ -167,23 +170,11 @@ const EmployeeModal = ({
           </CustomSelect>
         </Form.Item>
 
-        {/* Status — Switch Toggle */}
-        <Form.Item label="Status">
-          <div className="flex items-center gap-3">
+        <Form.Item name="status" valuePropName="checked" label="Status">
             <CustomSwitch
-              checked={isActive}
-              onChange={setIsActive}
               checkedChildren="Active"
               unCheckedChildren="Inactive"
             />
-            <span
-              className={`text-sm font-semibold ${
-                isActive ? "text-primary" : "text-gray-400"
-              }`}
-            >
-              {isActive ? "Active" : "Inactive"}
-            </span>
-          </div>
         </Form.Item>
       </Form>
     </Modal>

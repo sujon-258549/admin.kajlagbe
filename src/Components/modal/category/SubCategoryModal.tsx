@@ -1,5 +1,5 @@
 import { Modal, Form } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import CustomSelect from "../../ui/Select";
@@ -21,21 +21,21 @@ const SubCategoryModal = ({
   categories,
 }: SubCategoryModalProps) => {
   const [form] = Form.useForm();
-  const [status, setStatus] = useState(true);
 
   useEffect(() => {
-    if (editData) {
-      form.setFieldsValue(editData);
-      setStatus(editData.status);
-    } else {
-      form.resetFields();
-      setStatus(true);
+    if (open) {
+      if (editData) {
+        form.setFieldsValue(editData);
+      } else {
+        form.resetFields();
+        form.setFieldsValue({ status: true });
+      }
     }
-  }, [editData, form, open]);
+  }, [editData, open, form]);
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      onSubmit({ ...values, status });
+      onSubmit(values);
       form.resetFields();
       onClose();
     });
@@ -67,7 +67,7 @@ const SubCategoryModal = ({
       width={600}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4">
+      <Form form={form} layout="vertical" className="pt-4" initialValues={{ status: true }}>
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
           name="categoryId"
@@ -129,12 +129,12 @@ const SubCategoryModal = ({
         </Form.Item>
 
         <Form.Item
+          name="status"
+          valuePropName="checked"
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
           <div className="flex items-center gap-3">
             <CustomSwitch
-              checked={status}
-              onChange={setStatus}
               checkedChildren="Active"
               unCheckedChildren="Inactive"
               size="default"

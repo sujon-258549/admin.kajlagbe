@@ -1,5 +1,5 @@
 import { Modal, Form, Select } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import CustomSelect from "../../ui/Select";
@@ -21,21 +21,24 @@ const DesignationModal = ({
   editData,
 }: DesignationModalProps) => {
   const [form] = Form.useForm();
-  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    if (editData) {
-      form.setFieldsValue(editData);
-      setIsActive(editData.status === "Active");
-    } else {
-      form.resetFields();
-      setIsActive(true);
+    if (open) {
+      if (editData) {
+        form.setFieldsValue({
+            ...editData,
+            status: editData.status === "Active"
+        });
+      } else {
+        form.resetFields();
+        form.setFieldsValue({ status: true });
+      }
     }
-  }, [editData, form, open]);
+  }, [editData, open, form]);
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      onSubmit({ ...values, status: isActive ? "Active" : "Inactive" });
+      onSubmit({ ...values, status: values.status ? "Active" : "Inactive" });
       form.resetFields();
       onClose();
     });
@@ -67,7 +70,7 @@ const DesignationModal = ({
       width={480}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4">
+      <Form form={form} layout="vertical" className="pt-4" initialValues={{ status: true }}>
         <Form.Item
           name="name"
           label={
@@ -94,12 +97,12 @@ const DesignationModal = ({
         </Form.Item>
 
         <Form.Item
+          name="status"
+          valuePropName="checked"
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
           <div className="flex items-center gap-3">
             <CustomSwitch
-              checked={isActive}
-              onChange={setIsActive}
               checkedChildren="Active"
               unCheckedChildren="Inactive"
               size="default"

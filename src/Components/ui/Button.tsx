@@ -1,5 +1,5 @@
 import { Button as AntButton, type ButtonProps as AntButtonProps } from "antd";
-import React, { useState } from "react";
+import React from "react";
 
 type ButtonVariant =
   | "primary"
@@ -32,8 +32,8 @@ const variantDefaultStyle: Record<ButtonVariant, React.CSSProperties> = {
   },
   outline: {
     backgroundColor: "transparent",
-    borderColor: "#d1d5db",
-    color: "#4b5563",
+    borderColor: "#052e16",
+    color: "#052e16",
   },
   ghost: {
     backgroundColor: "transparent",
@@ -61,54 +61,14 @@ const variantDefaultStyle: Record<ButtonVariant, React.CSSProperties> = {
   },
 };
 
-// Hover inline styles per variant
-const variantHoverStyle: Record<ButtonVariant, React.CSSProperties> = {
-  primary: {
-    backgroundColor: "#041f0e",
-    borderColor: "#041f0e",
-    color: "#fff",
-  },
-  secondary: {
-    backgroundColor: "#e67300",
-    borderColor: "#e67300",
-    color: "#fff",
-  },
-  outline: {
-    backgroundColor: "transparent",
-    borderColor: "#052e16",
-    color: "#052e16",
-  },
-  ghost: {
-    backgroundColor: "#f9fafb",
-    borderColor: "transparent",
-    color: "#374151",
-  },
-  danger: { backgroundColor: "#e11d48", borderColor: "#e11d48", color: "#fff" },
-  "danger-outline": {
-    backgroundColor: "#fff1f2",
-    borderColor: "#e11d48",
-    color: "#e11d48",
-  },
-  link: {
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    color: "#041f0e",
-    textDecoration: "underline",
-  },
-  dashed: {
-    backgroundColor: "transparent",
-    borderColor: "#052e16",
-    color: "#052e16",
-    borderStyle: "dashed",
-  },
-};
+
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-xs rounded-sm h-8",
-  md: "px-4 py-2 text-sm rounded-sm h-10",
-  lg: "px-6 py-3 text-base rounded-sm h-12",
-  icon: "w-11 h-11 rounded-sm",
-  "icon-sm": "w-8 h-8 rounded-sm",
+  sm: "px-3 py-1.5 text-xs rounded-sm! h-8 ",
+  md: "px-4 py-2 text-sm rounded-sm! h-10",
+  lg: "px-6 py-3 text-base rounded-sm! h-12",
+  icon: "w-11 h-11 rounded-sm!",
+  "icon-sm": "w-8 h-8 rounded-sm!",
 };
 
 const Button: React.FC<CustomButtonProps> = ({
@@ -119,15 +79,15 @@ const Button: React.FC<CustomButtonProps> = ({
   style,
   ...props
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
+
 
   const baseClasses =
     "transition-all font-medium flex items-center justify-center border-solid";
 
-  const combinedClasses = `${baseClasses} ${sizeClasses[size]} ${className}`;
+  const combinedClasses = `${baseClasses} ${sizeClasses[size]} btn-${variant} ${className}`;
 
   const computedStyle: React.CSSProperties = {
-    ...(isHovered ? variantHoverStyle[variant] : variantDefaultStyle[variant]),
+    ...variantDefaultStyle[variant],
     transition: "all 0.2s ease",
     ...style, // allow external style overrides
   };
@@ -136,8 +96,6 @@ const Button: React.FC<CustomButtonProps> = ({
     <AntButton
       className={combinedClasses}
       style={computedStyle}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       {...props}
     >
       {children}

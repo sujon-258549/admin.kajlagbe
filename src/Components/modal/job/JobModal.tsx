@@ -1,5 +1,5 @@
-import { Modal, Form, Input } from "antd";
-import { useEffect, useState } from "react";
+import { Modal, Form, Input, Space } from "antd";
+import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import CustomSelect from "../../ui/Select";
@@ -74,58 +74,34 @@ const subCategoryOptions = [
 
 const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
   const [form] = Form.useForm();
-  const [isRemote, setIsRemote] = useState(false);
-  const [isUrgent, setIsUrgent] = useState(false);
-  const [status, setStatus] = useState(true);
-  const [skills, setSkills] = useState<string[]>([""]);
 
   useEffect(() => {
-    if (editData) {
-      form.setFieldsValue({
-        title: editData.title,
-        company: editData.company,
-        location: editData.location,
-        type: editData.type,
-        category: editData.category,
-        subCategory: editData.subCategory,
-        salaryMin: editData.salaryMin,
-        salaryMax: editData.salaryMax,
-        experience: editData.experience,
-        deadline: editData.deadline,
-        description: editData.description,
-      });
-      setIsRemote(editData.isRemote);
-      setIsUrgent(editData.isUrgent);
-      setStatus(editData.status);
-      setSkills(editData.skills.length > 0 ? editData.skills : [""]);
-    } else {
-      form.resetFields();
-      setIsRemote(false);
-      setIsUrgent(false);
-      setStatus(true);
-      setSkills([""]);
+    if (open) {
+      if (editData) {
+        form.setFieldsValue(editData);
+      } else {
+        form.resetFields();
+        form.setFieldsValue({
+          isRemote: false,
+          isUrgent: false,
+          status: true,
+          skills: [""],
+        });
+      }
     }
-  }, [editData, form, open]);
+  }, [editData, open, form]);
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      const cleanedSkills = skills.filter((s) => s.trim() !== "");
+      const cleanedSkills = (values.skills || []).filter((s: string) => s && s.trim() !== "");
       onSubmit({
         ...values,
-        isRemote,
-        isUrgent,
-        status,
         skills: cleanedSkills,
       });
+      form.resetFields();
       onClose();
     });
   };
-
-  const addSkill = () => setSkills((prev) => [...prev, ""]);
-  const removeSkill = (idx: number) =>
-    setSkills((prev) => prev.filter((_, i) => i !== idx));
-  const updateSkill = (idx: number, val: string) =>
-    setSkills((prev) => prev.map((s, i) => (i === idx ? val : s)));
 
   return (
     <Modal
@@ -154,14 +130,16 @@ const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
       width={860}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4">
-        {/* Row 1: Title + Company */}
+      <Form
+        form={form}
+        layout="vertical"
+        className="pt-4"
+        initialValues={{ isRemote: false, isUrgent: false, status: true, skills: [""] }}
+      >
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="title"
-            label={
-              <span className="font-semibold text-gray-700">Job Title</span>
-            }
+            label={<span className="font-semibold text-gray-700">Job Title</span>}
             rules={[{ required: true, message: "Please enter job title" }]}
           >
             <CustomInput placeholder="e.g., Senior React Developer" size="md" />
@@ -176,13 +154,10 @@ const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
           </Form.Item>
         </div>
 
-        {/* Row 2: Location + Type */}
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="location"
-            label={
-              <span className="font-semibold text-gray-700">Location</span>
-            }
+            label={<span className="font-semibold text-gray-700">Location</span>}
             rules={[{ required: true, message: "Please enter location" }]}
           >
             <CustomInput placeholder="e.g., Dhaka, Bangladesh" size="md" />
@@ -190,59 +165,35 @@ const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
 
           <Form.Item
             name="type"
-            label={
-              <span className="font-semibold text-gray-700">Job Type</span>
-            }
+            label={<span className="font-semibold text-gray-700">Job Type</span>}
             rules={[{ required: true, message: "Please select job type" }]}
           >
-            <CustomSelect
-              options={jobTypeOptions}
-              placeholder="Select job type"
-              size="md"
-            />
+            <CustomSelect options={jobTypeOptions} placeholder="Select job type" size="md" />
           </Form.Item>
         </div>
 
-        {/* Row 3: Category + SubCategory */}
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="category"
-            label={
-              <span className="font-semibold text-gray-700">Category</span>
-            }
+            label={<span className="font-semibold text-gray-700">Category</span>}
             rules={[{ required: true, message: "Please select category" }]}
           >
-            <CustomSelect
-              options={categoryOptions}
-              placeholder="Select category"
-              size="md"
-            />
+            <CustomSelect options={categoryOptions} placeholder="Select category" size="md" />
           </Form.Item>
 
           <Form.Item
             name="subCategory"
-            label={
-              <span className="font-semibold text-gray-700">Sub-Category</span>
-            }
+            label={<span className="font-semibold text-gray-700">Sub-Category</span>}
             rules={[{ required: true, message: "Please select sub-category" }]}
           >
-            <CustomSelect
-              options={subCategoryOptions}
-              placeholder="Select sub-category"
-              size="md"
-            />
+            <CustomSelect options={subCategoryOptions} placeholder="Select sub-category" size="md" />
           </Form.Item>
         </div>
 
-        {/* Row 4: Salary Range + Experience */}
         <div className="grid grid-cols-3 gap-4">
           <Form.Item
             name="salaryMin"
-            label={
-              <span className="font-semibold text-gray-700">
-                Min Salary (৳)
-              </span>
-            }
+            label={<span className="font-semibold text-gray-700">Min Salary (৳)</span>}
             rules={[{ required: true, message: "Required" }]}
           >
             <CustomInput placeholder="e.g., 30000" size="md" />
@@ -250,11 +201,7 @@ const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
 
           <Form.Item
             name="salaryMax"
-            label={
-              <span className="font-semibold text-gray-700">
-                Max Salary (৳)
-              </span>
-            }
+            label={<span className="font-semibold text-gray-700">Max Salary (৳)</span>}
             rules={[{ required: true, message: "Required" }]}
           >
             <CustomInput placeholder="e.g., 60000" size="md" />
@@ -262,123 +209,78 @@ const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
 
           <Form.Item
             name="experience"
-            label={
-              <span className="font-semibold text-gray-700">Experience</span>
-            }
+            label={<span className="font-semibold text-gray-700">Experience</span>}
             rules={[{ required: true, message: "Please select experience" }]}
           >
-            <CustomSelect
-              options={experienceOptions}
-              placeholder="Select"
-              size="md"
-            />
+            <CustomSelect options={experienceOptions} placeholder="Select" size="md" />
           </Form.Item>
         </div>
 
-        {/* Deadline */}
         <Form.Item
           name="deadline"
-          label={
-            <span className="font-semibold text-gray-700">
-              Application Deadline
-            </span>
-          }
+          label={<span className="font-semibold text-gray-700">Application Deadline</span>}
           rules={[{ required: true, message: "Please enter deadline date" }]}
         >
           <CustomInput placeholder="e.g., 31-03-2026" size="md" />
         </Form.Item>
 
-        {/* Description */}
         <Form.Item
           name="description"
-          label={
-            <span className="font-semibold text-gray-700">Job Description</span>
-          }
+          label={<span className="font-semibold text-gray-700">Job Description</span>}
           rules={[{ required: true, message: "Please enter description" }]}
         >
-          <CustomInput.TextArea
-            placeholder="Describe the role, responsibilities and benefits..."
-            rows={4}
-          />
+          <CustomInput.TextArea placeholder="Describe the role, responsibilities and benefits..." rows={4} />
         </Form.Item>
 
-        {/* Skills */}
         <div className="mb-4">
-          <label className="block font-semibold text-gray-700 text-sm mb-2">
-            Required Skills
-          </label>
-          <div className="space-y-2">
-            {skills.map((skill, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <Input
-                  value={skill}
-                  onChange={(e) => updateSkill(idx, e.target.value)}
-                  placeholder={`Skill ${idx + 1}, e.g., React.js, Node.js`}
-                  className="rounded-lg border-gray-200 focus:border-primary"
-                />
-                {skills.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeSkill(idx)}
-                    className="text-red-400 hover:text-red-600 transition-colors shrink-0"
+          <label className="block font-semibold text-gray-700 text-sm mb-2">Required Skills</label>
+          <Form.List name="skills">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Space key={key} style={{ display: "flex", marginBottom: 8 }} align="baseline">
+                    <Form.Item
+                      {...restField}
+                      name={[name]}
+                      style={{ marginBottom: 0, width: "780px" }}
+                    >
+                      <Input placeholder="Skill, e.g. React.js" className="rounded-lg border-gray-200" />
+                    </Form.Item>
+                    {fields.length > 1 && (
+                      <MinusCircleOutlined
+                        className="text-red-400 hover:text-red-500 text-lg"
+                        onClick={() => remove(name)}
+                      />
+                    )}
+                  </Space>
+                ))}
+                <Form.Item>
+                  <CustomButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => add()}
+                    icon={<PlusOutlined />}
+                    className="mt-2"
                   >
-                    <MinusCircleOutlined className="text-lg" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <CustomButton
-            variant="outline"
-            size="sm"
-            onClick={addSkill}
-            icon={<PlusOutlined />}
-            className="mt-2"
-          >
-            Add Skill
-          </CustomButton>
+                    Add Skill
+                  </CustomButton>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
         </div>
 
-        {/* Toggles */}
         <div className="grid grid-cols-3 gap-4 pt-2 border-t border-gray-100">
-          <Form.Item
-            label={
-              <span className="font-semibold text-gray-700">Remote Job</span>
-            }
-          >
-            <CustomSwitch
-              checked={isRemote}
-              onChange={setIsRemote}
-              checkedChildren="Yes"
-              unCheckedChildren="No"
-              size="default"
-            />
+          <Form.Item name="isRemote" valuePropName="checked" label={<span className="font-semibold text-gray-700">Remote Job</span>}>
+            <CustomSwitch checkedChildren="Yes" unCheckedChildren="No" size="default" />
           </Form.Item>
 
-          <Form.Item
-            label={
-              <span className="font-semibold text-gray-700">Urgent Hiring</span>
-            }
-          >
-            <CustomSwitch
-              checked={isUrgent}
-              onChange={setIsUrgent}
-              checkedChildren="Yes"
-              unCheckedChildren="No"
-              size="default"
-            />
+          <Form.Item name="isUrgent" valuePropName="checked" label={<span className="font-semibold text-gray-700">Urgent Hiring</span>}>
+            <CustomSwitch checkedChildren="Yes" unCheckedChildren="No" size="default" />
           </Form.Item>
 
-          <Form.Item
-            label={<span className="font-semibold text-gray-700">Status</span>}
-          >
-            <CustomSwitch
-              checked={status}
-              onChange={setStatus}
-              checkedChildren="Active"
-              unCheckedChildren="Inactive"
-              size="default"
-            />
+          <Form.Item name="status" valuePropName="checked" label={<span className="font-semibold text-gray-700">Status</span>}>
+            <CustomSwitch checkedChildren="Active" unCheckedChildren="Inactive" size="default" />
           </Form.Item>
         </div>
       </Form>

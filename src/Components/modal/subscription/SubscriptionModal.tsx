@@ -1,5 +1,5 @@
-import { Modal, Form, Input } from "antd";
-import { useEffect, useState } from "react";
+import { Modal, Form, Input, Space } from "antd";
+import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import ModalHeader from "../../common/ModalHeader";
@@ -36,57 +36,38 @@ const SubscriptionModal = ({
   editData,
 }: SubscriptionModalProps) => {
   const [form] = Form.useForm();
-  const [isRecomended, setIsRecomended] = useState(false);
-  const [isActive, setIsActive] = useState(true);
-  const [status, setStatus] = useState(true);
-  const [featuredList, setFeaturedList] = useState<string[]>([""]);
 
   useEffect(() => {
-    if (editData) {
-      form.setFieldsValue({
-        name: editData.name,
-        slug: editData.slug,
-        price: editData.price,
-        discount: editData.discount,
-        duration: editData.duration,
-        activeDays: editData.activeDays,
-        description: editData.description,
-      });
-      setIsRecomended(editData.isRecomended);
-      setIsActive(editData.isActive);
-      setStatus(editData.status);
-      setFeaturedList(editData.featured.length > 0 ? editData.featured : [""]);
-    } else {
-      form.resetFields();
-      setIsRecomended(false);
-      setIsActive(true);
-      setStatus(true);
-      setFeaturedList([""]);
+    if (open) {
+      if (editData) {
+        form.setFieldsValue({
+          ...editData,
+          activeDays: String(editData.activeDays),
+        });
+      } else {
+        form.resetFields();
+        form.setFieldsValue({
+          isRecomended: false,
+          isActive: true,
+          status: true,
+          featured: [""],
+        });
+      }
     }
-  }, [editData, form, open]);
+  }, [editData, open, form]);
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      const cleanedFeatured = featuredList.filter((f) => f.trim() !== "");
+      const cleanedFeatured = (values.featured || []).filter((f: string) => f && f.trim() !== "");
       onSubmit({
         ...values,
         activeDays: Number(values.activeDays),
-        isRecomended,
-        isActive,
-        status,
         featured: cleanedFeatured,
       });
+      form.resetFields();
       onClose();
     });
   };
-
-  const addFeature = () => setFeaturedList((prev) => [...prev, ""]);
-
-  const removeFeature = (idx: number) =>
-    setFeaturedList((prev) => prev.filter((_, i) => i !== idx));
-
-  const updateFeature = (idx: number, val: string) =>
-    setFeaturedList((prev) => prev.map((f, i) => (i === idx ? val : f)));
 
   return (
     <Modal
@@ -115,14 +96,16 @@ const SubscriptionModal = ({
       width={780}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4">
-        {/* Row 1: Name + Slug */}
+      <Form
+        form={form}
+        layout="vertical"
+        className="pt-4"
+        initialValues={{ isRecomended: false, isActive: true, status: true, featured: [""] }}
+      >
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="name"
-            label={
-              <span className="font-semibold text-gray-700">Plan Name</span>
-            }
+            label={<span className="font-semibold text-gray-700">Plan Name</span>}
             rules={[{ required: true, message: "Please enter plan name" }]}
           >
             <CustomInput placeholder="e.g., Basic, Pro, Enterprise" size="md" />
@@ -137,7 +120,6 @@ const SubscriptionModal = ({
           </Form.Item>
         </div>
 
-        {/* Row 2: Price + Discount */}
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="price"
@@ -149,137 +131,87 @@ const SubscriptionModal = ({
 
           <Form.Item
             name="discount"
-            label={
-              <span className="font-semibold text-gray-700">Discount</span>
-            }
+            label={<span className="font-semibold text-gray-700">Discount</span>}
             rules={[{ required: true, message: "Please enter discount" }]}
           >
             <CustomInput placeholder="e.g., 10% or 100" size="md" />
           </Form.Item>
         </div>
 
-        {/* Row 3: Duration + Active Days */}
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="duration"
-            label={
-              <span className="font-semibold text-gray-700">Duration</span>
-            }
+            label={<span className="font-semibold text-gray-700">Duration</span>}
             rules={[{ required: true, message: "Please enter duration" }]}
           >
-            <CustomInput
-              placeholder="e.g., Monthly, Yearly, 3 Months"
-              size="md"
-            />
+            <CustomInput placeholder="e.g., Monthly, Yearly, 3 Months" size="md" />
           </Form.Item>
 
           <Form.Item
             name="activeDays"
-            label={
-              <span className="font-semibold text-gray-700">Active Days</span>
-            }
+            label={<span className="font-semibold text-gray-700">Active Days</span>}
             rules={[{ required: true, message: "Please enter active days" }]}
           >
             <CustomInput placeholder="e.g., 30, 365" size="md" />
           </Form.Item>
         </div>
 
-        {/* Description */}
         <Form.Item
           name="description"
-          label={
-            <span className="font-semibold text-gray-700">Description</span>
-          }
+          label={<span className="font-semibold text-gray-700">Description</span>}
         >
-          <CustomInput.TextArea
-            placeholder="Brief description about this plan..."
-            rows={3}
-          />
+          <CustomInput.TextArea placeholder="Brief description about this plan..." rows={3} />
         </Form.Item>
 
-        {/* Featured bullets */}
         <div className="mb-4">
-          <label className="block font-semibold text-gray-700 text-sm mb-2">
-            Featured Points
-          </label>
-          <div className="space-y-2">
-            {featuredList.map((feat, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <Input
-                  value={feat}
-                  onChange={(e) => updateFeature(idx, e.target.value)}
-                  placeholder={`Feature ${idx + 1}, e.g., Unlimited Job Posts`}
-                  className="rounded-lg border-gray-200 focus:border-primary"
-                />
-                {featuredList.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeFeature(idx)}
-                    className="text-red-400 hover:text-red-600 transition-colors shrink-0"
+          <label className="block font-semibold text-gray-700 text-sm mb-2">Featured Points</label>
+          <Form.List name="featured">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Space key={key} style={{ display: "flex", marginBottom: 8 }} align="baseline">
+                    <Form.Item
+                      {...restField}
+                      name={[name]}
+                      style={{ marginBottom: 0, width: "600px" }}
+                    >
+                      <Input placeholder="Feature point" className="rounded-lg border-gray-200" />
+                    </Form.Item>
+                    {fields.length > 1 && (
+                      <MinusCircleOutlined
+                        className="text-red-400 hover:text-red-500 text-lg"
+                        onClick={() => remove(name)}
+                      />
+                    )}
+                  </Space>
+                ))}
+                <Form.Item>
+                  <CustomButton
+                    variant="outline"
+                    size="sm"
+                    onClick={() => add()}
+                    icon={<PlusOutlined />}
+                    className="mt-2"
                   >
-                    <MinusCircleOutlined className="text-lg" />
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          <CustomButton
-            variant="outline"
-            size="sm"
-            onClick={addFeature}
-            icon={<PlusOutlined />}
-            className="mt-2"
-          >
-            Add Feature
-          </CustomButton>
+                    Add Feature
+                  </CustomButton>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
         </div>
 
-        {/* Toggles */}
         <div className="grid grid-cols-3 gap-4 pt-2 border-t border-gray-100">
-          <Form.Item
-            label={
-              <span className="font-semibold text-gray-700">Recommended</span>
-            }
-          >
-            <div className="flex items-center gap-3">
-              <CustomSwitch
-                checked={isRecomended}
-                onChange={setIsRecomended}
-                checkedChildren="Yes"
-                unCheckedChildren="No"
-                size="default"
-              />
-            </div>
+          <Form.Item name="isRecomended" valuePropName="checked" label={<span className="font-semibold text-gray-700">Recommended</span>}>
+            <CustomSwitch checkedChildren="Yes" unCheckedChildren="No" size="default" />
           </Form.Item>
 
-          <Form.Item
-            label={
-              <span className="font-semibold text-gray-700">Is Active</span>
-            }
-          >
-            <div className="flex items-center gap-3">
-              <CustomSwitch
-                checked={isActive}
-                onChange={setIsActive}
-                checkedChildren="Active"
-                unCheckedChildren="Inactive"
-                size="default"
-              />
-            </div>
+          <Form.Item name="isActive" valuePropName="checked" label={<span className="font-semibold text-gray-700">Is Active</span>}>
+            <CustomSwitch checkedChildren="Active" unCheckedChildren="Inactive" size="default" />
           </Form.Item>
 
-          <Form.Item
-            label={<span className="font-semibold text-gray-700">Status</span>}
-          >
-            <div className="flex items-center gap-3">
-              <CustomSwitch
-                checked={status}
-                onChange={setStatus}
-                checkedChildren="On"
-                unCheckedChildren="Off"
-                size="default"
-              />
-            </div>
+          <Form.Item name="status" valuePropName="checked" label={<span className="font-semibold text-gray-700">Status</span>}>
+            <CustomSwitch checkedChildren="On" unCheckedChildren="Off" size="default" />
           </Form.Item>
         </div>
       </Form>
