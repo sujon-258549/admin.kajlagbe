@@ -26,10 +26,8 @@ export interface TMeta {
 export interface TResponse<T> {
   success: boolean;
   message: string;
-  data: {
-    data: T;
-    meta: TMeta;
-  };
+  data: T;
+  meta: TMeta;
 }
 
 export const subCategoryApi = baseApi.injectEndpoints({

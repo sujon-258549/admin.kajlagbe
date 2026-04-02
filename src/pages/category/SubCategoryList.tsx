@@ -60,8 +60,8 @@ const SubCategoryList = () => {
   const [updateStatus] = useUpdateSubCategoryStatusMutation();
   const [deleteSubCategory] = useDeleteSubCategoryMutation();
 
-  const allSubCategories: TSubCategory[] = subCategoriesData?.data?.data || [];
-  const meta: TMeta = subCategoriesData?.data?.meta || {
+  const allSubCategories: TSubCategory[] = subCategoriesData?.data || [];
+  const meta: TMeta = subCategoriesData?.meta || {
     page: 1,
     limit: 10,
     total: 0,

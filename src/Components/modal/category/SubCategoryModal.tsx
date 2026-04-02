@@ -25,7 +25,11 @@ const SubCategoryModal = ({
   useEffect(() => {
     if (open) {
       if (editData) {
-        form.setFieldsValue(editData);
+        const normalizedData = {
+          ...editData,
+          status: Boolean(editData.status)
+        };
+        form.setFieldsValue(normalizedData);
       } else {
         form.resetFields();
         form.setFieldsValue({ status: true });
@@ -35,7 +39,11 @@ const SubCategoryModal = ({
 
   const handleOk = () => {
     form.validateFields().then((values) => {
-      onSubmit(values);
+      const formData = {
+        ...values,
+        status: Boolean(values.status)
+      };
+      onSubmit(formData);
       form.resetFields();
       onClose();
     });
@@ -133,14 +141,11 @@ const SubCategoryModal = ({
           valuePropName="checked"
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
-          <div className="flex items-center gap-3">
-            <CustomSwitch
-              checkedChildren="Active"
-              unCheckedChildren="Inactive"
-              checked={editData?.status}
-              size="default"
-            />
-          </div>
+          <CustomSwitch
+            checkedChildren="Active"
+            unCheckedChildren="Inactive"
+            size="default"
+          />
         </Form.Item>
       </Form>
     </Modal>

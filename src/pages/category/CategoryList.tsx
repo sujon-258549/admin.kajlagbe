@@ -43,8 +43,13 @@ const CategoryList = () => {
   const [deleteCategory] = useDeleteCategoryMutation();
   const [changeStatus] = useChangeCategoryStatusMutation();
 
-  const allCategories = categoriesData?.data?.data || [];
-  const meta = categoriesData?.data?.meta || {};
+  const allCategories = categoriesData?.data || [];
+  const meta = categoriesData?.meta || {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPage: 1,
+  };
   console.log("categoryData", allCategories);
 
   const handleCreate = () => {
