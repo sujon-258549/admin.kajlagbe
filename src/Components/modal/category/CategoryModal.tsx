@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   useAddCategoryMutation,
   useUpdateCategoryMutation,
-} from "../../../redux/features/category/caegoryApi";
+} from "../../../redux/features/category/categoryApi";
 
 interface CategoryModalProps {
   open: boolean;
@@ -28,10 +28,16 @@ const CategoryModal = ({
   const [updateCategory, { isLoading: updateLoading }] =
     useUpdateCategoryMutation();
 
+    
   useEffect(() => {
     if (open) {
       if (editData) {
-        form.setFieldsValue(editData);
+        // Ensuring status is always a boolean
+        const normalizedData = {
+          ...editData,
+          status: Boolean(editData.status)
+        };
+        form.setFieldsValue(normalizedData);
       } else {
         form.resetFields();
       }
@@ -41,14 +47,19 @@ const CategoryModal = ({
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      
+      const formData = {
+        ...values,
+        status: Boolean(values.status)
+      };
 
       if (editData) {
         await updateCategory({
           id: editData._id || editData.id,
-          data: values,
+          data: formData,
         }).unwrap();
       } else {
-        await addCategory(values).unwrap();
+        await addCategory(formData).unwrap();
       }
 
       toast.success(
@@ -61,11 +72,10 @@ const CategoryModal = ({
       onClose();
 
       if (onSubmit) {
-        onSubmit(values);
+        onSubmit(formData);
       }
     } catch (error: any) {
       console.error("Failed to validate or add/update category:", error);
-      // Show error toast if the API returns an error so you know why it didn't close
       if (error?.data?.message || error?.message) {
         toast.error(
           error?.data?.message || error?.message || "Something went wrong!",
@@ -96,12 +106,17 @@ const CategoryModal = ({
         className: "!bg-primary !border-primary !rounded-sm  !font-semibold",
       }}
       cancelButtonProps={{
-        className: "!rounded-sm !font-semibold",
+        className: "!rounded-sm !font-semibold hover:!bg-primary hover:!border-primary hover:!text-white",
       }}
       width={680}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4">
+      <Form 
+        form={form} 
+        layout="vertical" 
+        className="pt-4"
+        initialValues={{ status: true }}
+      >
         <Form.Item
           name="name"
           label={
@@ -143,7 +158,6 @@ const CategoryModal = ({
         <Form.Item
           name="status"
           valuePropName="checked"
-          initialValue={true}
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
           <CustomSwitch

@@ -15,7 +15,7 @@ import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import CategoryModal from "../../Components/modal/category/CategoryModal";
-import { useDeleteCategoryMutation, useGetAllCategoriesQuery, useChangeCategoryStatusMutation } from "../../redux/features/category/caegoryApi";
+import { useDeleteCategoryMutation, useGetAllCategoriesQuery, useChangeCategoryStatusMutation } from "../../redux/features/category/categoryApi";
 import debounceSearch from "../../Components/utils/debounceSearch";
 import formatDate from "../../Components/utils/dateFormate";
 import { toast } from "sonner";
