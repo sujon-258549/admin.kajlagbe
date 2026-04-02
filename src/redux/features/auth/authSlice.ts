@@ -1,8 +1,16 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 
+export type TUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  [key: string]: any; // Allow for extra backend fields but enforce core ones
+};
+
 interface AuthState {
-  user: any;
+  user: TUser | null;
   token: string | null;
 }
 
@@ -15,14 +23,16 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser: (state, action) => {
+    setUser: (state, action: PayloadAction<{ user: TUser; token: string }>) => {
       const { user, token } = action.payload;
       state.user = user;
       state.token = token;
+      // Note: localStorage sync is sometimes handled here, but Redux Persist already does it smoothly.
+      // However, we'll keep it for direct token access if needed elsewhere.
       localStorage.setItem("token", token);
     },
 
-    logoutUser: (state) => {
+    logout: (state) => {
       state.user = null;
       state.token = null;
       localStorage.removeItem("token");
@@ -30,8 +40,9 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, logoutUser } = authSlice.actions;
+export const { setUser, logout } = authSlice.actions;
 export default authSlice.reducer;
 
+// Selectors
 export const useCurrentToken = (state: RootState) => state.auth.token;
 export const selectCurrentUser = (state: RootState) => state.auth.user;
