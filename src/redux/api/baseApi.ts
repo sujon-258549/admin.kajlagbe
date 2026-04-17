@@ -15,6 +15,6 @@ export const baseApi = createApi({
       return headers
     },
   }),
-  tagTypes: ['User', 'Products', 'Orders', 'Category'], // Predefined tags for caching/invalidation
+  tagTypes: ['User', 'Products', 'Orders', 'Category', 'Employee'], // Predefined tags for caching/invalidation
   endpoints: () => ({}), // Endpoints will be injected from specific slice APIs
 })
