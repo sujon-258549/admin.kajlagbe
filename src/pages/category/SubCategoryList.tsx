@@ -207,6 +207,16 @@ const SubCategoryList = () => {
       ),
     },
     {
+      title: "ICON",
+      dataIndex: "icon",
+      key: "icon",
+      render: (text: string) => (
+        <div className="bg-gray-100 p-2 rounded-md inline-block w-8 h-8 flex items-center justify-center">
+          <i className={`${text?.includes('fa-') ? text : `fa-solid fa-${text}`} text-gray-600`}></i>
+        </div>
+      ),
+    },
+    {
       title: "SLUG",
       dataIndex: "slug",
       key: "slug",
