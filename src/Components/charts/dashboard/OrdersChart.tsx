@@ -2,7 +2,7 @@
 
 import type { ApexOptions } from "apexcharts";
 import Chart from "react-apexcharts";
-import { type FilterType } from "../../filter/DateFilter";
+import type { FilterType } from "../../types";
 
 const OrdersChart = ({ externalFilter }: { externalFilter?: FilterType }) => {
   const activeFilter = externalFilter || "this-week";

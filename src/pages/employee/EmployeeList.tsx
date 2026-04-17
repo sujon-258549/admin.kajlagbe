@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Tag, Tooltip, Popconfirm } from "antd";
+import { Tag, Tooltip, Popconfirm, message } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
@@ -14,107 +14,112 @@ import EmployeeModal, {
 import CustomButton from "../../Components/ui/Button";
 import CustomSwitch from "../../Components/ui/Switch";
 import PageHeader from "../../Components/common/PageHeader";
-
-// Mock initial data
-const mockEmployees: Employee[] = [
-  {
-    _id: "1",
-    name: "Sujon Ahmed",
-    email: "sujon@kajlagbe.com",
-    phone: "+880 1711 000001",
-    designation: "UI Designer",
-    department: "Design",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    _id: "2",
-    name: "Jane Doe",
-    email: "jane@kajlagbe.com",
-    phone: "+880 1711 000002",
-    designation: "Full Stack Developer",
-    department: "Engineering",
-    role: "Employee",
-    status: "Active",
-  },
-  {
-    _id: "3",
-    name: "Alex Hunter",
-    email: "alex@kajlagbe.com",
-    phone: "+880 1711 000003",
-    designation: "QA Engineer",
-    department: "Engineering",
-    role: "Employee",
-    status: "Inactive",
-  },
-  {
-    _id: "4",
-    name: "Sarah Connor",
-    email: "sarah@kajlagbe.com",
-    phone: "+880 1711 000004",
-    designation: "HR Manager",
-    department: "HR",
-    role: "Manager",
-    status: "Active",
-  },
-  {
-    _id: "5",
-    name: "Michael Ross",
-    email: "michael@kajlagbe.com",
-    phone: "+880 1711 000005",
-    designation: "Product Manager",
-    department: "Operations",
-    role: "Support",
-    status: "Active",
-  },
-];
+import {
+  useCreateEmployeeMutation,
+  useDeleteEmployeeMutation,
+  useGetAllEmployeesQuery,
+  useUpdateEmployeeMutation,
+} from "../../redux/features/employApi/employApi";
+import type { EmployeeModalSubmit, UpdateEmployeeRequest } from "../../Components/types";
+import { ROLE_LABELS } from "../../Components/types";
 
 const EmployeeList = () => {
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
+  const { data: employees = [], isLoading, isFetching, refetch } =
+    useGetAllEmployeesQuery({});
+  const [createEmployee, { isLoading: isCreating }] =
+    useCreateEmployeeMutation();
+  const [updateEmployee, { isLoading: isUpdating }] =
+    useUpdateEmployeeMutation();
+  const [deleteEmployee, { isLoading: isDeleting }] =
+    useDeleteEmployeeMutation();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<Employee | null>(null);
   const [viewData, setViewData] = useState<Employee | null>(null);
 
-  // Open modal for Create
+  const tableLoading =
+    isLoading || isFetching || isCreating || isUpdating || isDeleting;
+
   const handleCreate = () => {
     setEditData(null);
     setModalOpen(true);
   };
 
-  // Open modal for Update
   const handleEdit = (record: Employee) => {
     setEditData(record);
     setModalOpen(true);
   };
 
-  // Delete employee
-  const handleDelete = (id: string) => {
-    setEmployees((prev) => prev.filter((e) => e._id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteEmployee(id).unwrap();
+      message.success("Employee deleted");
+    } catch {
+      message.error("Could not delete employee");
+    }
   };
 
-  // Change status toggle handler
-  const handleStatusChange = (id: string, checked: boolean) => {
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e._id === id ? { ...e, status: checked ? "Active" : "Inactive" } : e,
-      ),
-    );
+  const handleStatusChange = async (record: Employee, checked: boolean) => {
+    try {
+      await updateEmployee({
+        id: record.id,
+        data: { isActive: checked },
+      }).unwrap();
+      message.success(checked ? "Activated" : "Deactivated");
+    } catch {
+      message.error("Could not update status");
+      refetch();
+    }
   };
 
-  // Submit (create or update)
-  const handleSubmit = (values: Omit<Employee, "_id">) => {
-    if (editData) {
-      // Update
-      setEmployees((prev) =>
-        prev.map((e) => (e._id === editData._id ? { ...e, ...values } : e)),
-      );
-    } else {
-      // Create
-      const newEmp: Employee = {
-        _id: Date.now().toString(),
-        ...values,
-      };
-      setEmployees((prev) => [newEmp, ...prev]);
+  const handleSubmit = async (values: EmployeeModalSubmit) => {
+    try {
+      if (editData) {
+        const data: UpdateEmployeeRequest = {
+          email: values.email,
+          mobile: values.mobile,
+          name: values.name,
+          role: values.role,
+          isActive: values.isActive,
+          designation: values.designation,
+          department: values.department,
+        };
+        if (values.password) {
+          data.password = values.password;
+        }
+        await updateEmployee({ id: editData.id, data }).unwrap();
+        message.success("Employee updated");
+      } else {
+        if (!values.password) {
+          message.error("Password is required for new users");
+          return;
+        }
+        await createEmployee({
+          email: values.email,
+          password: values.password,
+          mobile: values.mobile,
+          name: values.name,
+          role: values.role,
+          isActive: values.isActive,
+          designation: values.designation,
+          department: values.department,
+        }).unwrap();
+        message.success("Employee created");
+      }
+      setModalOpen(false);
+      setEditData(null);
+    } catch (err: unknown) {
+      const msg =
+        err &&
+        typeof err === "object" &&
+        "data" in err &&
+        err.data &&
+        typeof err.data === "object" &&
+        "message" in err.data &&
+        typeof (err.data as { message: unknown }).message === "string"
+          ? (err.data as { message: string }).message
+          : "Request failed";
+      message.error(msg);
     }
   };
 
@@ -125,7 +130,6 @@ const EmployeeList = () => {
       width: 120,
       render: (_: unknown, record: Employee) => (
         <div className="flex items-center gap-2">
-          {/* View */}
           <Tooltip title="View Details">
             <CustomButton
               variant="outline"
@@ -135,7 +139,6 @@ const EmployeeList = () => {
             />
           </Tooltip>
 
-          {/* Edit */}
           <Tooltip title="Edit Employee">
             <CustomButton
               variant="outline"
@@ -147,11 +150,10 @@ const EmployeeList = () => {
             />
           </Tooltip>
 
-          {/* Delete */}
           <Popconfirm
             title="Delete Employee"
             description="Are you sure you want to delete this employee?"
-            onConfirm={() => handleDelete(record._id)}
+            onConfirm={() => handleDelete(record.id)}
             okText="Delete"
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
@@ -235,9 +237,9 @@ const EmployeeList = () => {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (role: string) => (
+      render: (role: Employee["role"]) => (
         <span className="text-sm text-gray-800 font-medium whitespace-nowrap">
-          {role}
+          {ROLE_LABELS[role]}
         </span>
       ),
     },
@@ -248,7 +250,7 @@ const EmployeeList = () => {
       render: (status: string, record: Employee) => (
         <CustomSwitch
           checked={status === "Active"}
-          onChange={(checked) => handleStatusChange(record._id, checked)}
+          onChange={(checked) => handleStatusChange(record, checked)}
           size="default"
           checkedChildren="Active"
           unCheckedChildren="Inactive"
@@ -259,11 +261,10 @@ const EmployeeList = () => {
 
   return (
     <div className="space-y-5">
-      {/* Page Header */}
       <PageHeader
         breadcrumb={[{ label: "Home", path: "/" }, { label: "Employees" }]}
         title="All Employees"
-        subTitle="Manage employee records, roles, and statuses"
+        subTitle="User + Profile + WorkInfo (Prisma) via /employ API"
         extra={
           <CustomButton
             onClick={handleCreate}
@@ -276,25 +277,28 @@ const EmployeeList = () => {
         }
       />
 
-      {/* Table Card */}
       <div className="">
         <DataTable
           data={employees}
           columns={columns}
+          rowKey="id"
           isPaginate={true}
           showHeader={true}
+          loading={tableLoading}
         />
       </div>
 
-      {/* Create / Update Modal */}
       <EmployeeModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditData(null);
+        }}
         onSubmit={handleSubmit}
         editData={editData}
+        submitting={isCreating || isUpdating}
       />
 
-      {/* View Details Modal */}
       {viewData && (
         <div
           className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4"
@@ -322,7 +326,7 @@ const EmployeeList = () => {
                 { label: "Email", value: viewData.email },
                 { label: "Phone", value: viewData.phone },
                 { label: "Department", value: viewData.department },
-                { label: "Role", value: viewData.role },
+                { label: "Role", value: ROLE_LABELS[viewData.role] },
                 { label: "Status", value: viewData.status },
               ].map(({ label, value }) => (
                 <div
@@ -335,6 +339,7 @@ const EmployeeList = () => {
               ))}
             </div>
             <button
+              type="button"
               onClick={() => setViewData(null)}
               className="mt-5 w-full py-2.5 rounded-xl bg-gray-50 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-colors"
             >

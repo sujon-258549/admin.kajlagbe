@@ -1,13 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
+import type { TUser } from "../../../Components/types";
 
-export type TUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  [key: string]: any; // Allow for extra backend fields but enforce core ones
-};
+export type { TUser };
 
 interface AuthState {
   user: TUser | null;

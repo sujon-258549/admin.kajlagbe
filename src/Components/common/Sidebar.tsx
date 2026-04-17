@@ -26,7 +26,7 @@ const menuItems = [
     submenu: [
       { name: "All Employee", path: "/employee/all" },
       { name: "Roles", path: "/users/roles" },
-      { name: "Designations", path: "/users/designations" },
+      // { name: "Designations", path: "/users/designations" },
       { name: "Departments", path: "/users/departments" },
     ],
   },
@@ -85,6 +85,7 @@ const menuItems = [
     submenu: [
       { name: "General Settings", path: "/setup/general" },
       { name: "Business Setup", path: "/setup/business" },
+      { name: "Media", path: "/setup/media" },
     ],
   },
 ];

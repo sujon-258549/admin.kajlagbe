@@ -1,121 +1,129 @@
 import { baseApi } from "../../api/baseApi";
+import type {
+  CreateEmployeeRequest,
+  EmployApiUser,
+  EmployeeRow,
+  UpdateEmployeeRequest,
+} from "../../../Components/types";
+import {
+  mapApiUserToEmployeeRow,
+  unwrapEmployeeListResponse,
+} from "../../../Components/types";
 
 const employApi = baseApi.injectEndpoints({
-    endpoints: (builder) => ({
-
-        // Create new employee
-        createEmployee: builder.mutation({
-            query: (data) => ({
-                url: "/employ/create-employ",
-                method: "POST",
-                body: data,
-            }),
-            invalidatesTags: ["Employee"],
-        }),
-
-        // Get all employees with dynamic query params
-        getAllEmployees: builder.query({
-            query: (args: Record<string, string | number | boolean | undefined>) => {
-                const params = new URLSearchParams();
-                if (args) {
-                    Object.entries(args).forEach(([name, value]) => {
-                        if (value !== undefined) {
-                            params.append(name, String(value));
-                        }
-                    });
-                }
-                return {
-                    url: "/employ",
-                    method: "GET",
-                    params,
-                };
-            },
-            providesTags: ["Employee"],
-        }),
-
-        // Get my data (authenticated)
-        getMyEmployeeData: builder.query({
-            query: () => ({
-                url: "/employ/my-data",
-                method: "GET",
-            }),
-            providesTags: ["Employee"],
-        }),
-
-        // Get single employee by id
-        getEmployeeById: builder.query({
-            query: (id: string) => `/employ/${id}`,
-            providesTags: ["Employee"],
-        }),
-
-        // Update employee
-        updateEmployee: builder.mutation({
-            query: ({ id, data }: { id: string; data: any }) => ({
-                url: `/employ/${id}`,
-                method: "PATCH",
-                body: data,
-            }),
-            invalidatesTags: ["Employee"],
-        }),
-
-        // Delete employee (hard delete)
-        deleteEmployee: builder.mutation({
-            query: (id: string) => ({
-                url: `/employ/${id}`,
-                method: "DELETE",
-            }),
-            invalidatesTags: ["Employee"],
-        }),
-
-        // Soft delete employee
-        softDeleteEmployee: builder.mutation({
-            query: (id: string) => ({
-                url: `/employ/${id}/soft-delete`,
-                method: "PATCH",
-            }),
-            invalidatesTags: ["Employee"],
-        }),
-
-        // Block / unblock employee
-        blockEmployee: builder.mutation({
-            query: (id: string) => ({
-                url: `/employ/${id}/block`,
-                method: "PATCH",
-            }),
-            invalidatesTags: ["Employee"],
-        }),
-
-        // Change password (authenticated)
-        changeEmployeePassword: builder.mutation({
-            query: (data: { oldPassword: string; newPassword: string }) => ({
-                url: "/employ/change-password",
-                method: "PATCH",
-                body: data,
-            }),
-            invalidatesTags: ["Employee"],
-        }),
-
-        // Verify OTP
-        verifyEmployeeOtp: builder.mutation({
-            query: (data: { email: string; otp: string }) => ({
-                url: "/employ/varify-otp",
-                method: "POST",
-                body: data,
-            }),
-            invalidatesTags: ["Employee"],
-        }),
+  endpoints: (builder) => ({
+    createEmployee: builder.mutation<unknown, CreateEmployeeRequest>({
+      query: (body) => ({
+        url: "/employ/create-employ",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Employee"],
     }),
+
+    getAllEmployees: builder.query<
+      EmployeeRow[],
+      Record<string, string | number | boolean | undefined>
+    >({
+      query: (args) => {
+        const params = new URLSearchParams();
+        Object.entries(args).forEach(([name, value]) => {
+          if (value !== undefined && value !== "") {
+            params.append(name, String(value));
+          }
+        });
+        return {
+          url: "/employ",
+          method: "GET",
+          params,
+        };
+      },
+      transformResponse: (res: unknown) =>
+        unwrapEmployeeListResponse(res).map(mapApiUserToEmployeeRow),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Employee" as const, id })),
+              "Employee",
+            ]
+          : ["Employee"],
+    }),
+
+    getMyEmployeeData: builder.query<unknown, void>({
+      query: () => ({ url: "/employ/my-data", method: "GET" }),
+      providesTags: ["Employee"],
+    }),
+
+    getEmployeeById: builder.query<EmployApiUser, string>({
+      query: (id) => `/employ/${id}`,
+      providesTags: (_r, _e, id) => [{ type: "Employee", id }],
+    }),
+
+    updateEmployee: builder.mutation<
+      unknown,
+      { id: string; data: UpdateEmployeeRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `/employ/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: (_r, _e, { id }) => [{ type: "Employee", id }, "Employee"],
+    }),
+
+    deleteEmployee: builder.mutation<unknown, string>({
+      query: (id) => ({ url: `/employ/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Employee"],
+    }),
+
+    softDeleteEmployee: builder.mutation<unknown, string>({
+      query: (id) => ({
+        url: `/employ/${id}/soft-delete`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Employee"],
+    }),
+
+    blockEmployee: builder.mutation<unknown, string>({
+      query: (id) => ({ url: `/employ/${id}/block`, method: "PATCH" }),
+      invalidatesTags: ["Employee"],
+    }),
+
+    changeEmployeePassword: builder.mutation<
+      unknown,
+      { oldPassword: string; newPassword: string }
+    >({
+      query: (body) => ({
+        url: "/employ/change-password",
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Employee"],
+    }),
+
+    verifyEmployeeOtp: builder.mutation<
+      unknown,
+      { email: string; otp: string }
+    >({
+      query: (body) => ({
+        url: "/employ/varify-otp",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Employee"],
+    }),
+  }),
 });
 
 export const {
-    useCreateEmployeeMutation,
-    useGetAllEmployeesQuery,
-    useGetMyEmployeeDataQuery,
-    useGetEmployeeByIdQuery,
-    useUpdateEmployeeMutation,
-    useDeleteEmployeeMutation,
-    useSoftDeleteEmployeeMutation,
-    useBlockEmployeeMutation,
-    useChangeEmployeePasswordMutation,
-    useVerifyEmployeeOtpMutation,
+  useCreateEmployeeMutation,
+  useGetAllEmployeesQuery,
+  useGetMyEmployeeDataQuery,
+  useGetEmployeeByIdQuery,
+  useUpdateEmployeeMutation,
+  useDeleteEmployeeMutation,
+  useSoftDeleteEmployeeMutation,
+  useBlockEmployeeMutation,
+  useChangeEmployeePasswordMutation,
+  useVerifyEmployeeOtpMutation,
 } = employApi;

@@ -17,11 +17,12 @@ import {
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
-import JobModal, { type Job } from "../../Components/modal/job/JobModal";
+import JobModal from "../../Components/modal/job/JobModal";
+import type { TJob } from "../../Components/types";
 import FilterColumn from "../../Components/FilterColumn/FilterColumn";
 
 // Mock Data
-const mockJobs: Job[] = [
+const mockJobs: TJob[] = [
   {
     id: "1",
     title: "Senior React Developer",
@@ -114,9 +115,9 @@ const filterableColumns = [
 ];
 
 const JobList = () => {
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
+  const [jobs, setJobs] = useState<TJob[]>(mockJobs);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editData, setEditData] = useState<Job | null>(null);
+  const [editData, setEditData] = useState<TJob | null>(null);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
     filterableColumns.map((c) => c.key),
   );
@@ -126,7 +127,7 @@ const JobList = () => {
     setModalOpen(true);
   };
 
-  const handleEdit = (record: Job) => {
+  const handleEdit = (record: TJob) => {
     setEditData(record);
     setModalOpen(true);
   };
@@ -141,13 +142,13 @@ const JobList = () => {
     );
   };
 
-  const handleSubmit = (values: Omit<Job, "id" | "createdAt">) => {
+  const handleSubmit = (values: Omit<TJob, "id" | "createdAt">) => {
     if (editData) {
       setJobs((prev) =>
         prev.map((j) => (j.id === editData.id ? { ...j, ...values } : j)),
       );
     } else {
-      const newJob: Job = {
+      const newJob: TJob = {
         id: Date.now().toString(),
         ...values,
         createdAt: new Date().toLocaleDateString("en-GB").replace(/\//g, "-"),
@@ -169,7 +170,7 @@ const JobList = () => {
       title: "ACTION",
       key: "action",
       width: 110,
-      render: (_: unknown, record: Job) => (
+      render: (_: unknown, record: TJob) => (
         <div className="flex items-center gap-2">
           <Tooltip title="Edit Job Post">
             <CustomButton
@@ -210,7 +211,7 @@ const JobList = () => {
       ),
       dataIndex: "title",
       key: "title",
-      render: (title: string, record: Job) => (
+      render: (title: string, record: TJob) => (
         <div>
           <div className="flex items-center gap-2">
             <span className="font-bold text-gray-800 text-sm">{title}</span>
@@ -271,7 +272,7 @@ const JobList = () => {
       title: "CATEGORY",
       dataIndex: "category",
       key: "category",
-      render: (category: string, record: Job) => (
+      render: (category: string, record: TJob) => (
         <div>
           <span className="font-semibold text-gray-700 text-sm">
             {category}
@@ -291,7 +292,7 @@ const JobList = () => {
         </div>
       ),
       key: "salary",
-      render: (_: unknown, record: Job) => (
+      render: (_: unknown, record: TJob) => (
         <div>
           <span className="font-bold text-emerald-600 text-sm">
             ৳{Number(record.salaryMin).toLocaleString()}
@@ -344,7 +345,7 @@ const JobList = () => {
       title: "STATUS",
       dataIndex: "status",
       key: "status",
-      render: (status: boolean, record: Job) => (
+      render: (status: boolean, record: TJob) => (
         <CustomSwitch
           checked={status}
           onChange={(checked) => handleStatusChange(record.id, checked)}

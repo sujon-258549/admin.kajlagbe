@@ -7,19 +7,9 @@ import {
   faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import dayjs from "dayjs";
+import type { FilterType } from "../types";
 
 const { RangePicker } = DatePicker;
-
-export type FilterType =
-  | "today"
-  | "yesterday"
-  | "this-week"
-  | "previous-week"
-  | "this-month"
-  | "previous-month"
-  | "this-year"
-  | "previous-year"
-  | "custom";
 
 interface DateFilterProps {
   onFilterChange: (type: FilterType, range: [string, string]) => void;

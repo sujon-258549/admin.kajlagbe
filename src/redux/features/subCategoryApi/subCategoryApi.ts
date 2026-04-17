@@ -1,34 +1,5 @@
 import { baseApi } from "../../api/baseApi";
-
-export interface TSubCategory {
-  id: string;
-  name: string;
-  categoryId: string;
-  createdAt: string;
-  updatedAt: string;
-  description?: string;
-  icon?: string;
-  slug: string;
-  status: boolean;
-  category?: {
-    id: string;
-    name: string;
-  };
-}
-
-export interface TMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPage: number;
-}
-
-export interface TResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  meta: TMeta;
-}
+import type { TResponse, TSubCategory } from "../../../Components/types";
 
 export const subCategoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -43,13 +14,12 @@ export const subCategoryApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Category"],
     }),
+
     getSubCategoryById: builder.query<TResponse<TSubCategory>, string>({
-      query: (id) => ({
-        url: `/sub-category/${id}`,
-        method: "GET",
-      }),
+      query: (id) => `/sub-category/${id}`,
       providesTags: ["Category"],
     }),
+
     createSubCategory: builder.mutation<
       TResponse<TSubCategory>,
       Partial<TSubCategory>
@@ -61,24 +31,29 @@ export const subCategoryApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Category"],
     }),
+
     updateSubCategory: builder.mutation<
       TResponse<TSubCategory>,
       { id: string; data: Partial<TSubCategory> }
     >({
       query: ({ id, data }) => ({
         url: `/sub-category/${id}`,
-        method: "PUT",
+        method: "PATCH",
         body: data,
       }),
       invalidatesTags: ["Category"],
     }),
-    updateSubCategoryStatus: builder.mutation<TResponse<TSubCategory>, string>({
-      query: (id) => ({
-        url: `/sub-category/${id}/status`,
-        method: "PATCH",
-      }),
-      invalidatesTags: ["Category"],
-    }),
+
+    updateSubCategoryStatus: builder.mutation<TResponse<TSubCategory>, string>(
+      {
+        query: (id) => ({
+          url: `/sub-category/${id}/status`,
+          method: "PATCH",
+        }),
+        invalidatesTags: ["Category"],
+      },
+    ),
+
     deleteSubCategory: builder.mutation<TResponse<TSubCategory>, string>({
       query: (id) => ({
         url: `/sub-category/${id}`,

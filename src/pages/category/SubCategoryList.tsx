@@ -15,9 +15,8 @@ import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import SubCategoryModal from "../../Components/modal/category/SubCategoryModal";
+import type { TMeta, TSubCategory } from "../../Components/types";
 import {
-  type TMeta,
-  type TSubCategory,
   useCreateSubCategoryMutation,
   useDeleteSubCategoryMutation,
   useGetAllSubCategoryQuery,

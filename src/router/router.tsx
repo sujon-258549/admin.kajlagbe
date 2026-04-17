@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../mainLayout/MainLayout";
 import Dashboard from "../Components/dashboard/Dashboard";
 import EmployeeList from "../pages/employee/EmployeeList";
@@ -12,6 +12,7 @@ import CategoryList from "../pages/category/CategoryList";
 import SubCategoryList from "../pages/category/SubCategoryList";
 import SubscriptionList from "../pages/subscription/SubscriptionList";
 import JobList from "../pages/job/JobList";
+import FolderList from "../pages/media/FolderList";
 
 const router = createBrowserRouter([
   {
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
       {
         path: "job/list",
         element: <JobList />,
+      },
+      {
+        path: "setup/media",
+        element: <FolderList />,
       },
       {
         path: "*",

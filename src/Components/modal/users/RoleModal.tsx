@@ -3,12 +3,19 @@ import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import ModalHeader from "../../common/ModalHeader";
+import type { TRole } from "../../types";
+
+type RoleFormValues = {
+  role: string;
+  description?: string;
+  isActive: boolean;
+};
 
 interface RoleModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: any) => void;
-  editData?: any;
+  onSubmit: (values: RoleFormValues) => Promise<boolean>;
+  editData?: TRole | null;
 }
 
 const RoleModal = ({ open, onClose, onSubmit, editData }: RoleModalProps) => {
@@ -18,22 +25,23 @@ const RoleModal = ({ open, onClose, onSubmit, editData }: RoleModalProps) => {
     if (open) {
       if (editData) {
         form.setFieldsValue({
-            ...editData,
-            status: editData.status === "Active",
+          ...editData,
+          isActive: editData.isActive,
         });
       } else {
         form.resetFields();
-        form.setFieldsValue({ status: true });
+        form.setFieldsValue({ isActive: true });
       }
     }
   }, [editData, open, form]);
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
-      onSubmit({ ...values, status: values.status ? "Active" : "Inactive" });
+  const handleOk = async () => {
+    const values = await form.validateFields();
+    const isSuccess = await onSubmit(values as RoleFormValues);
+    if (isSuccess) {
       form.resetFields();
       onClose();
-    });
+    }
   };
 
   return (
@@ -54,17 +62,22 @@ const RoleModal = ({ open, onClose, onSubmit, editData }: RoleModalProps) => {
       okText={editData ? "Update" : "Create"}
       cancelText="Cancel"
       okButtonProps={{
-        className: "!bg-primary !border-primary !rounded-lg !font-semibold",
+        className: "modal-btn-primary",
       }}
       cancelButtonProps={{
-        className: "!rounded-lg !font-semibold",
+        className: "modal-btn-outline-primary",
       }}
-      width={480}
+      width={530}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4" initialValues={{ status: true }}>
+      <Form
+        form={form}
+        layout="vertical"
+        className="pt-4"
+        initialValues={{ isActive: true }}
+      >
         <Form.Item
-          name="name"
+          name="role"
           label={<span className="font-semibold text-gray-700">Role Name</span>}
           rules={[{ required: true, message: "Please enter role name" }]}
         >
@@ -72,7 +85,18 @@ const RoleModal = ({ open, onClose, onSubmit, editData }: RoleModalProps) => {
         </Form.Item>
 
         <Form.Item
-          name="status"
+          name="description"
+          label={<span className="font-semibold text-gray-700">Description</span>}
+        >
+          <CustomInput.TextArea
+            placeholder="Short role description"
+            rows={4}
+            className="rounded-lg hover:border-primary! focus:border-primary!"
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="isActive"
           valuePropName="checked"
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
@@ -81,6 +105,7 @@ const RoleModal = ({ open, onClose, onSubmit, editData }: RoleModalProps) => {
               checkedChildren="Active"
               unCheckedChildren="Inactive"
               size="default"
+              checked={editData?.isActive}
             />
           </div>
         </Form.Item>

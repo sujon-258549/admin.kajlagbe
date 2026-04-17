@@ -5,22 +5,7 @@ import CustomSwitch from "../../ui/Switch";
 import ModalHeader from "../../common/ModalHeader";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import CustomButton from "../../ui/Button";
-
-export interface Subscription {
-  id: string;
-  name: string;
-  slug: string;
-  price: string;
-  discount: string;
-  duration: string;
-  activeDays: number;
-  description?: string;
-  isRecomended: boolean;
-  featured: string[];
-  isActive: boolean;
-  status: boolean;
-  createdAt: string;
-}
+import type { Subscription } from "../../types";
 
 interface SubscriptionModalProps {
   open: boolean;

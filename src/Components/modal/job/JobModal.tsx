@@ -6,32 +6,13 @@ import CustomSelect from "../../ui/Select";
 import ModalHeader from "../../common/ModalHeader";
 import CustomButton from "../../ui/Button";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
-
-export interface Job {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  category: string;
-  subCategory: string;
-  salaryMin: string;
-  salaryMax: string;
-  experience: string;
-  deadline: string;
-  description: string;
-  skills: string[];
-  isRemote: boolean;
-  isUrgent: boolean;
-  status: boolean;
-  createdAt: string;
-}
+import type { TJob } from "../../types";
 
 interface JobModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: Omit<Job, "id" | "createdAt">) => void;
-  editData?: Job | null;
+  onSubmit: (values: Omit<TJob, "id" | "createdAt">) => void;
+  editData?: TJob | null;
 }
 
 const jobTypeOptions = [

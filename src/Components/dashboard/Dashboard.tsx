@@ -16,7 +16,8 @@ import JobCategoryChart from "../charts/dashboard/UserActivityChart";
 import InterviewSuccessChart from "../charts/dashboard/InterviewSuccessChart";
 import RecruitmentFunnelChart from "../charts/dashboard/RecruitmentFunnelChart";
 import SalaryBenchmarksChart from "../charts/dashboard/SalaryBenchmarksChart";
-import DateFilter, { type FilterType } from "../filter/DateFilter";
+import DateFilter from "../filter/DateFilter";
+import type { FilterType } from "../types";
 import StatCard from "../card/StatCard";
 import { useState } from "react";
 

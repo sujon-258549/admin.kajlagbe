@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Tag } from "antd";
 import DataTable from "../../Tables/DataTable";
-import type { FilterType } from "../../filter/DateFilter";
+import type { FilterType } from "../../types";
 
 interface RecentJobsTableProps {
   externalFilter?: FilterType;
