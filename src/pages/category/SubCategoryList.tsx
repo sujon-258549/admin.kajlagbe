@@ -23,7 +23,7 @@ import {
   useGetAllSubCategoryQuery,
   useUpdateSubCategoryMutation,
   useUpdateSubCategoryStatusMutation,
-} from "../../redux/api/subCategoryApi";
+} from "../../redux/features/subCategoryApi/subCategoryApi";
 import { useGetAllCategoriesQuery } from "../../redux/features/category/categoryApi";
 import { toast } from "sonner";
 import formatDate from "../../Components/utils/dateFormate";
@@ -94,7 +94,7 @@ const SubCategoryList = () => {
       }
     } catch (error: any) {
       toast.error(
-        error?.data?.message || error?.message || "Something went wrong"
+        error?.data?.message || error?.message || "Something went wrong",
       );
     }
   };
@@ -109,7 +109,7 @@ const SubCategoryList = () => {
       }
     } catch (error: any) {
       toast.error(
-        error?.data?.message || error?.message || "Something went wrong"
+        error?.data?.message || error?.message || "Something went wrong",
       );
     }
   };
@@ -118,20 +118,29 @@ const SubCategoryList = () => {
     try {
       let res;
       if (editData) {
-        res = await updateSubCategory({ id: editData.id, data: values }).unwrap();
+        res = await updateSubCategory({
+          id: editData.id,
+          data: values,
+        }).unwrap();
       } else {
         res = await createSubCategory(values).unwrap();
       }
 
       if (res?.success) {
-        toast.success(res?.message || `SubCategory ${editData ? 'updated' : 'created'} successfully`);
+        toast.success(
+          res?.message ||
+            `SubCategory ${editData ? "updated" : "created"} successfully`,
+        );
         setModalOpen(false);
       } else {
-        toast.error(res?.message || `Failed to ${editData ? 'update' : 'create'} subcategory`);
+        toast.error(
+          res?.message ||
+            `Failed to ${editData ? "update" : "create"} subcategory`,
+        );
       }
     } catch (error: any) {
       toast.error(
-        error?.data?.message || error?.message || "Something went wrong"
+        error?.data?.message || error?.message || "Something went wrong",
       );
     }
   };
@@ -212,7 +221,9 @@ const SubCategoryList = () => {
       key: "icon",
       render: (text: string) => (
         <div className="bg-gray-100 p-2 rounded-md inline-block w-8 h-8 flex items-center justify-center">
-          <i className={`${text?.includes('fa-') ? text : `fa-solid fa-${text}`} text-gray-600`}></i>
+          <i
+            className={`${text?.includes("fa-") ? text : `fa-solid fa-${text}`} text-gray-600`}
+          ></i>
         </div>
       ),
     },

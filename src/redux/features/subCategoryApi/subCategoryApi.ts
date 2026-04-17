@@ -1,4 +1,4 @@
-import { baseApi } from "./baseApi";
+import { baseApi } from "../../api/baseApi";
 
 export interface TSubCategory {
   id: string;
@@ -32,7 +32,10 @@ export interface TResponse<T> {
 
 export const subCategoryApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAllSubCategory: builder.query<TResponse<TSubCategory[]>, Record<string, any>>({
+    getAllSubCategory: builder.query<
+      TResponse<TSubCategory[]>,
+      Record<string, any>
+    >({
       query: (arg) => ({
         url: "/sub-category",
         method: "GET",
@@ -47,7 +50,10 @@ export const subCategoryApi = baseApi.injectEndpoints({
       }),
       providesTags: ["Category"],
     }),
-    createSubCategory: builder.mutation<TResponse<TSubCategory>, Partial<TSubCategory>>({
+    createSubCategory: builder.mutation<
+      TResponse<TSubCategory>,
+      Partial<TSubCategory>
+    >({
       query: (data) => ({
         url: "/sub-category",
         method: "POST",
@@ -55,7 +61,10 @@ export const subCategoryApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Category"],
     }),
-    updateSubCategory: builder.mutation<TResponse<TSubCategory>, { id: string; data: Partial<TSubCategory> }>({
+    updateSubCategory: builder.mutation<
+      TResponse<TSubCategory>,
+      { id: string; data: Partial<TSubCategory> }
+    >({
       query: ({ id, data }) => ({
         url: `/sub-category/${id}`,
         method: "PUT",
