@@ -44,7 +44,7 @@ const FolderModal = ({
       if (editData) {
         form.setFieldsValue({
           name: editData.name,
-          status: Boolean(editData.status),
+          status: editData.status === true,
         });
       } else {
         form.resetFields();
@@ -134,14 +134,11 @@ const FolderModal = ({
           valuePropName="checked"
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
-          <div className="flex items-center gap-3">
-            <CustomSwitch
-              checkedChildren="Active"
-              unCheckedChildren="Inactive"
-              size="default"
-              checked={!editData}
-            />
-          </div>
+          <CustomSwitch
+            checkedChildren="Active"
+            unCheckedChildren="Inactive"
+            size="default"
+          />
         </Form.Item>
       </Form>
     </Modal>

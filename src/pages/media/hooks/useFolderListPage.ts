@@ -233,7 +233,7 @@ export function useFolderListPage() {
     try {
       for (const file of imageFiles) {
         try {
-          const res = await uploadMediaImage(file, currentFolderId, (payload) =>
+          const { result: res } = await uploadMediaImage(file, currentFolderId, (payload) =>
             createImage(payload).unwrap(),
           );
           if (res?.success) {

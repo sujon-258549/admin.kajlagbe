@@ -8,6 +8,7 @@ import type {
 import {
   mapApiUserToEmployeeRow,
   unwrapEmployeeListResponse,
+  unwrapEmploySingleResponse,
 } from "../../../Components/types";
 
 const employApi = baseApi.injectEndpoints({
@@ -56,6 +57,11 @@ const employApi = baseApi.injectEndpoints({
 
     getEmployeeById: builder.query<EmployApiUser, string>({
       query: (id) => `/employ/${id}`,
+      transformResponse: (res: unknown) => {
+        const u = unwrapEmploySingleResponse(res);
+        if (u) return u;
+        throw new Error("Invalid employee detail response");
+      },
       providesTags: (_r, _e, id) => [{ type: "Employee", id }],
     }),
 

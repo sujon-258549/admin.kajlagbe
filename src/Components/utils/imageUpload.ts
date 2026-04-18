@@ -48,6 +48,13 @@ function fileBaseName(file: File): string {
   return raw.replace(/\.[^/.]+$/i, "") || "image";
 }
 
+export type UploadMediaImageResult<T> = {
+  /** API / mutation return value. */
+  result: T;
+  /** Cloudinary URL that was sent to the API — use to match rows after refetch. */
+  publicUrl: string;
+};
+
 /**
  * 1) Upload file to Cloudinary (`uploadProfileImage`).
  * 2) Persist metadata via your API (`saveToApi`, e.g. `createImage` from RTK).
@@ -56,12 +63,13 @@ export const uploadMediaImage = async <T>(
   file: File,
   folderId: string | null | undefined,
   saveToApi: (payload: TMediaImageCreatePayload) => Promise<T>,
-): Promise<T> => {
-  const url = await uploadProfileImage(file);
+): Promise<UploadMediaImageResult<T>> => {
+  const publicUrl = await uploadProfileImage(file);
   const name = fileBaseName(file);
-  return saveToApi({
+  const result = await saveToApi({
     name,
-    url,
+    url: publicUrl,
     folderId: folderId ?? null,
   });
+  return { result, publicUrl };
 };
