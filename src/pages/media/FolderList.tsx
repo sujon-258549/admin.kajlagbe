@@ -1,7 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Dropdown, Modal } from "antd";
-import type { MenuProps } from "antd";
+import { Dropdown } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -10,311 +7,60 @@ import {
   faArrowUp,
   faEllipsisVertical,
   faThumbtack,
+  faUpload,
+  faImage,
 } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "../../Components/common/PageHeader";
 import CustomButton from "../../Components/ui/Button";
 import FolderModal from "../../Components/modal/media/FolderModal";
-import type {
-  TFolder,
-  TFolderCreateUpdatePayload,
-  TFolderMeta,
-} from "../../Components/types";
-import {
-  useCreateFolderMutation,
-  useDeleteFolderMutation,
-  useGetAllFoldersQuery,
-  useUpdateFolderMutation,
-} from "../../redux/features/folderApi/folderApi";
-import { toast } from "sonner";
-
-/** Explorer location: `?folder=<folder name>` (omit for root). Legacy `?folder=<uuid>` still resolves. */
-const FOLDER_SEARCH_PARAM = "folder";
-
-const UUID_IN_URL_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function resolveFolderQueryToId(
-  raw: string | null,
-  folders: TFolder[],
-): string | null {
-  if (raw == null || raw.trim() === "") return null;
-  const t = raw.trim();
-  if (UUID_IN_URL_RE.test(t)) {
-    const byId = folders.find((f) => f.id === t);
-    return byId?.id ?? null;
-  }
-  const byName = folders.find((f) => f.name === t);
-  if (byName) return byName.id;
-  const bySlug = folders.find((f) => f.slug === t);
-  return bySlug?.id ?? null;
-}
+import ImageRenameModal from "../../Components/modal/media/ImageRenameModal";
+import FolderSkeleton from "../../Components/skeleton/FolderSkeleton";
+import { LibraryImageThumb } from "./components/LibraryImageThumb";
+import { useFolderListPage } from "./hooks/useFolderListPage";
 
 const FolderList = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editData, setEditData] = useState<TFolder | null>(null);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const setFolderParam = useCallback(
-    (nameOrNull: string | null) => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          if (nameOrNull === null) next.delete(FOLDER_SEARCH_PARAM);
-          else next.set(FOLDER_SEARCH_PARAM, nameOrNull);
-          return next;
-        },
-        { replace: false },
-      );
-    },
-    [setSearchParams],
-  );
-
   const {
-    data: foldersData,
-    isLoading,
-    isFetching,
+    fileInputRef,
+    uploading,
+    renameTarget,
+    setRenameTarget,
+    modalOpen,
+    setModalOpen,
+    editData,
     refetch,
-  } = useGetAllFoldersQuery({});
-
-  const [createFolder] = useCreateFolderMutation();
-  const [updateFolder] = useUpdateFolderMutation();
-  const [deleteFolder] = useDeleteFolderMutation();
-
-  const folders: TFolder[] = useMemo(() => {
-    const d = foldersData?.data;
-    if (Array.isArray(d)) return d;
-    if (
-      d &&
-      typeof d === "object" &&
-      Array.isArray((d as { folders?: unknown }).folders)
-    ) {
-      return (d as { folders: TFolder[] }).folders;
-    }
-    return [];
-  }, [foldersData]);
-
-  const folderParamRaw = useMemo(() => {
-    const v = searchParams.get(FOLDER_SEARCH_PARAM);
-    return v != null && v.trim() !== "" ? v.trim() : null;
-  }, [searchParams]);
-
-  const currentFolderId = useMemo(
-    () => resolveFolderQueryToId(folderParamRaw, folders),
-    [folderParamRaw, folders],
-  );
-
-  const meta: TFolderMeta = foldersData?.meta ?? {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPage: 1,
-  };
-
-  const folderById = useMemo(() => {
-    const map = new Map<string, TFolder>();
-    folders.forEach((f) => map.set(f.id, f));
-    return map;
-  }, [folders]);
-
-  const folderOptions = useMemo(
-    () =>
-      folders
-        .filter((f) => f.id !== editData?.id)
-        .map((f) => ({ label: f.name, value: f.id })),
-    [folders, editData?.id],
-  );
-
-  const parentKey = (id: string | null | undefined) =>
-    id == null || id === "" ? null : id;
-
-  const currentFolders = useMemo(
-    () =>
-      folders.filter(
-        (f) => parentKey(f.parentId) === parentKey(currentFolderId),
-      ),
-    [folders, currentFolderId],
-  );
-
-  const currentPath = useMemo(() => {
-    if (!currentFolderId) return [];
-    const path: TFolder[] = [];
-    let node: TFolder | null | undefined = folderById.get(currentFolderId);
-    while (node) {
-      path.unshift(node);
-      node = node.parentId ? folderById.get(node.parentId) : undefined;
-    }
-    return path;
-  }, [currentFolderId, folderById]);
-
-  const parentFolder = currentFolderId ? folderById.get(currentFolderId) : null;
-
-  useEffect(() => {
-    if (isLoading || isFetching) return;
-    if (!folderParamRaw) return;
-    if (folders.length === 0) return;
-    if (currentFolderId === null) {
-      setFolderParam(null);
-      return;
-    }
-    if (!folderById.has(currentFolderId)) {
-      setFolderParam(null);
-    }
-  }, [
-    folderParamRaw,
+    meta,
+    folderOptions,
     currentFolderId,
-    folders.length,
-    folderById,
-    isLoading,
-    isFetching,
-    setFolderParam,
-  ]);
-
-  const pathSubtitle = useMemo(() => {
-    if (currentPath.length === 0) return "All Folders";
-    return ["All Folders", ...currentPath.map((n) => n.name)].join("\\");
-  }, [currentPath]);
-
-  const getSubtitleForFolder = (folder: TFolder) => {
-    if (!folder.parentId) return "All Folders";
-    const parts: string[] = ["All Folders"];
-    let p: TFolder | undefined = folderById.get(folder.parentId);
-    const stack: string[] = [];
-    while (p) {
-      stack.unshift(p.name);
-      p = p.parentId ? folderById.get(p.parentId) : undefined;
-    }
-    parts.push(...stack);
-    return parts.join("\\");
-  };
-
-  const getRecordId = (record: { id?: string; _id?: string }) =>
-    record.id || record._id || "";
-
-  const getErrorMessage = (error: unknown): string => {
-    if (typeof error === "object" && error !== null) {
-      const err = error as { data?: { message?: string }; message?: string };
-      return err.data?.message || err.message || "Something went wrong";
-    }
-    return "Something went wrong";
-  };
-
-  const handleCreate = () => {
-    setEditData(null);
-    setModalOpen(true);
-  };
-
-  const handleEdit = (record: TFolder) => {
-    setEditData(record);
-    setModalOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const res = await deleteFolder(id).unwrap();
-      if (res?.success) {
-        toast.success(res?.message || "Folder deleted successfully");
-        if (currentFolderId === id) setFolderParam(null);
-      } else {
-        toast.error(res?.message || "Failed to delete folder");
-      }
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error));
-    }
-  };
-
-  const handleSubmit = async (
-    values: TFolderCreateUpdatePayload,
-  ): Promise<boolean> => {
-    try {
-      let res;
-      if (editData) {
-        res = await updateFolder({
-          id: getRecordId(editData),
-          data: values,
-        }).unwrap();
-      } else {
-        res = await createFolder(values).unwrap();
-      }
-
-      if (res?.success) {
-        toast.success(
-          res?.message ||
-            `Folder ${editData ? "updated" : "created"} successfully`,
-        );
-        return true;
-      }
-
-      toast.error(
-        res?.message || `Failed to ${editData ? "update" : "create"} folder`,
-      );
-      return false;
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error));
-      return false;
-    }
-  };
-
-  const stopMenuEvent = (e: { domEvent?: { stopPropagation?: () => void } }) => {
-    e.domEvent?.stopPropagation?.();
-  };
-
-  const goToFolder = (id: string | null) => {
-    if (id === null) {
-      setFolderParam(null);
-      return;
-    }
-    const target = folderById.get(id);
-    if (!target) return;
-    if (target.status === false) {
-      toast.info("This folder is inactive and cannot be opened.");
-      return;
-    }
-    setFolderParam(target.name);
-  };
-
-  const folderMenuItems = (folder: TFolder): MenuProps["items"] => [
-    {
-      key: "open",
-      label: "Open",
-      disabled: !folder.status,
-      onClick: (e) => {
-        stopMenuEvent(e);
-        if (folder.status) goToFolder(folder.id);
-      },
-    },
-    {
-      key: "edit",
-      label: "Rename / Edit",
-      onClick: (e) => {
-        stopMenuEvent(e);
-        handleEdit(folder);
-      },
-    },
-    { type: "divider" },
-    {
-      key: "delete",
-      danger: true,
-      label: "Delete",
-      onClick: (e) => {
-        stopMenuEvent(e);
-        Modal.confirm({
-          title: "Delete folder",
-          content: `Delete “${folder.name}”? This cannot be undone.`,
-          okText: "Delete",
-          okType: "danger",
-          cancelText: "Cancel",
-          onOk: () => handleDelete(folder.id),
-        });
-      },
-    },
-  ];
-
-  /** Do not hide the grid on background refetch — only block when we have no rows yet. */
-  const busy =
-    folders.length === 0 && (isLoading || isFetching);
+    libraryImages,
+    imagesLoading,
+    currentFolders,
+    currentPath,
+    parentFolder,
+    pathSubtitle,
+    busy,
+    isRenamingImage,
+    handlePickImage,
+    handleImageFileChange,
+    handleCreate,
+    handleSubmit,
+    goToFolder,
+    folderMenuItems,
+    imageMenuItems,
+    getSubtitleForFolder,
+    handleSaveImageRename,
+  } = useFolderListPage();
 
   return (
     <div className="space-y-6">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        aria-hidden
+        onChange={handleImageFileChange}
+      />
       <PageHeader
         breadcrumb={[
           { label: "Home", path: "/" },
@@ -388,14 +134,23 @@ const FolderList = () => {
             >
               Up
             </CustomButton>
+            <CustomButton
+              variant="primary"
+              size="sm"
+              loading={uploading}
+              disabled={uploading}
+              icon={<FontAwesomeIcon icon={faUpload} />}
+              onClick={handlePickImage}
+              title="Select one or more images"
+            >
+              Upload
+            </CustomButton>
           </div>
         </div>
 
         <div className="p-4 min-h-[320px]">
           {busy ? (
-            <div className="flex h-48 items-center justify-center text-gray-500 text-sm">
-              Loading folders…
-            </div>
+            <FolderSkeleton />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               <button
@@ -431,10 +186,10 @@ const FolderList = () => {
                         goToFolder(folder.id);
                       }
                     }}
-                    className={`relative flex items-stretch gap-3 rounded-md border bg-white/80 p-3 text-left transition-all select-none border-gray-200 ${
+                    className={`relative flex items-stretch gap-3 rounded-md border bg-white/80 p-3 text-left transition-all select-none border-gray-200! ${
                       inactive
-                        ? "cursor-default opacity-70 hover:bg-white/80"
-                        : "cursor-pointer hover:bg-white hover:border-primary bg-primary/10"
+                        ? "cursor-default opacity-70 hover:bg-white/80 hover:border-gray-200"
+                        : "cursor-pointer hover:bg-white hover:border-primary bg-primary/10 border-gray-200!"
                     }`}
                   >
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center">
@@ -478,12 +233,71 @@ const FolderList = () => {
                   </div>
                 );
               })}
+
+              {libraryImages.map((img) => (
+                <div
+                  key={img.id}
+                  className="group relative flex items-stretch gap-3 rounded-md border border-white/50 bg-primary/10 p-3 text-left shadow-sm transition-all duration-200 select-none hover:-translate-y-px hover:border-primary hover:bg-white"
+                >
+                  <button
+                    type="button"
+                    title="Open in new tab"
+                    className="relative flex h-14 w-14 shrink-0 cursor-pointer overflow-hidden rounded-md bg-gray-50 ring-1 ring-gray-200 border-gray-200! transition-[transform,box-shadow] duration-200 hover:ring-primary/30 group-hover:shadow-inner"
+                    onClick={() =>
+                      window.open(img.url, "_blank", "noopener,noreferrer")
+                    }
+                  >
+                    <LibraryImageThumb
+                      src={img.url}
+                      alt={img.name}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                    />
+                  </button>
+                  <div className="min-w-0 flex-1 flex flex-col justify-center pr-6">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold text-gray-900 truncate">
+                        {img.name}
+                      </span>
+                      <FontAwesomeIcon
+                        icon={faImage}
+                        className="text-[10px] text-gray-300 opacity-60"
+                      />
+                    </div>
+                    <span className="text-xs text-gray-500 truncate leading-snug">
+                      {pathSubtitle}
+                    </span>
+                  </div>
+
+                  <div className="absolute right-1 top-1">
+                    <Dropdown
+                      menu={{ items: imageMenuItems(img) }}
+                      trigger={["click"]}
+                    >
+                      <button
+                        type="button"
+                        className="rounded-md p-1.5 text-gray-400 opacity-80 transition-opacity hover:bg-gray-100 hover:text-gray-700 group-hover:opacity-100"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label="Image actions"
+                      >
+                        <FontAwesomeIcon
+                          icon={faEllipsisVertical}
+                          className="text-xs"
+                        />
+                      </button>
+                    </Dropdown>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          {!busy && currentFolders.length === 0 && (
+          {!busy &&
+            !imagesLoading &&
+            currentFolders.length === 0 &&
+            libraryImages.length === 0 && (
             <p className="mt-6 text-center text-sm text-gray-500">
-              This folder is empty. Click <strong>New folder</strong> to add one.
+              This folder is empty. Click <strong>New folder</strong> or{" "}
+              <strong>Upload</strong> to add files.
             </p>
           )}
         </div>
@@ -494,6 +308,14 @@ const FolderList = () => {
         <strong>New folder</strong> to create inside the current location. Use the ⋮ menu to
         rename or delete.
       </p>
+
+      <ImageRenameModal
+        open={renameTarget !== null}
+        image={renameTarget}
+        onClose={() => setRenameTarget(null)}
+        onSave={handleSaveImageRename}
+        saving={isRenamingImage}
+      />
 
       <FolderModal
         open={modalOpen}

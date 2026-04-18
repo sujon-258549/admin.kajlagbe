@@ -1,11 +1,10 @@
 import { config } from "../../config";
+import type { TMediaImageCreatePayload } from "../types";
 
-
-// utils/cloudinary.ts
- const uploadImageToCloudinary = async (
+const uploadImageToCloudinary = async (
   file: File,
   cloudName: string,
-  uploadPreset: string
+  uploadPreset: string,
 ) => {
   const formData = new FormData();
   formData.append("file", file);
@@ -27,18 +26,42 @@ import { config } from "../../config";
 };
 
 export const uploadProfileImage = async (file: File) => {
-  const cloudName =  config.cloudinary.cloudName;
+  const cloudName = config.cloudinary.cloudName;
   const uploadPreset = config.cloudinary.uploadPreset;
 
   try {
     const uploadedData = await uploadImageToCloudinary(
       file,
       cloudName,
-      uploadPreset
+      uploadPreset,
     );
     return uploadedData.secure_url;
   } catch (error) {
     console.error("Image upload failed:", error);
     throw error;
   }
+};
+
+function fileBaseName(file: File): string {
+  const raw = file.name.trim();
+  if (!raw) return "image";
+  return raw.replace(/\.[^/.]+$/i, "") || "image";
+}
+
+/**
+ * 1) Upload file to Cloudinary (`uploadProfileImage`).
+ * 2) Persist metadata via your API (`saveToApi`, e.g. `createImage` from RTK).
+ */
+export const uploadMediaImage = async <T>(
+  file: File,
+  folderId: string | null | undefined,
+  saveToApi: (payload: TMediaImageCreatePayload) => Promise<T>,
+): Promise<T> => {
+  const url = await uploadProfileImage(file);
+  const name = fileBaseName(file);
+  return saveToApi({
+    name,
+    url,
+    folderId: folderId ?? null,
+  });
 };

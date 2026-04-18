@@ -15,6 +15,16 @@ export const baseApi = createApi({
       return headers
     },
   }),
-  tagTypes: ['User', 'Products', 'Orders', 'Category', 'Employee', 'Department', 'Role', 'Folder'], // Predefined tags for caching/invalidation
+  tagTypes: [
+    'User',
+    'Products',
+    'Orders',
+    'Category',
+    'Employee',
+    'Department',
+    'Role',
+    'Folder',
+    'Media',
+  ],
   endpoints: () => ({}), // Endpoints will be injected from specific slice APIs
 })

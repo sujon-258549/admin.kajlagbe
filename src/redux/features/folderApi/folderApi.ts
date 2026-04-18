@@ -2,6 +2,7 @@ import { baseApi } from "../../api/baseApi";
 import type {
   TFolder,
   TFolderCreateUpdatePayload,
+  TFolderImageListItem,
   TFolderMeta,
   TFolderResponse,
 } from "../../../Components/types";
@@ -12,6 +13,27 @@ const defaultMeta: TFolderMeta = {
   total: 0,
   totalPage: 1,
 };
+
+function normalizeFolderImages(raw: unknown): TFolderImageListItem[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  const out: TFolderImageListItem[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const im = item as Record<string, unknown>;
+    const url = typeof im.url === "string" ? im.url : "";
+    if (!url) continue;
+    out.push({
+      id: im.id != null ? String(im.id) : undefined,
+      name: String(im.name ?? "Image"),
+      url,
+      folderId:
+        im.folderId === null || im.folderId === undefined
+          ? null
+          : String(im.folderId),
+    });
+  }
+  return out.length ? out : undefined;
+}
 
 function normalizeFolderNode(raw: unknown): TFolder | null {
   if (!raw || typeof raw !== "object") return null;
@@ -30,6 +52,7 @@ function normalizeFolderNode(raw: unknown): TFolder | null {
     updatedAt: n.updatedAt == null ? undefined : String(n.updatedAt),
     parent: parent ?? null,
     children: Array.isArray(n.children) ? (n.children as TFolder[]) : undefined,
+    images: normalizeFolderImages(n.images),
   };
 }
 
@@ -45,7 +68,7 @@ function flattenFolderTree(nodes: unknown[]): TFolder[] {
         ...base,
         parentId: base.parentId ?? parentId,
       };
-      out.push({ ...folder, children: undefined });
+      out.push({ ...folder, children: undefined, images: folder.images });
       const children = (raw as Record<string, unknown>).children;
       if (Array.isArray(children) && children.length) {
         visit(children, folder.id);
@@ -58,7 +81,13 @@ function flattenFolderTree(nodes: unknown[]): TFolder[] {
 
 function pickFoldersPayload(
   input: Record<string, unknown>,
-): { folders: unknown[]; meta?: TFolderMeta; success?: boolean; message?: string } {
+): {
+  folders: unknown[];
+  rootImages?: unknown[];
+  meta?: TFolderMeta;
+  success?: boolean;
+  message?: string;
+} {
   // fetchBaseQuery often passes { data: <json body>, meta } — unwrap once
   let root: Record<string, unknown> = input;
   if (
@@ -86,9 +115,11 @@ function pickFoldersPayload(
   }
 
   const folders = Array.isArray(payload.folders) ? payload.folders : [];
+  const rootImages = Array.isArray(payload.images) ? payload.images : undefined;
   const meta = payload.meta as TFolderMeta | undefined;
   return {
     folders,
+    rootImages,
     meta,
     success: typeof root.success === "boolean" ? root.success : undefined,
     message: typeof root.message === "string" ? root.message : undefined,
@@ -100,6 +131,7 @@ function normalizeFolderListResponse(res: unknown): TFolderResponse<TFolder[]> {
   const picked = pickFoldersPayload(r);
 
   let rows: TFolder[] = flattenFolderTree(picked.folders);
+  const rootImages = normalizeFolderImages(picked.rootImages);
   let meta: TFolderMeta = { ...defaultMeta };
 
   if (picked.meta && typeof picked.meta === "object") {
@@ -131,6 +163,7 @@ function normalizeFolderListResponse(res: unknown): TFolderResponse<TFolder[]> {
     message,
     data: rows,
     meta,
+    rootImages,
   };
 }
 
