@@ -25,7 +25,7 @@ type BaseUploaderProps = {
 export type MediaLibraryImageUploaderSingleProps = BaseUploaderProps & {
   isMulti?: false;
   value?: string | null;
-  onChange?: (url: string) => void;
+  onChange?: (url: string, id?: string) => void;
 };
 
 /** Many URLs: `isMulti={true}` — multi-select in the library + `string[]` value/onChange. */
@@ -67,20 +67,21 @@ function MediaLibraryImageUploaderSingle({
   className = "",
 }: MediaLibraryImageUploaderSingleProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const id = typeof value === "string" ? value.trim() : "";
-  const hasImage = Boolean(id);
+  const url = typeof value === "string" ? value.trim() : "";
+  const hasImage = Boolean(url);
 
   const applyUrl = useCallback(
-    (next: string) => {
-      onChange?.(next);
+    (next: string, id?: string) => {
+      onChange?.(next, id);
     },
     [onChange],
   );
 
   const handleConfirm = useCallback(
     (images: TMediaImage[]) => {
-      const picked = images[0]?.url?.trim();
-      if (picked) applyUrl(picked);
+      const pickedUrl = images[0]?.url?.trim();
+      const pickedId = images[0]?.id;
+      if (pickedUrl) applyUrl(pickedUrl, pickedId);
     },
     [applyUrl],
   );
@@ -104,7 +105,7 @@ function MediaLibraryImageUploaderSingle({
               title="Change image"
               className="group relative z-0 block h-full w-full overflow-hidden p-0 text-left transition hover:ring-2 hover:ring-inset hover:ring-[#052e16]/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#052e16] disabled:pointer-events-none disabled:opacity-60"
             >
-              <img src={id} alt="" className={previewImgClass} />
+              <img src={url} alt="" className={previewImgClass} />
               <div
                 className="pointer-events-none absolute inset-0 bg-black/0 transition group-hover:bg-black/25"
                 aria-hidden

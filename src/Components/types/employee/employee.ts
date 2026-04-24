@@ -56,49 +56,51 @@ export const BLOOD_GROUP_LABELS: Record<PrismaBloodGroup, string> = {
 };
 
 export type CreateEmployeeRequest = {
-  email: string;
-  password: string;
-  mobile: string;
-  name: string;
-  /** `AllRole.role` string from API / DB */
-  role: string;
-  isActive: boolean;
-  /** User.isBlocked */
-  isBlocked?: boolean;
-  /** User.isVerified */
-  isVerified?: boolean;
-  /** User.departmentId */
-  departmentId?: string;
-  /** WorkInfo.experience (alias: designation) */
-  designation?: string;
-  /** WorkInfo.workType (alias: department label) */
-  department?: string;
-  /** Profile */
-  gender?: string;
-  age?: number;
-  dob?: string;
-  bloodGroup?: string;
-  profilePhotoUrl?: string;
-  nid?: string;
-  /** Address */
-  division?: string;
-  district?: string;
-  upazila?: string;
-  address?: string;
-  /** WorkInfo.categories — comma string or array */
-  categories?: string | string[];
-  availableTime?: string;
+  user: {
+    email: string;
+    mobile: string;
+    password?: string;
+    roleId?: string;
+    departmentId?: string;
+    isActive: boolean;
+    isVerified: boolean;
+  };
+  profile: {
+    name?: string;
+    gender?: string;
+    age?: number;
+    dob?: string;
+    bloodGroup?: string;
+    photo?: string;
+    photoId?: string;
+    nid?: string;
+    nidPhotoUrl?: string;
+    nidPhotoId?: string;
+  };
+  address: {
+    division?: string;
+    district?: string;
+    upazila?: string;
+    address?: string;
+  };
+  workInfo: {
+    experience?: string;
+    workType?: string;
+    categories?: string[];
+    availableTime?: string;
+  };
 };
 
 export type UpdateEmployeeRequest = {
-  email?: string;
-  mobile?: string;
-  role?: string;
-  password?: string;
-  isActive?: boolean;
-  isBlocked?: boolean;
-  isVerified?: boolean;
-  departmentId?: string | null;
+  user?: {
+    email?: string;
+    mobile?: string;
+    password?: string;
+    roleId?: string;
+    departmentId?: string | null;
+    isActive?: boolean;
+    isVerified?: boolean;
+  };
   profile?: {
     name?: string;
     gender?: string | null;
@@ -106,6 +108,7 @@ export type UpdateEmployeeRequest = {
     dob?: string | null;
     bloodGroup?: string | null;
     photo?: string | null;
+    photoId?: string | null;
     nid?: string | null;
   };
   address?: {
@@ -127,6 +130,7 @@ export type EmployApiUser = {
   email: string;
   mobile: string;
   role: string | { role: string; id?: string };
+  roleId?: string | null;
   isActive: boolean;
   isBlocked?: boolean;
   isVerified?: boolean;
@@ -138,8 +142,9 @@ export type EmployApiUser = {
     dob?: string | null;
     bloodGroup?: string | null;
     photo?: string | null;
+    photoId?: string | null;
     nid?: string | null;
-    nidPhoto?: string[];
+    nidPhotos?: { id: string; url: string }[];
   } | null;
   address?: {
     division?: string | null;
@@ -167,28 +172,39 @@ export type EmployeeRow = {
 };
 
 export type EmployeeModalSubmit = {
-  name: string;
-  email: string;
-  mobile: string;
-  role: string;
-  isActive: boolean;
-  isVerified: boolean;
-  departmentId?: string;
-  designation: string;
-  department: string;
-  password?: string;
-  gender?: string;
-  age?: number;
-  dob?: string;
-  bloodGroup?: string;
-  profilePhotoUrl?: string;
-  nid?: string;
-  division?: string;
-  district?: string;
-  upazila?: string;
-  addressLine?: string;
-  categories?: string;
-  availableTime?: string;
+  user: {
+    email: string;
+    mobile: string;
+    password?: string;
+    roleId?: string;
+    departmentId?: string;
+    isActive: boolean;
+    isVerified: boolean;
+  };
+  profile: {
+    name?: string;
+    gender?: string;
+    age?: number;
+    dob?: string;
+    bloodGroup?: string;
+    photo?: string;
+    photoId?: string;
+    nid?: string;
+    nidPhotoUrl?: string;
+    nidPhotoId?: string;
+  };
+  address: {
+    division?: string;
+    district?: string;
+    upazila?: string;
+    address?: string;
+  };
+  workInfo: {
+    experience?: string;
+    workType?: string;
+    categories?: string[];
+    availableTime?: string;
+  };
 };
 
 export function isPrismaRole(v: string): v is PrismaRole {

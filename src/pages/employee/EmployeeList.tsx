@@ -21,14 +21,22 @@ import {
   useGetEmployeeByIdQuery,
   useUpdateEmployeeMutation,
 } from "../../redux/features/employApi/employApi";
-import type { CreateEmployeeRequest, EmployeeModalSubmit, UpdateEmployeeRequest } from "../../Components/types";
+import type {
+  CreateEmployeeRequest,
+  EmployeeModalSubmit,
+  UpdateEmployeeRequest,
+} from "../../Components/types";
 import { ROLE_LABELS } from "../../Components/types";
-import { resolveProfileAge } from "../../Components/utils/ageFromDob";
 
 const EmployeeList = () => {
-  const { data: employees = [], isLoading, isFetching, refetch } =
-    useGetAllEmployeesQuery({});
-  const [, { isLoading: isCreating }] = useCreateEmployeeMutation();
+  const {
+    data: employees = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetAllEmployeesQuery({});
+  const [createEmployee, { isLoading: isCreating }] =
+    useCreateEmployeeMutation();
   const [updateEmployee, { isLoading: isUpdating }] =
     useUpdateEmployeeMutation();
   const [deleteEmployee, { isLoading: isDeleting }] =
@@ -38,10 +46,10 @@ const EmployeeList = () => {
   const [editData, setEditData] = useState<Employee | null>(null);
   const [viewData, setViewData] = useState<Employee | null>(null);
 
-  const { data: editDetail, isFetching: editDetailLoading } = useGetEmployeeByIdQuery(
-    editData?.id ?? "",
-    { skip: !modalOpen || !editData?.id },
-  );
+  const { data: editDetail, isFetching: editDetailLoading } =
+    useGetEmployeeByIdQuery(editData?.id ?? "", {
+      skip: !modalOpen || !editData?.id,
+    });
 
   const tableLoading =
     isLoading || isFetching || isCreating || isUpdating || isDeleting;
@@ -69,7 +77,7 @@ const EmployeeList = () => {
     try {
       await updateEmployee({
         id: record.id,
-        data: { isActive: checked },
+        data: { user: { isActive: checked } },
       }).unwrap();
       message.success(checked ? "Activated" : "Deactivated");
     } catch {
@@ -81,80 +89,15 @@ const EmployeeList = () => {
   const handleSubmit = async (values: EmployeeModalSubmit) => {
     try {
       if (editData) {
-        const data: UpdateEmployeeRequest = {
-          email: values.email.trim().toLowerCase(),
-          mobile: values.mobile,
-          role: values.role,
-          isActive: values.isActive,
-          isVerified: values.isVerified,
-          departmentId: values.departmentId ?? null,
-          profile: {
-            name: values.name.trim(),
-            gender: values.gender ?? null,
-            age: resolveProfileAge(values.dob, values.age),
-            dob: values.dob?.trim() ? values.dob.trim() : null,
-            bloodGroup: values.bloodGroup ?? null,
-            photo: values.profilePhotoUrl?.trim() ? values.profilePhotoUrl.trim() : null,
-            nid: values.nid?.trim() ? values.nid.trim() : null,
-          },
-          address: {
-            division: values.division?.trim() ? values.division.trim() : null,
-            district: values.district?.trim() ? values.district.trim() : null,
-            upazila: values.upazila?.trim() ? values.upazila.trim() : null,
-            address: values.addressLine?.trim() ? values.addressLine.trim() : null,
-          },
-          workInfo: {
-            experience: values.designation.trim() || null,
-            workType: values.department.trim() || null,
-            categories: values.categories
-              ? values.categories
-                  .split(",")
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-              : [],
-            availableTime: values.availableTime?.trim()
-              ? values.availableTime.trim()
-              : null,
-          },
-        };
-        if (values.password) {
-          data.password = values.password;
-        }
+        // Update request: user info is nested under 'user'
+        const data: UpdateEmployeeRequest = values;
         await updateEmployee({ id: editData.id, data }).unwrap();
         message.success("Employee updated");
       } else {
-        if (!values.password) {
-          message.error("Password is required for new users");
-          return;
-        }
-        const body: CreateEmployeeRequest = {
-          email: values.email.trim().toLowerCase(),
-          password: values.password,
-          mobile: values.mobile,
-          name: values.name.trim(),
-          role: values.role,
-          isActive: values.isActive,
-          isVerified: values.isVerified,
-          departmentId: values.departmentId,
-          designation: values.designation.trim(),
-          department: values.department.trim(),
-          gender: values.gender,
-          age: resolveProfileAge(values.dob, values.age) ?? undefined,
-          dob: values.dob,
-          bloodGroup: values.bloodGroup,
-          profilePhotoUrl: values.profilePhotoUrl,
-          nid: values.nid,
-          division: values.division,
-          district: values.district,
-          upazila: values.upazila,
-          address: values.addressLine,
-          categories: values.categories,
-          availableTime: values.availableTime,
-        };
-
+        // Create request: values already follow the CreateEmployeeRequest nested structure
+        const body: CreateEmployeeRequest = values;
         console.log("body", body);
-
-        // await createEmployee(body).unwrap();
+        await createEmployee(body).unwrap();
         message.success("Employee created");
       }
       setModalOpen(false);
