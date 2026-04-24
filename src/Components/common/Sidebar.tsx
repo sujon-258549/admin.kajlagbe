@@ -16,19 +16,19 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect } from "react";
 import { NavLink, Link, useLocation } from "react-router";
+import { useMyData } from "../../redux/hooks";
 
 const menuItems = [
-  { name: "Dashboard", icon: faTableColumns, path: "/" },
+  { name: "Dashboard", icon: faTableColumns, path: "/", module: "Dashboard" },
   {
     name: "User Management",
     icon: faUsers,
     path: "/users",
     submenu: [
-      { name: "All Employee", path: "/employee/all" },
-      { name: "Roles", path: "/users/roles" },
-      // { name: "Designations", path: "/users/designations" },
-      { name: "Departments", path: "/users/departments" },
-      { name: "Work Types", path: "/users/work-types" },
+      { name: "All Employee", path: "/employee/all", module: "Employees" },
+      { name: "Roles", path: "/users/roles", module: "Roles" },
+      { name: "Departments", path: "/users/departments", module: "Departments" },
+      { name: "Work Types", path: "/users/work-types", module: "Work Types" },
     ],
   },
   {
@@ -36,57 +36,63 @@ const menuItems = [
     icon: faBriefcase,
     path: "/category",
     submenu: [
-      { name: "Category", path: "/category/list" },
-      { name: "SubCategory", path: "/sub/category" },
+      { name: "Category", path: "/category/list", module: "Categories" },
+      { name: "SubCategory", path: "/sub/category", module: "SubCategories" },
     ],
   },
   {
     name: "Job Management",
     icon: faBuilding,
     path: "/job",
+    module: "Job Management",
     submenu: [
-      { name: "Job List", path: "/job/list" }      ],
+      { name: "Job List", path: "/job/list", module: "Job Management" }      ],
   },
   {
     name: "Subscription",
     icon: faTasksAlt,
     path: "/subscription",
+    module: "Subscription",
   },
   {
     name: "Apply Job",
     icon: faToolbox,
     path: "/apply-job",
+    module: "Apply Job",
     submenu: [
-      { name: "Apply Job List", path: "/apply-job/list" },
-      { name: "Apply Job Categories", path: "/apply-job/categories" },
+      { name: "Apply Job List", path: "/apply-job/list", module: "Apply Job" },
+      { name: "Apply Job Categories", path: "/apply-job/categories", module: "Apply Job" },
     ],
   },
   {
     name: "Productions",
     icon: faIndustry,
     path: "/productions",
+    module: "Productions",
     submenu: [
-      { name: "Production Plan", path: "/productions/plan" },
-      { name: "Work Orders", path: "/productions/work-orders" },
+      { name: "Production Plan", path: "/productions/plan", module: "Productions" },
+      { name: "Work Orders", path: "/productions/work-orders", module: "Productions" },
     ],
   },
   {
     name: "Sales Management",
     icon: faChartLine,
     path: "/sales",
+    module: "Sales Management",
     submenu: [
-      { name: "Sales Summary", path: "/sales/summary" },
-      { name: "Customer Ledger", path: "/sales/ledger" },
+      { name: "Sales Summary", path: "/sales/summary", module: "Sales Management" },
+      { name: "Customer Ledger", path: "/sales/ledger", module: "Sales Management" },
     ],
   },
   {
     name: "Setup Menu",
     icon: faCogs,
     path: "/setup",
+    module: "Settings",
     submenu: [
-      { name: "General Settings", path: "/setup/general" },
-      { name: "Business Setup", path: "/setup/business" },
-      { name: "Media", path: "/setup/media" },
+      { name: "General Settings", path: "/setup/general", module: "Settings" },
+      { name: "Business Setup", path: "/setup/business", module: "Settings" },
+      { name: "Media", path: "/setup/media", module: "Settings" },
     ],
   },
 ];
@@ -100,9 +106,35 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const location = useLocation();
   const [expanded, setExpanded] = useState<string | null>("Dashboard");
 
+  const { user: currentUser } = useMyData();
+  const userPermissions = currentUser?.role?.permissions || [];
+
+  console.log(userPermissions);
+
+  const hasViewPermission = (moduleName?: string) => {
+    if (!moduleName) return true;
+    const modulePerm = userPermissions.find((p: any) => p.module === moduleName);
+    return modulePerm?.permissions?.includes("View");
+  };
+
+  const filteredMenuItems = menuItems
+    .map((item) => {
+      if (item.submenu) {
+        const visibleSubmenu = item.submenu.filter((sub) =>
+          hasViewPermission(sub.module),
+        );
+        if (visibleSubmenu.length > 0) {
+          return { ...item, submenu: visibleSubmenu };
+        }
+        return hasViewPermission(item.module) ? item : null;
+      }
+      return hasViewPermission(item.module) ? item : null;
+    })
+    .filter(Boolean) as typeof menuItems;
+
   // Auto-expand menu based on current location
   useEffect(() => {
-    menuItems.forEach((item) => {
+    filteredMenuItems.forEach((item) => {
       if (item.submenu) {
         const isChildActive = item.submenu.some(
           (sub) => sub.path === location.pathname,
@@ -114,7 +146,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
         setExpanded(item.name);
       }
     });
-  }, [location.pathname]);
+  }, [location.pathname, filteredMenuItems]);
 
   return (
     <>
@@ -155,7 +187,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
 
         {/* Navigation Links */}
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const hasSubmenu = !!item.submenu;
             const isExpanded = expanded === item.name;
             const isAnySubActive = item.submenu?.some(

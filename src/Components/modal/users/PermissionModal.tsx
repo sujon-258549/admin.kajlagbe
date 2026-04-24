@@ -1,21 +1,22 @@
 import { Modal, Spin } from "antd";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { SearchOutlined } from "@ant-design/icons";
 import CustomButton from "../../ui/Button";
 import CustomInput from "../../ui/Input";
 import CustomCheckbox from "../../ui/Checkbox";
 import ModalHeader from "../../common/ModalHeader";
 import type { TRole } from "../../types";
-import { 
-  useGetRolePermissionsQuery, 
-  useUpdateRolePermissionsMutation 
-} from "../../redux/features/rolePermissionApi/rolePermissionApi";
+import {
+  useGetRolePermissionsQuery,
+  useUpdateRolePermissionsMutation,
+} from "../../../redux/features/rolePermissionApi/rolePermissionApi";
 import { toast } from "sonner";
 
 interface PermissionModalProps {
   open: boolean;
   onClose: () => void;
   role: TRole | null;
+  initialPermissions?: any[] | null;
 }
 
 const modules = [
@@ -39,34 +40,58 @@ const modules = [
   { name: "Settings", permissions: ["View", "Update"] },
 ];
 
-const PermissionModal = ({
-  open,
-  onClose,
-  role,
+const PermissionModal = ({ 
+  open, 
+  onClose, 
+  role, 
+  initialPermissions 
 }: PermissionModalProps) => {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: permissionsData, isLoading: isFetching } = useGetRolePermissionsQuery(role?.id, {
+  // Use role permissions query based on props
+  const { data: rolePermissions, isLoading: roleLoading } = useGetRolePermissionsQuery(role?.id, {
     skip: !open || !role?.id,
   });
 
-  const [updatePermissions, { isLoading: isUpdating }] = useUpdateRolePermissionsMutation();
+  const [updateRolePermissions, { isLoading: isUpdatingRole }] = useUpdateRolePermissionsMutation();
 
-  // Sync server data to local state
-  useEffect(() => {
-    if (permissionsData?.success && permissionsData?.data) {
-      const flatPerms: string[] = [];
+  const isFetching = roleLoading;
+  const isUpdating = isUpdatingRole;
+
+  // Decide which data source to use: initialPermissions or rolePermissions
+  const permissionsData = initialPermissions ? { success: true, data: initialPermissions } : rolePermissions;
+
+  // Track last synced data to avoid infinite loops and cascading renders
+  const [lastSyncedData, setLastSyncedData] = useState<any>(null);
+
+  // Sync server data (when open) or reset state (when closed) during render phase
+  // This avoids all "cascading renders" warnings by keeping state updates within the render cycle
+  // Sync server data to local state when modal is open and data arrives
+  if (open && permissionsData?.success && permissionsData?.data) {
+    // Only sync if this is a fresh data object we haven't processed yet
+    if (permissionsData !== lastSyncedData) {
+      setLastSyncedData(permissionsData);
+      
+      const flat: string[] = [];
       permissionsData.data.forEach((item: any) => {
-        item.permissions.forEach((p: string) => {
-          flatPerms.push(`${item.module}-${p}`);
-        });
+        if (item.module && item.permissions) {
+          item.permissions.forEach((p: string) => {
+            flat.push(`${item.module}-${p}`);
+          });
+        }
       });
-      setSelectedPermissions(flatPerms);
-    } else if (!isFetching) {
-      setSelectedPermissions([]);
+      
+      setSelectedPermissions(flat);
     }
-  }, [permissionsData, isFetching]);
+  } 
+  
+  // Reset state when modal is closed to prepare for next use
+  if (!open && (lastSyncedData !== null || selectedPermissions.length > 0 || searchQuery !== "")) {
+    setLastSyncedData(null);
+    setSelectedPermissions([]);
+    setSearchQuery("");
+  }
 
   const togglePermission = (permId: string) => {
     setSelectedPermissions((prev) =>
@@ -135,25 +160,26 @@ const PermissionModal = ({
     if (!role?.id) return;
 
     // Transform flat array ["Module-Perm"] into [{ module: "Module", permissions: ["Perm"] }]
-    const transformedPermissions = modules.reduce((acc: any[], module) => {
+    const transformedPermissions = modules.map((module) => {
       const modulePermissions = selectedPermissions
         .filter((p) => p.startsWith(`${module.name}-`))
         .map((p) => p.replace(`${module.name}-`, ""));
 
-      if (modulePermissions.length > 0) {
-        acc.push({
-          module: module.name,
-          permissions: modulePermissions,
-        });
-      }
-      return acc;
-    }, []);
+      return {
+        module: module.name,
+        permissions: modulePermissions,
+      };
+    });
 
     try {
-      const res = await updatePermissions({
+      if (!role?.id) return;
+      
+      const res = await updateRolePermissions({
         roleId: role.id,
         permissions: transformedPermissions,
       }).unwrap();
+      
+      console.log(res, "resss");
 
       if (res?.success) {
         toast.success(res?.message || "Permissions updated successfully");
@@ -208,33 +234,59 @@ const PermissionModal = ({
           <div className="bg-gray-50/50 border border-gray-200 rounded-md p-4 mb-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mr-2">Quick Grant:</span>
-                <CustomButton variant="outline" size="sm" className="h-8 text-xs font-semibold px-4" onClick={() => handleSelectAllByType("View")}>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mr-2">
+                  Quick Grant:
+                </span>
+                <CustomButton
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs font-semibold px-4"
+                  onClick={() => handleSelectAllByType("View")}
+                >
                   View All
                 </CustomButton>
-                <CustomButton variant="outline" size="sm" className="h-8 text-xs font-semibold px-4" onClick={() => handleSelectAllByType("Create")}>
+                <CustomButton
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs font-semibold px-4"
+                  onClick={() => handleSelectAllByType("Create")}
+                >
                   Create All
                 </CustomButton>
-                <CustomButton variant="outline" size="sm" className="h-8 text-xs font-semibold px-4" onClick={() => handleSelectAllByType("Update")}>
+                <CustomButton
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs font-semibold px-4"
+                  onClick={() => handleSelectAllByType("Update")}
+                >
                   Update All
                 </CustomButton>
-                <CustomButton variant="outline" size="sm" className="h-8 text-xs font-semibold px-4" onClick={() => handleSelectAllByType("Delete")}>
+                <CustomButton
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs font-semibold px-4"
+                  onClick={() => handleSelectAllByType("Delete")}
+                >
                   Delete All
                 </CustomButton>
-                <div className="w-px h-6 bg-gray-200 mx-2" />
-                <CustomButton variant="primary" size="sm" className="h-8 text-xs font-semibold px-5" onClick={handleFullAccess}>
-                  Grant Full Access
-                </CustomButton>
               </div>
-              
+
               <div className="flex items-center gap-4 ml-auto">
                 <div className="text-right">
-                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-tight">Selection Progress</span>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                    Selection Progress
+                  </span>
                   <span className="text-sm font-bold text-primary">
-                    {selectedPermissions.length} / {totalPermissionsCount} Selected
+                    {selectedPermissions.length} / {totalPermissionsCount}{" "}
+                    Selected
                   </span>
                 </div>
-                <CustomButton variant="danger-outline" size="sm" className="h-8 text-xs font-semibold" onClick={handleClearAllBtn}>
+                <CustomButton
+                  variant="danger-outline"
+                  size="sm"
+                  className="h-8 text-xs font-semibold"
+                  onClick={handleClearAllBtn}
+                >
                   Reset All
                 </CustomButton>
               </div>
@@ -246,7 +298,9 @@ const PermissionModal = ({
             <CustomCheckbox
               className="text-gray-700 font-semibold text-sm"
               checked={isAllSelected}
-              onChange={(e: any) => e.target.checked ? handleFullAccess() : handleClearAllBtn()}
+              onChange={(e: any) =>
+                e.target.checked ? handleFullAccess() : handleClearAllBtn()
+              }
             >
               Select all system permissions
             </CustomCheckbox>
@@ -264,7 +318,9 @@ const PermissionModal = ({
                     {module.name}
                   </h4>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">Module Level</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase">
+                      Module Level
+                    </span>
                     <CustomCheckbox
                       checked={isModuleSelected(module.name)}
                       onChange={() => toggleModule(module.name)}
@@ -294,10 +350,20 @@ const PermissionModal = ({
 
           {/* Final Save Button Section */}
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-200 mt-4">
-            <CustomButton variant="outline" className="font-semibold px-6" onClick={onClose} disabled={isUpdating}>
+            <CustomButton
+              variant="outline"
+              className="font-semibold px-6"
+              onClick={onClose}
+              disabled={isUpdating}
+            >
               Cancel
             </CustomButton>
-            <CustomButton variant="primary" className="font-semibold px-10 shadow-md" onClick={handleSave} loading={isUpdating}>
+            <CustomButton
+              variant="primary"
+              className="font-semibold px-10 shadow-md"
+              onClick={handleSave}
+              loading={isUpdating}
+            >
               Save Permissions
             </CustomButton>
           </div>

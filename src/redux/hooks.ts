@@ -7,6 +7,15 @@ import type { AppDispatch, RootState } from './store';
 export const useAppDispatch: () => AppDispatch = useDispatch;
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
+import { selectCurrentUser } from './features/auth/authSlice';
+import { useGetMyDataQuery } from './features/auth/authApi';
+
+export const useCurrentUser = () => useAppSelector(selectCurrentUser);
+export const useMyData = () => {
+  const { data, isLoading, isError, refetch } = useGetMyDataQuery(undefined);
+  return { user: data?.data, isLoading, isError, refetch };
+};
+
 type TDebouncedProps = {
   searchQuery: string;
   delay: number;

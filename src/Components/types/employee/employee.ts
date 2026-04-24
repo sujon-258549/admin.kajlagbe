@@ -173,6 +173,7 @@ export type EmployApiUser = {
     workTimeLimit?: string | null;
     availableTime?: string | null;
   } | null;
+  permissions?: { module: string; permissions: string[] }[];
 };
 
 export type EmployeeRow = {
