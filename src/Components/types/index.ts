@@ -10,3 +10,4 @@ export * from "./category/category";
 export * from "./department/department";
 export * from "./role/role";
 export * from "./media/media";
+export * from "./workType/workType";
