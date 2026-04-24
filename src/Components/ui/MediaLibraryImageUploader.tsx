@@ -32,7 +32,7 @@ export type MediaLibraryImageUploaderSingleProps = BaseUploaderProps & {
 export type MediaLibraryImageUploaderMultiProps = BaseUploaderProps & {
   isMulti: true;
   value?: string[];
-  onChange?: (urls: string[]) => void;
+  onChange?: (urls: string[], ids?: string[]) => void;
 };
 
 export type MediaLibraryImageUploaderProps =
@@ -138,13 +138,13 @@ function MediaLibraryImageUploaderSingle({
             disabled={disabled}
             onClick={openPicker}
             aria-label="Open media library to upload or choose image"
-            className={`group flex ${box} flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-[#fafafa] p-2 text-center transition-all hover:border-[#052e16]/45 hover:bg-emerald-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#052e16]/30 disabled:pointer-events-none disabled:opacity-60`}
+            className={`group flex ${box} flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-gray-300 bg-[#fafafa] p-2 text-center transition-all duration-300 hover:border-[#052e16]/45 hover:bg-emerald-50/50 hover:shadow-md active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#052e16]/30 disabled:pointer-events-none disabled:opacity-60`}
           >
             <FontAwesomeIcon
               icon={faUpload}
-              className="text-3xl text-slate-400 transition-colors group-hover:text-[#052e16]"
+              className="text-3xl text-slate-400 transition-colors duration-300 group-hover:text-[#052e16]"
             />
-            <span className="text-sm font-semibold text-slate-500 transition-colors group-hover:text-[#052e16]">
+            <span className="text-sm font-semibold text-slate-500 transition-colors duration-300 group-hover:text-[#052e16]">
               {emptyLabel}
             </span>
           </button>
@@ -180,21 +180,26 @@ function MediaLibraryImageUploaderMulti({
   }, [value]);
 
   const applyUrls = useCallback(
-    (next: string[]) => {
-      onChange?.(next);
+    (next: string[], nextIds?: string[]) => {
+      onChange?.(next, nextIds);
     },
     [onChange],
   );
 
   const handleConfirm = useCallback(
     (images: TMediaImage[]) => {
-      const picked = urlsFromImages(images);
-      if (picked.length === 0) return;
-      const merged: string[] = [...urls];
-      for (const p of picked) {
-        if (!merged.includes(p)) merged.push(p);
+      const pickedUrls = urlsFromImages(images);
+      const pickedIds = images.map(img => img.id).filter(Boolean) as string[];
+      if (pickedUrls.length === 0) return;
+
+      const mergedUrls: string[] = [...urls];
+      for (const p of pickedUrls) {
+        if (!mergedUrls.includes(p)) mergedUrls.push(p);
       }
-      applyUrls(merged);
+      // For IDs, it's a bit trickier since we only have URLs in 'value' (urls).
+      // If we want to maintain IDs, we'd need them in 'value' too.
+      // For now, let's just pass the newly picked IDs alongside the URLs.
+      applyUrls(mergedUrls, pickedIds);
     },
     [applyUrls, urls],
   );

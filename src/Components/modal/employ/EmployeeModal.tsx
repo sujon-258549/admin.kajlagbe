@@ -66,8 +66,8 @@ type FormValues = {
   profilePhotoUrl?: string;
   photoId?: string;
   nid?: string;
-  nidPhotoUrl?: string;
-  nidPhotoId?: string;
+  nidPhotoUrls?: string[];
+  nidPhotoIds?: string[];
   division?: string;
   district?: string;
   upazila?: string;
@@ -93,7 +93,7 @@ const EmployeeModal = ({
   const isEdit = !!editData;
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const profilePhotoUrl = Form.useWatch("profilePhotoUrl", form);
-  const nidPhotoUrl = Form.useWatch("nidPhotoUrl", form);
+  const nidPhotoUrls = Form.useWatch("nidPhotoUrls", form);
 
   const { data: deptResponse, isFetching: deptLoading } =
     useGetAllDepartmentsQuery({}, { skip: !open });
@@ -190,8 +190,8 @@ const EmployeeModal = ({
         profilePhotoUrl: src.profile?.photo ?? "",
         photoId: src.profile?.photoId ?? "",
         nid: src.profile?.nid ?? "",
-        nidPhotoUrl: src.profile?.nidPhotos?.[0]?.url ?? "",
-        nidPhotoId: src.profile?.nidPhotos?.[0]?.id ?? "",
+        nidPhotoUrls: (src.profile?.nidPhotos ?? []).map((p) => p.url),
+        nidPhotoIds: (src.profile?.nidPhotos ?? []).map((p) => p.id),
         division: src.address?.division ?? "",
         district: src.address?.district ?? "",
         upazila: src.address?.upazila ?? "",
@@ -224,8 +224,8 @@ const EmployeeModal = ({
         profilePhotoUrl: "",
         photoId: "",
         nid: "",
-        nidPhotoUrl: "",
-        nidPhotoId: "",
+        nidPhotoUrls: [],
+        nidPhotoIds: [],
         division: "",
         district: "",
         upazila: "",
@@ -263,8 +263,8 @@ const EmployeeModal = ({
           photo: values.profilePhotoUrl?.trim() || undefined,
           photoId: values.photoId || undefined,
           nid: values.nid?.trim() || undefined,
-          nidPhotoUrl: values.nidPhotoUrl?.trim() || undefined,
-          nidPhotoId: values.nidPhotoId || undefined,
+          nidPhotoUrls: values.nidPhotoUrls || [],
+          nidPhotoIds: values.nidPhotoIds || [],
         },
         address: {
           division: values.division?.trim() || undefined,
@@ -327,7 +327,7 @@ const EmployeeModal = ({
             fontWeight: 600,
           },
         }}
-        width={920}
+        width={1100}
         centered
         destroyOnClose
         wrapClassName="px-3 py-5 sm:px-5 sm:py-8"
@@ -363,7 +363,7 @@ const EmployeeModal = ({
                   ?.id || undefined,
             }}
           >
-            <div className="mb-6 overflow-hidden rounded-xl border border-gray-100 bg-gray-50/30 p-4 transition-all hover:bg-gray-50/50">
+            <div className="mb-6 overflow-hidden">
               <div className="mb-3">
                 <p className="text-sm font-bold text-gray-800">Profile Photo</p>
                 <p className="text-xs text-gray-500">Supported formats: JPG, PNG, WEBP</p>
@@ -609,7 +609,7 @@ const EmployeeModal = ({
             >
               Profile
             </Divider>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
               <Form.Item
                 name="gender"
                 label="Gender "
@@ -646,23 +646,27 @@ const EmployeeModal = ({
               </Form.Item>
             </div>
 
-            <div className="mb-6 overflow-hidden rounded-xl border border-gray-100 bg-gray-50/30 p-4 transition-all hover:bg-gray-50/50">
+            <div className="mb-6 overflow-hidden">
               <div className="mb-3">
-                <p className="text-sm font-bold text-gray-800">NID Photo</p>
-                <p className="text-xs text-gray-500">Upload or select National ID card image</p>
+                <p className="text-sm font-bold text-gray-800">NID Photos</p>
+                <p className="text-xs text-gray-500">Upload or select National ID card images (multiple)</p>
               </div>
               <div className="flex">
-                <Form.Item name="nidPhotoUrl" noStyle>
+                <Form.Item name="nidPhotoUrls" noStyle>
                   <MediaLibraryImageUploader
-                    value={nidPhotoUrl}
-                    onChange={(url, id) => {
-                      form.setFieldsValue({ nidPhotoUrl: url, nidPhotoId: id });
+                    isMulti={true}
+                    value={nidPhotoUrls}
+                    onChange={(urls, ids) => {
+                      form.setFieldsValue({
+                        nidPhotoUrls: urls,
+                        nidPhotoIds: ids,
+                      });
                     }}
-                    pickerTitle="Choose NID photo"
-                    pickerOkText="Use this image"
+                    pickerTitle="Choose NID photos"
+                    pickerOkText="Use these images"
                   />
                 </Form.Item>
-                <Form.Item name="nidPhotoId" noStyle>
+                <Form.Item name="nidPhotoIds" noStyle>
                   <div className="hidden" />
                 </Form.Item>
               </div>

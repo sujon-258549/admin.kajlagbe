@@ -28,6 +28,7 @@ const menuItems = [
       { name: "Roles", path: "/users/roles" },
       // { name: "Designations", path: "/users/designations" },
       { name: "Departments", path: "/users/departments" },
+      { name: "Work Types", path: "/users/work-types" },
     ],
   },
   {

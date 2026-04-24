@@ -74,8 +74,8 @@ export type CreateEmployeeRequest = {
     photo?: string;
     photoId?: string;
     nid?: string;
-    nidPhotoUrl?: string;
-    nidPhotoId?: string;
+    nidPhotoUrls?: string[];
+    nidPhotoIds?: string[];
   };
   address: {
     division?: string;
@@ -110,8 +110,8 @@ export type UpdateEmployeeRequest = {
     photo?: string | null;
     photoId?: string | null;
     nid?: string | null;
-    nidPhotoUrl?: string | null;
-    nidPhotoId?: string | null;
+    nidPhotoUrls?: string[] | null;
+    nidPhotoIds?: string[] | null;
   };
   address?: {
     division?: string | null;
@@ -192,8 +192,8 @@ export type EmployeeModalSubmit = {
     photo?: string;
     photoId?: string;
     nid?: string;
-    nidPhotoUrl?: string;
-    nidPhotoId?: string;
+    nidPhotoUrls?: string[];
+    nidPhotoIds?: string[];
   };
   address: {
     division?: string;
