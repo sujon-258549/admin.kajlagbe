@@ -1,101 +1,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faTableColumns,
-  faUsers,
-  faBriefcase,
-  faBuilding,
-  faCogs,
-  faToolbox,
-  faIndustry,
-  faChartLine,
   faSignOutAlt,
   faBars,
   faTimes,
   faChevronDown,
-  faTasksAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect } from "react";
 import { NavLink, Link, useLocation } from "react-router";
-import { useMyData } from "../../redux/hooks";
-
-const menuItems = [
-  { name: "Dashboard", icon: faTableColumns, path: "/", module: "Dashboard" },
-  {
-    name: "User Management",
-    icon: faUsers,
-    path: "/users",
-    submenu: [
-      { name: "All Employee", path: "/employee/all", module: "Employees" },
-      { name: "Roles", path: "/users/roles", module: "Roles" },
-      { name: "Departments", path: "/users/departments", module: "Departments" },
-      { name: "Work Types", path: "/users/work-types", module: "Work Types" },
-    ],
-  },
-  {
-    name: "Category",
-    icon: faBriefcase,
-    path: "/category",
-    submenu: [
-      { name: "Category", path: "/category/list", module: "Categories" },
-      { name: "SubCategory", path: "/sub/category", module: "SubCategories" },
-    ],
-  },
-  {
-    name: "Job Management",
-    icon: faBuilding,
-    path: "/job",
-    module: "Job Management",
-    submenu: [
-      { name: "Job List", path: "/job/list", module: "Job Management" }      ],
-  },
-  {
-    name: "Subscription",
-    icon: faTasksAlt,
-    path: "/subscription",
-    module: "Subscription",
-  },
-  {
-    name: "Apply Job",
-    icon: faToolbox,
-    path: "/apply-job",
-    module: "Apply Job",
-    submenu: [
-      { name: "Apply Job List", path: "/apply-job/list", module: "Apply Job" },
-      { name: "Apply Job Categories", path: "/apply-job/categories", module: "Apply Job" },
-    ],
-  },
-  {
-    name: "Productions",
-    icon: faIndustry,
-    path: "/productions",
-    module: "Productions",
-    submenu: [
-      { name: "Production Plan", path: "/productions/plan", module: "Productions" },
-      { name: "Work Orders", path: "/productions/work-orders", module: "Productions" },
-    ],
-  },
-  {
-    name: "Sales Management",
-    icon: faChartLine,
-    path: "/sales",
-    module: "Sales Management",
-    submenu: [
-      { name: "Sales Summary", path: "/sales/summary", module: "Sales Management" },
-      { name: "Customer Ledger", path: "/sales/ledger", module: "Sales Management" },
-    ],
-  },
-  {
-    name: "Setup Menu",
-    icon: faCogs,
-    path: "/setup",
-    module: "Settings",
-    submenu: [
-      { name: "General Settings", path: "/setup/general", module: "Settings" },
-      { name: "Business Setup", path: "/setup/business", module: "Settings" },
-      { name: "Media", path: "/setup/media", module: "Settings" },
-    ],
-  },
-];
+import { useFilteredMenuItems } from "../../utils/sidebar";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -106,38 +18,16 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
   const location = useLocation();
   const [expanded, setExpanded] = useState<string | null>("Dashboard");
 
-  const { user: currentUser } = useMyData();
-  const userPermissions = currentUser?.role?.permissions || [];
-
-  console.log(userPermissions);
-
-  const hasViewPermission = (moduleName?: string) => {
-    if (!moduleName) return true;
-    const modulePerm = userPermissions.find((p: any) => p.module === moduleName);
-    return modulePerm?.permissions?.includes("View");
-  };
-
-  const filteredMenuItems = menuItems
-    .map((item) => {
-      if (item.submenu) {
-        const visibleSubmenu = item.submenu.filter((sub) =>
-          hasViewPermission(sub.module),
-        );
-        if (visibleSubmenu.length > 0) {
-          return { ...item, submenu: visibleSubmenu };
-        }
-        return hasViewPermission(item.module) ? item : null;
-      }
-      return hasViewPermission(item.module) ? item : null;
-    })
-    .filter(Boolean) as typeof menuItems;
+  const { filteredMenuItems } = useFilteredMenuItems();
 
   // Auto-expand menu based on current location
   useEffect(() => {
-    filteredMenuItems.forEach((item) => {
+    if (!filteredMenuItems.length) return;
+
+    filteredMenuItems.forEach((item: any) => {
       if (item.submenu) {
         const isChildActive = item.submenu.some(
-          (sub) => sub.path === location.pathname,
+          (sub: any) => sub.path === location.pathname,
         );
         if (isChildActive) {
           setExpanded(item.name);
@@ -147,6 +37,10 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
       }
     });
   }, [location.pathname, filteredMenuItems]);
+
+  const handleToggle = (name: string) => {
+    setExpanded((prev) => (prev === name ? null : name));
+  };
 
   return (
     <>
@@ -187,18 +81,20 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
 
         {/* Navigation Links */}
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          {filteredMenuItems.map((item) => {
-            const hasSubmenu = !!item.submenu;
+          {filteredMenuItems
+            .filter((item: any) => !item.hidden)
+            .map((item: any) => {
+              const hasSubmenu = !!item.submenu;
             const isExpanded = expanded === item.name;
             const isAnySubActive = item.submenu?.some(
-              (sub) => sub.path === location.pathname,
+              (sub: any) => sub.path === location.pathname,
             );
 
             return (
               <div key={item.name}>
                 {hasSubmenu ? (
                   <button
-                    onClick={() => setExpanded(isExpanded ? null : item.name)}
+                    onClick={() => handleToggle(item.name)}
                     className={`w-full flex items-center justify-between transition-all duration-200 group relative ${
                       isExpanded || isAnySubActive
                         ? "bg-[#e6f4ea] text-[#052e16]"
@@ -289,7 +185,7 @@ const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
                     }`}
                   >
                     <div className="overflow-hidden ml-6 pl-4 border-l border-gray-100 space-y-1 my-1">
-                      {item.submenu.map((sub) => (
+                      {item.submenu.map((sub: any) => (
                         <NavLink
                           key={sub.name}
                           to={sub.path}

@@ -21,11 +21,13 @@ import {
 import PageHeader from "../../Components/common/PageHeader";
 import { useNavigate } from "react-router-dom";
 import ChangePasswordModal from "../../Components/modal/profile/ChangePasswordModal";
+import { usePermission } from "../../utils/sidebar";
 
 const ProfileView: React.FC = () => {
   const navigate = useNavigate();
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const { data: myData, isLoading, isError } = useGetMyDataQuery(undefined);
+  const { hasPermission } = usePermission();
 
   if (isLoading) {
     return (
@@ -56,22 +58,26 @@ const ProfileView: React.FC = () => {
         subTitle={`Managing profile for ${profile?.name || user.email}`}
         extra={
           <div className="flex gap-3">
-            <Button
-              variant="primary"
-              size="sm"
-              icon={<FontAwesomeIcon icon={faUserEdit} className="mr-2" />}
-              onClick={() => navigate("/profile/edit")}
-            >
-              Edit Profile
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<FontAwesomeIcon icon={faLock} className="mr-2" />}
-              onClick={() => setIsPasswordModalOpen(true)}
-            >
-              Change Password
-            </Button>
+            {(hasPermission("Profile", "update") || hasPermission("Profile", "edit")) && (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<FontAwesomeIcon icon={faUserEdit} className="mr-2" />}
+                onClick={() => navigate("/profile/edit")}
+              >
+                Edit Profile
+              </Button>
+            )}
+            {hasPermission("Profile", "change_password") && (
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<FontAwesomeIcon icon={faLock} className="mr-2" />}
+                onClick={() => setIsPasswordModalOpen(true)}
+              >
+                Change Password
+              </Button>
+            )}
           </div>
         }
       />
