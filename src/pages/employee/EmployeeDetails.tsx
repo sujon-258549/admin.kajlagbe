@@ -75,8 +75,8 @@ const EmployeeDetails = () => {
             <div className="flex flex-col items-center text-center p-4">
               <div className="relative mb-4">
                 <Image
-                  src={employee.profile?.photo || `https://i.pravatar.cc/150?u=${employee.email}`}
-                  alt={employee.profile?.name}
+                  src={(employee.profile?.photo as string) || `https://i.pravatar.cc/150?u=${employee.email}`}
+                  alt={employee.profile?.name || "Employee"}
                   className="w-32 h-32 rounded-full object-cover border-4 border-white"
                   width={150}
                   height={150}

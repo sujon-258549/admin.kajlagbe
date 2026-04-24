@@ -143,6 +143,8 @@ export type EmployApiUser = {
   isBlocked?: boolean;
   isVerified?: boolean;
   departmentId?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   profile?: {
     name?: string | null;
     gender?: string | null;

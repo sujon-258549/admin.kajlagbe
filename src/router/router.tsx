@@ -15,11 +15,21 @@ import JobList from "../pages/job/JobList";
 import FolderList from "../pages/media/FolderList";
 import WorkTypeList from "../pages/work-type/WorkTypeList";
 import EmployeeDetails from "../pages/employee/EmployeeDetails";
+import Login from "../pages/auth/Login";
+import ProtectedRoute from "../mainLayout/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
+    path: "/login",
+    element: <Login />,
+  },
+  {
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorPage />,
     children: [
       {
