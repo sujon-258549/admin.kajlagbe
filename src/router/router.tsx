@@ -14,6 +14,7 @@ import SubscriptionList from "../pages/subscription/SubscriptionList";
 import JobList from "../pages/job/JobList";
 import FolderList from "../pages/media/FolderList";
 import WorkTypeList from "../pages/work-type/WorkTypeList";
+import EmployeeDetails from "../pages/employee/EmployeeDetails";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
       {
         path: "employee/all",
         element: <EmployeeList />,
+      },
+      {
+        path: "employee/:id",
+        element: <EmployeeDetails />,
       },
       {
         path: "category/list",

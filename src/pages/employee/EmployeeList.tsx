@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tag, Tooltip, Popconfirm, message } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -30,6 +30,7 @@ import type {
 
 const EmployeeList = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const searchTerm = searchParams.get("searchTerm") || "";
 
   const {
@@ -52,7 +53,6 @@ const EmployeeList = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<Employee | null>(null);
-  const [viewData, setViewData] = useState<Employee | null>(null);
 
   const { data: editDetail, isFetching: editDetailLoading } =
     useGetEmployeeByIdQuery(editData?.id ?? "", {
@@ -137,7 +137,7 @@ const EmployeeList = () => {
             <CustomButton
               variant="outline"
               size="icon-sm"
-              onClick={() => setViewData(record)}
+              onClick={() => navigate(`/employee/${record.id}`)}
               icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
             />
           </Tooltip>
@@ -174,9 +174,9 @@ const EmployeeList = () => {
     },
     {
       title: "Name",
-      dataIndex: ["profile", "name"],
+      dataIndex: "name",
       key: "name",
-      render: (name: string, record: any) => (
+      render: (name: string, record: Employee) => (
         <div className="flex items-center gap-3">
           <img
             src={
@@ -212,22 +212,22 @@ const EmployeeList = () => {
     },
     {
       title: "Designation",
-      dataIndex: ["workInfo", "experience"],
+      dataIndex: "designation",
       key: "designation",
-      render: (exp: string) => (
+      render: (designation: string) => (
         <span
           className="text-xs font-semibold text-white whitespace-nowrap px-3 py-1 rounded-sm uppercase"
           style={{ backgroundColor: "#052e16" }}
         >
-          {exp || "—"}
+          {designation || "—"}
         </span>
       ),
     },
     {
       title: "Department",
-      dataIndex: ["department", "name"],
+      dataIndex: "department",
       key: "department",
-      render: (_: string, record: Employee) => (
+      render: (dept: string) => (
         <Tag
           style={{
             backgroundColor: "#f0fdf4",
@@ -237,17 +237,17 @@ const EmployeeList = () => {
           }}
           className=" px-3 font-medium uppercase"
         >
-          {record.department?.name || "—"}
+          {dept || "—"}
         </Tag>
       ),
     },
     {
       title: "Role",
-      dataIndex: ["role", "role"],
+      dataIndex: "role",
       key: "role",
-      render: (_: string, record: Employee) => (
+      render: (role: string) => (
         <span className="text-xs text-gray-800 font-medium whitespace-nowrap uppercase">
-          {record.role?.role?.replace("_", " ") || "—"}
+          {role?.replace("_", " ") || "—"}
         </span>
       ),
     },
@@ -338,61 +338,6 @@ const EmployeeList = () => {
         submitting={isCreating || isUpdating}
       />
 
-      {viewData && (
-        <div
-          className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4"
-          onClick={() => setViewData(null)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-4 mb-5">
-              <img
-                src={`https://i.pravatar.cc/150?u=${viewData.email}`}
-                alt={viewData.name}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
-              />
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  {viewData.name}
-                </h3>
-                <p className="text-sm text-gray-500">{viewData.designation}</p>
-              </div>
-            </div>
-            <div className="space-y-3 text-sm">
-              {[
-                { label: "Email", value: viewData.email },
-                { label: "Phone", value: viewData.mobile },
-                {
-                  label: "Department",
-                  value: (viewData as any).department?.name,
-                },
-                { label: "Role", value: (viewData as any).role?.role },
-                {
-                  label: "Status",
-                  value: viewData.isActive ? "Active" : "Inactive",
-                },
-              ].map(({ label, value }) => (
-                <div
-                  key={label}
-                  className="flex justify-between items-center py-2 border-b border-gray-50"
-                >
-                  <span className="text-gray-500 font-medium">{label}</span>
-                  <span className="font-semibold text-gray-800">{value}</span>
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setViewData(null)}
-              className="mt-5 w-full py-2.5 rounded-xl bg-gray-50 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
