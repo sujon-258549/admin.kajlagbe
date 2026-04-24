@@ -110,6 +110,8 @@ export type UpdateEmployeeRequest = {
     photo?: string | null;
     photoId?: string | null;
     nid?: string | null;
+    nidPhotoUrl?: string | null;
+    nidPhotoId?: string | null;
   };
   address?: {
     division?: string | null;

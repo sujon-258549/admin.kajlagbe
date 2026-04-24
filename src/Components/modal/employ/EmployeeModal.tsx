@@ -202,11 +202,16 @@ const EmployeeModal = ({
         confirmPassword: undefined,
       });
     } else {
+      // Find roleId from rolesResponse if possible
+      const initialRoleId = (rolesResponse?.data ?? []).find(
+        (r) => r.role === editData.role
+      )?.id;
+
       form.setFieldsValue({
         name: editData.name === "—" ? "" : editData.name,
         email: editData.email,
         mobile: normalizeMobile(editData.phone),
-        roleId: undefined, // Wait for editDetail to get the roleId
+        roleId: initialRoleId,
         isActive: editData.status === "Active",
         isVerified: false,
         departmentId: undefined,
@@ -231,7 +236,7 @@ const EmployeeModal = ({
         confirmPassword: undefined,
       });
     }
-  }, [editData, editDetail, form, open]);
+  }, [editData, editDetail, form, open, rolesResponse?.data]);
 
   const handleOk = async () => {
     try {
@@ -358,22 +363,25 @@ const EmployeeModal = ({
                   ?.id || undefined,
             }}
           >
-            <div className="mb-4 overflow-hidden ">
-              <div className=" bg-white">
-                <p className="text-sm font-semibold text-gray-800">
-                  Profile photo
-                </p>
+            <div className="mb-6 overflow-hidden rounded-xl border border-gray-100 bg-gray-50/30 p-4 transition-all hover:bg-gray-50/50">
+              <div className="mb-3">
+                <p className="text-sm font-bold text-gray-800">Profile Photo</p>
+                <p className="text-xs text-gray-500">Supported formats: JPG, PNG, WEBP</p>
               </div>
-              <div className="flex py-4">
-                {/* Default single (`isMulti` omitted). Use `isMulti` + `string[]` for multi-image fields. */}
-                <MediaLibraryImageUploader
-                  value={profilePhotoUrl}
-                  onChange={(url, id) => {
-                    form.setFieldsValue({ profilePhotoUrl: url, photoId: id });
-                  }}
-                  pickerTitle="Choose profile photo"
-                  pickerOkText="Use this image"
-                />
+              <div className="flex">
+                <Form.Item name="profilePhotoUrl" noStyle>
+                  <MediaLibraryImageUploader
+                    value={profilePhotoUrl}
+                    onChange={(url, id) => {
+                      form.setFieldsValue({ profilePhotoUrl: url, photoId: id });
+                    }}
+                    pickerTitle="Choose profile photo"
+                    pickerOkText="Use this image"
+                  />
+                </Form.Item>
+                <Form.Item name="photoId" noStyle>
+                  <div className="hidden" />
+                </Form.Item>
               </div>
             </div>
 
@@ -638,19 +646,25 @@ const EmployeeModal = ({
               </Form.Item>
             </div>
 
-            <div className="mb-4 overflow-hidden ">
-              <div className=" bg-white">
-                <p className="text-sm font-semibold text-gray-800">NID photo</p>
+            <div className="mb-6 overflow-hidden rounded-xl border border-gray-100 bg-gray-50/30 p-4 transition-all hover:bg-gray-50/50">
+              <div className="mb-3">
+                <p className="text-sm font-bold text-gray-800">NID Photo</p>
+                <p className="text-xs text-gray-500">Upload or select National ID card image</p>
               </div>
-              <div className="flex py-4">
-                <MediaLibraryImageUploader
-                  value={nidPhotoUrl}
-                  onChange={(url, id) => {
-                    form.setFieldsValue({ nidPhotoUrl: url, nidPhotoId: id });
-                  }}
-                  pickerTitle="Choose NID photo"
-                  pickerOkText="Use this image"
-                />
+              <div className="flex">
+                <Form.Item name="nidPhotoUrl" noStyle>
+                  <MediaLibraryImageUploader
+                    value={nidPhotoUrl}
+                    onChange={(url, id) => {
+                      form.setFieldsValue({ nidPhotoUrl: url, nidPhotoId: id });
+                    }}
+                    pickerTitle="Choose NID photo"
+                    pickerOkText="Use this image"
+                  />
+                </Form.Item>
+                <Form.Item name="nidPhotoId" noStyle>
+                  <div className="hidden" />
+                </Form.Item>
               </div>
             </div>
 
