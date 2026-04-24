@@ -19,16 +19,17 @@ const Login: React.FC = () => {
         password: values.password,
       }).unwrap();
 
-      if (res.success) {
+      if (res.success || res.isLogin) {
+        const userData = res.data.user;
         const user: TUser = {
-          id: res.data.id,
-          name: res.data.profile?.name || res.data.email,
-          email: res.data.email,
-          role: res.data.role?.role || res.data.role,
+          id: userData.id,
+          name: userData.name || userData.email,
+          email: userData.email,
+          role: userData.role,
         };
 
-        dispatch(setUser({ user, token: res.data.token || res.token }));
-        message.success("Welcome back, " + user.name);
+        dispatch(setUser({ user, token: res.data.accessToken }));
+        message.success(res.message || "Login successful!");
         navigate("/");
       } else {
         message.error(res.message || "Invalid credentials");
