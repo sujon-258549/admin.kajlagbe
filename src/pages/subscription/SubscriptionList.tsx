@@ -16,9 +16,8 @@ import {
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
-import SubscriptionModal, {
-  type Subscription,
-} from "../../Components/modal/subscription/SubscriptionModal";
+import SubscriptionModal from "../../Components/modal/subscription/SubscriptionModal";
+import type { Subscription } from "../../Components/types";
 
 // Mock initial data
 const mockSubscriptions: Subscription[] = [

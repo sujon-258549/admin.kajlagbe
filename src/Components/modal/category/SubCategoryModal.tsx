@@ -1,5 +1,5 @@
 import { Modal, Form } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import CustomSelect from "../../ui/Select";
@@ -21,24 +21,35 @@ const SubCategoryModal = ({
   categories,
 }: SubCategoryModalProps) => {
   const [form] = Form.useForm();
-  const [status, setStatus] = useState(true);
 
   useEffect(() => {
-    if (editData) {
-      form.setFieldsValue(editData);
-      setStatus(editData.status);
-    } else {
-      form.resetFields();
-      setStatus(true);
+    if (open) {
+      if (editData) {
+        const normalizedData = {
+          ...editData,
+          status: Boolean(editData.status)
+        };
+        form.setFieldsValue(normalizedData);
+      } else {
+        form.resetFields();
+        form.setFieldsValue({ status: true });
+      }
     }
-  }, [editData, form, open]);
+  }, [editData, open, form]);
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
-      onSubmit({ ...values, status });
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      const formData = {
+        ...values,
+        status: Boolean(values.status),
+      };
+      await onSubmit(formData);
       form.resetFields();
       onClose();
-    });
+    } catch (error) {
+      console.error("SubCategory handleOk error:", error);
+    }
   };
 
   return (
@@ -59,15 +70,15 @@ const SubCategoryModal = ({
       okText={editData ? "Update" : "Create"}
       cancelText="Cancel"
       okButtonProps={{
-        className: "!bg-primary !border-primary !rounded-lg !font-semibold",
+        className: "!bg-primary !border-primary !rounded-sm !font-semibold",
       }}
       cancelButtonProps={{
-        className: "!rounded-lg !font-semibold",
+        className: "!rounded-sm !font-semibold hover:!bg-primary hover:!border-primary hover:!text-white",
       }}
-      width={600}
+      width={680}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4">
+      <Form form={form} layout="vertical" className="pt-4" initialValues={{ status: true }}>
         <div className="grid grid-cols-2 gap-4">
           <Form.Item
           name="categoryId"
@@ -103,7 +114,6 @@ const SubCategoryModal = ({
           <Form.Item
             name="slug"
             label={<span className="font-semibold text-gray-700">Slug</span>}
-            rules={[{ required: true, message: "Please enter slug" }]}
           >
             <CustomInput placeholder="e.g., technology" size="md" />
           </Form.Item>
@@ -129,17 +139,15 @@ const SubCategoryModal = ({
         </Form.Item>
 
         <Form.Item
+          name="status"
+          valuePropName="checked"
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
-          <div className="flex items-center gap-3">
-            <CustomSwitch
-              checked={status}
-              onChange={setStatus}
-              checkedChildren="Active"
-              unCheckedChildren="Inactive"
-              size="default"
-            />
-          </div>
+          <CustomSwitch
+            checkedChildren="Active"
+            unCheckedChildren="Inactive"
+            size="default"
+          />
         </Form.Item>
       </Form>
     </Modal>

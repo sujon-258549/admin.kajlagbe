@@ -202,7 +202,76 @@
 
   button {
     cursor: pointer;
+    
   }
+}
+
+.btn-primary:hover {
+  background-color: #041f0e !important;
+  border-color: #041f0e !important;
+}
+
+.btn-secondary:hover {
+  background-color: #e67300 !important;
+  border-color: #e67300 !important;
+}
+
+.btn-outline:hover {
+  background-color: transparent !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+.btn-ghost:hover {
+  background-color: #f9fafb !important;
+  color: #374151 !important;
+}
+
+.btn-danger:hover {
+  background-color: #e11d48 !important;
+  border-color: #e11d48 !important;
+}
+
+.btn-danger-outline:hover {
+  background-color: #fff1f2 !important;
+  border-color: #e11d48 !important;
+  color: #e11d48 !important;
+}
+
+.btn-link:hover {
+  background-color: transparent !important;
+  color: #041f0e !important;
+  text-decoration: underline;
+}
+
+.btn-dashed:hover {
+  background-color: transparent !important;
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* Reusable modal action buttons */
+.modal-btn-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  font-weight: 600 !important;
+}
+
+.modal-btn-primary:hover {
+  background-color: color-mix(in srgb, var(--primary) 90%, black) !important;
+  border-color: color-mix(in srgb, var(--primary) 90%, black) !important;
+}
+
+.modal-btn-outline-primary {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  font-weight: 600 !important;
+}
+
+.modal-btn-outline-primary:hover {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  background-color: color-mix(in srgb, var(--primary) 8%, white) !important;
 }
 
 .main-container {
@@ -389,6 +458,11 @@ custom-select:hover .ant-select-selector {
 .ant-checkbox:hover .ant-checkbox-inner,
 .ant-checkbox-input:focus + .ant-checkbox-inner {
   border-color: var(--primary) !important;
+}
+
+/* Custom Switch for Primary Theme */
+.custom-switch.ant-switch-checked {
+  background-color: var(--primary) !important;
 }
 
 /* Specific to our CustomCheckbox if we need even more weight */

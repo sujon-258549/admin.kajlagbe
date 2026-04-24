@@ -7,19 +7,9 @@ import {
   faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import dayjs from "dayjs";
+import type { FilterType } from "../types";
 
 const { RangePicker } = DatePicker;
-
-export type FilterType =
-  | "today"
-  | "yesterday"
-  | "this-week"
-  | "previous-week"
-  | "this-month"
-  | "previous-month"
-  | "this-year"
-  | "previous-year"
-  | "custom";
 
 interface DateFilterProps {
   onFilterChange: (type: FilterType, range: [string, string]) => void;
@@ -37,42 +27,46 @@ const DateFilter: React.FC<DateFilterProps> = ({
     switch (type) {
       case "today":
         return [now.format("YYYY-MM-DD"), now.format("YYYY-MM-DD")];
-      case "yesterday":
+      case "yesterday": {
         const yesterday = now.subtract(1, "day").format("YYYY-MM-DD");
         return [yesterday, yesterday];
+      }
       case "this-week":
         return [
           now.startOf("week").format("YYYY-MM-DD"),
           now.endOf("week").format("YYYY-MM-DD"),
         ];
-      case "previous-week":
+      case "previous-week": {
         const lastWeek = now.subtract(1, "week");
         return [
           lastWeek.startOf("week").format("YYYY-MM-DD"),
           lastWeek.endOf("week").format("YYYY-MM-DD"),
         ];
+      }
       case "this-month":
         return [
           now.startOf("month").format("YYYY-MM-DD"),
           now.endOf("month").format("YYYY-MM-DD"),
         ];
-      case "previous-month":
+      case "previous-month": {
         const lastMonth = now.subtract(1, "month");
         return [
           lastMonth.startOf("month").format("YYYY-MM-DD"),
           lastMonth.endOf("month").format("YYYY-MM-DD"),
         ];
+      }
       case "this-year":
         return [
           now.startOf("year").format("YYYY-MM-DD"),
           now.endOf("year").format("YYYY-MM-DD"),
         ];
-      case "previous-year":
+      case "previous-year": {
         const lastYear = now.subtract(1, "year");
         return [
           lastYear.startOf("year").format("YYYY-MM-DD"),
           lastYear.endOf("year").format("YYYY-MM-DD"),
         ];
+      }
       default:
         return [now.format("YYYY-MM-DD"), now.format("YYYY-MM-DD")];
     }

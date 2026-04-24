@@ -2,12 +2,14 @@ import { useState } from "react";
 import Header from "../Components/common/Header";
 import Sidebar from "../Components/common/Sidebar";
 import { Outlet } from "react-router";
+import { Toaster } from "sonner";
 
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
+      <Toaster position="bottom-right" richColors theme="system" />
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div

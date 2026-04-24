@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
-import { Tooltip, Popconfirm } from "antd";
+import { Tooltip, Input, Modal } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -15,41 +15,42 @@ import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import CategoryModal from "../../Components/modal/category/CategoryModal";
+import { useDeleteCategoryMutation, useGetAllCategoriesQuery, useChangeCategoryStatusMutation } from "../../redux/features/category/categoryApi";
+import debounceSearch from "../../Components/utils/debounceSearch";
+import formatDate from "../../Components/utils/dateFormate";
+import { toast } from "sonner";
 
 const CategoryList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
 
   // Mock Categories Data
-  const [categories, setCategories] = useState([
-    {
-      id: "1",
-      name: "Technology",
-      slug: "technology",
-      icon: "code",
-      description: "IT and Software Development",
-      status: true,
-      createdAt: "15-02-2026",
-    },
-    {
-      id: "2",
-      name: "Healthcare",
-      slug: "healthcare",
-      icon: "heart",
-      description: "Medical and Health Services",
-      status: true,
-      createdAt: "15-02-2026",
-    },
-    {
-      id: "3",
-      name: "Education",
-      slug: "education",
-      icon: "book",
-      description: "Teaching and Learning",
-      status: true,
-      createdAt: "15-02-2026",
-    },
-  ]);
+
+
+  const [searchText, setSearchText] = useState("");
+  const [loading , setLoading] = useState(false);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debounceSearch(e.target.value, 500).then((value: string) => {
+      setSearchText(value);
+    });
+  };
+
+
+  const queryObj = searchText ? { searchTerm: searchText } : {};
+  const { data: categoriesData, isLoading, isFetching, refetch } = useGetAllCategoriesQuery(queryObj);
+
+  const [deleteCategory] = useDeleteCategoryMutation();
+  const [changeStatus] = useChangeCategoryStatusMutation();
+
+  const allCategories = categoriesData?.data || [];
+  const meta = categoriesData?.meta || {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPage: 1,
+  };
+  console.log("categoryData", allCategories);
 
   const handleCreate = () => {
     setEditData(null);
@@ -61,29 +62,39 @@ const CategoryList = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setCategories((prev: any) => prev.filter((c: any) => c.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const res: any = await deleteCategory(id).unwrap();
+
+      if (res?.success) {
+        toast.success(res?.message || "Category deleted successfully");
+      } else {
+        toast.error(res?.message || "Failed to delete category");
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || error?.message || "Something went wrong");
+    }
   };
 
-  const handleStatusChange = (id: string, checked: boolean) => {
-    setCategories((prev: any) =>
-      prev.map((c: any) => (c.id === id ? { ...c, status: checked } : c)),
-    );
+  const handleStatusChange = async (id: string) => {
+   try {
+    setLoading(true);
+    const res: any = await changeStatus({ id }).unwrap();
+
+    if (res?.success) {
+      toast.success(res?.message || "Category status changed successfully");
+    } else {
+      toast.error(res?.message || "Failed to change category status");
+    }
+   } catch (error: any) {
+    toast.error(error?.data?.message || error?.message || "Something went wrong");
+   } finally {
+    setLoading(false);
+   }
   };
 
   const handleSubmit = (values: any) => {
-    if (editData) {
-      setCategories((prev: any) =>
-        prev.map((c: any) => (c.id === editData.id ? { ...c, ...values } : c)),
-      );
-    } else {
-      const newCategory = {
-        id: Date.now().toString(),
-        ...values,
-        createdAt: new Date().toLocaleDateString("en-GB").replace(/\//g, "-"),
-      };
-      setCategories((prev: any) => [newCategory, ...prev]);
-    }
+    console.log("Submit", values);
   };
 
   const columns = [
@@ -106,22 +117,25 @@ const CategoryList = () => {
           </Tooltip>
 
           {/* Delete */}
-          <Popconfirm
-            title="Delete Category"
-            description="Are you sure you want to delete this category?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <Tooltip title="Delete Category">
-              <CustomButton
-                variant="danger-outline"
-                size="icon-sm"
-                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
-              />
-            </Tooltip>
-          </Popconfirm>
+          <Tooltip title="Delete Category">
+            <CustomButton
+              variant="danger-outline"
+              size="icon-sm"
+              onClick={() => {
+                Modal.confirm({
+                  title: "Delete Category",
+                  content: "Are you sure you want to delete this category?",
+                  okText: "Delete",
+                  okType: "danger",
+                  cancelText: "Cancel",
+                  onOk: async () => {
+                    await handleDelete(record.id);
+                  },
+                });
+              }}
+              icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+            />
+          </Tooltip>
         </div>
       ),
     },
@@ -157,8 +171,8 @@ const CategoryList = () => {
       dataIndex: "icon",
       key: "icon",
       render: (text: string) => (
-        <div className="bg-gray-100 p-2 rounded-md inline-block">
-          <span className="text-gray-600">{text}</span>
+        <div className="bg-gray-100 p-2 rounded-md inline-block w-8 h-8 flex items-center justify-center">
+          <i className={`${text?.includes('fa-') ? text : `fa-solid fa-${text}`} text-gray-600`}></i>
         </div>
       ),
     },
@@ -175,9 +189,8 @@ const CategoryList = () => {
         <div className="flex items-center gap-2">
           <CustomSwitch
             checked={status}
-            onChange={(checked: boolean) =>
-              handleStatusChange(record.id, checked)
-            }
+            loading={loading}
+            onChange={() => handleStatusChange(record.id)}
             size="default"
           />
         </div>
@@ -193,7 +206,7 @@ const CategoryList = () => {
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date: string) => (
-        <span className="text-gray-600 font-medium">{date}</span>
+        <span className="text-gray-600 font-medium">{formatDate(date)}</span>
       ),
     },
   ];
@@ -214,6 +227,7 @@ const CategoryList = () => {
               variant="outline"
               size="sm"
               icon={<FontAwesomeIcon icon={faRotateRight} />}
+              onClick={() => refetch()}
             >
               Refresh
             </CustomButton>
@@ -228,14 +242,22 @@ const CategoryList = () => {
           </div>
         }
       />
-
+      <div className="flex items-center gap-2">
+        <Input
+          onChange={handleSearch}
+          className="max-w-md"
+          placeholder="Search"
+        />
+      </div>
       <div className="">
         <DataTable
-          data={categories}
+          data={allCategories}
+          isLoading={isLoading || isFetching}
           columns={columns}
-          isPaginate={true}
+          isPaginate={meta.total > meta.limit}
           showHeader={true}
           rowKey="id"
+          meta={meta}
         />
       </div>
 

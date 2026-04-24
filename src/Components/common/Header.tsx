@@ -1,4 +1,5 @@
 import { Menu } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import SearchInput from "../ui/SearchInput";
 import NotificationDropdown from "../dropdown/NotificationDropdown";
 import ProfileDropdown from "../dropdown/ProfileDropdown";
@@ -8,7 +9,19 @@ interface HeaderProps {
 }
 
 const Header = ({ onMenuClick }: HeaderProps) => {
-  const handleSearch = (value: string) => console.log(value);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const headerSearchValue = searchParams.get("searchTerm") || "";
+
+  const handleSearch = (value: string) => {
+    const searchValue = value.trim();
+    const params = new URLSearchParams(searchParams);
+    if (searchValue) {
+      params.set("searchTerm", searchValue);
+    } else {
+      params.delete("searchTerm");
+    }
+    setSearchParams(params);
+  };
 
   return (
     <header className="h-20 bg-white border-b border-gray-200 sticky top-0 z-40 px-6 flex items-center justify-between">
@@ -23,8 +36,10 @@ const Header = ({ onMenuClick }: HeaderProps) => {
 
         <div className="w-full hidden md:block">
           <SearchInput
-            placeholder="Search keywords..."
+            key={headerSearchValue}
+            placeholder="Search department..."
             onSearch={handleSearch}
+            defaultValue={headerSearchValue}
           />
         </div>
       </div>

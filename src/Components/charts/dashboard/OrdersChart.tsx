@@ -1,16 +1,11 @@
-import { useState, useEffect } from "react";
+
+
 import type { ApexOptions } from "apexcharts";
 import Chart from "react-apexcharts";
-import { type FilterType } from "../../filter/DateFilter";
+import type { FilterType } from "../../types";
 
 const OrdersChart = ({ externalFilter }: { externalFilter?: FilterType }) => {
-  const [activeFilter, setActiveFilter] = useState<FilterType>("this-week");
-
-  useEffect(() => {
-    if (externalFilter) {
-      setActiveFilter(externalFilter);
-    }
-  }, [externalFilter]);
+  const activeFilter = externalFilter || "this-week";
 
   // Mock data generator based on filter type
   const getChartData = (type: FilterType) => {

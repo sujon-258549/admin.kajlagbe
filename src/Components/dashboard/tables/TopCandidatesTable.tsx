@@ -1,65 +1,67 @@
 import React, { useMemo } from "react";
 import { Tag, Avatar } from "antd";
 import DataTable from "../../Tables/DataTable";
-import type { FilterType } from "../../filter/DateFilter";
+import type { FilterType } from "../../types";
 
 interface TopCandidatesTableProps {
   externalFilter?: FilterType;
 }
 
+const allCandidateData = [
+  {
+    _id: "1",
+    name: "Sujon Ahmed",
+    job: "UI Designer",
+    score: 95,
+    stage: "Interview",
+    period: "this-week",
+  },
+  {
+    _id: "2",
+    name: "Jane Doe",
+    job: "Full Stack",
+    score: 88,
+    stage: "Shortlisted",
+    period: "this-week",
+  },
+  {
+    _id: "3",
+    name: "Alex Hunter",
+    job: "Developer",
+    score: 92,
+    stage: "Assessment",
+    period: "this-month",
+  },
+  {
+    _id: "4",
+    name: "Michael Ross",
+    job: "Lawyer",
+    score: 85,
+    stage: "Initial Call",
+    period: "this-month",
+  },
+  {
+    _id: "5",
+    name: "Sarah Connor",
+    job: "Data Scientist",
+    score: 98,
+    stage: "Offer",
+    period: "this-year",
+  },
+  {
+    _id: "6",
+    name: "John Wick",
+    job: "Security",
+    score: 100,
+    stage: "Hired",
+    period: "this-week",
+  },
+];
+
 const TopCandidatesTable: React.FC<TopCandidatesTableProps> = ({
   externalFilter,
 }) => {
-  const allCandidateData = [
-    {
-      _id: "1",
-      name: "Sujon Ahmed",
-      job: "UI Designer",
-      score: 95,
-      stage: "Interview",
-      period: "this-week",
-    },
-    {
-      _id: "2",
-      name: "Jane Doe",
-      job: "Full Stack",
-      score: 88,
-      stage: "Shortlisted",
-      period: "this-week",
-    },
-    {
-      _id: "3",
-      name: "Alex Hunter",
-      job: "Developer",
-      score: 92,
-      stage: "Assessment",
-      period: "this-month",
-    },
-    {
-      _id: "4",
-      name: "Michael Ross",
-      job: "Lawyer",
-      score: 85,
-      stage: "Initial Call",
-      period: "this-month",
-    },
-    {
-      _id: "5",
-      name: "Sarah Connor",
-      job: "Data Scientist",
-      score: 98,
-      stage: "Offer",
-      period: "this-year",
-    },
-    {
-      _id: "6",
-      name: "John Wick",
-      job: "Security",
-      score: 100,
-      stage: "Hired",
-      period: "this-week",
-    },
-  ];
+
 
   const filteredData = useMemo(() => {
     if (!externalFilter || externalFilter === "this-week") {

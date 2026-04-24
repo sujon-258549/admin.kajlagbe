@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Tag, Tooltip, Popconfirm } from "antd";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Tag, Tooltip, Popconfirm, message } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
@@ -14,107 +15,114 @@ import EmployeeModal, {
 import CustomButton from "../../Components/ui/Button";
 import CustomSwitch from "../../Components/ui/Switch";
 import PageHeader from "../../Components/common/PageHeader";
-
-// Mock initial data
-const mockEmployees: Employee[] = [
-  {
-    _id: "1",
-    name: "Sujon Ahmed",
-    email: "sujon@kajlagbe.com",
-    phone: "+880 1711 000001",
-    designation: "UI Designer",
-    department: "Design",
-    role: "Admin",
-    status: "Active",
-  },
-  {
-    _id: "2",
-    name: "Jane Doe",
-    email: "jane@kajlagbe.com",
-    phone: "+880 1711 000002",
-    designation: "Full Stack Developer",
-    department: "Engineering",
-    role: "Employee",
-    status: "Active",
-  },
-  {
-    _id: "3",
-    name: "Alex Hunter",
-    email: "alex@kajlagbe.com",
-    phone: "+880 1711 000003",
-    designation: "QA Engineer",
-    department: "Engineering",
-    role: "Employee",
-    status: "Inactive",
-  },
-  {
-    _id: "4",
-    name: "Sarah Connor",
-    email: "sarah@kajlagbe.com",
-    phone: "+880 1711 000004",
-    designation: "HR Manager",
-    department: "HR",
-    role: "Manager",
-    status: "Active",
-  },
-  {
-    _id: "5",
-    name: "Michael Ross",
-    email: "michael@kajlagbe.com",
-    phone: "+880 1711 000005",
-    designation: "Product Manager",
-    department: "Operations",
-    role: "Support",
-    status: "Active",
-  },
-];
+import {
+  useCreateEmployeeMutation,
+  useDeleteEmployeeMutation,
+  useGetAllEmployeesQuery,
+  useGetEmployeeByIdQuery,
+  useUpdateEmployeeMutation,
+} from "../../redux/features/employApi/employApi";
+import type {
+  CreateEmployeeRequest,
+  EmployeeModalSubmit,
+  UpdateEmployeeRequest,
+} from "../../Components/types";
 
 const EmployeeList = () => {
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const searchTerm = searchParams.get("searchTerm") || "";
+
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetAllEmployeesQuery({ searchTerm });
+
+  const employees = response?.data ?? [];
+  console.log("employees", employees);
+  const meta = response?.meta;
+
+  const [createEmployee, { isLoading: isCreating }] =
+    useCreateEmployeeMutation();
+  const [updateEmployee, { isLoading: isUpdating }] =
+    useUpdateEmployeeMutation();
+  const [deleteEmployee, { isLoading: isDeleting }] =
+    useDeleteEmployeeMutation();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<Employee | null>(null);
-  const [viewData, setViewData] = useState<Employee | null>(null);
 
-  // Open modal for Create
+  const { data: editDetail, isFetching: editDetailLoading } =
+    useGetEmployeeByIdQuery(editData?.id ?? "", {
+      skip: !modalOpen || !editData?.id,
+    });
+
+  const tableLoading =
+    isLoading || isFetching || isCreating || isUpdating || isDeleting;
+
   const handleCreate = () => {
     setEditData(null);
     setModalOpen(true);
   };
 
-  // Open modal for Update
   const handleEdit = (record: Employee) => {
     setEditData(record);
     setModalOpen(true);
   };
 
-  // Delete employee
-  const handleDelete = (id: string) => {
-    setEmployees((prev) => prev.filter((e) => e._id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteEmployee(id).unwrap();
+      message.success("Employee deleted");
+    } catch {
+      message.error("Could not delete employee");
+    }
   };
 
-  // Change status toggle handler
-  const handleStatusChange = (id: string, checked: boolean) => {
-    setEmployees((prev) =>
-      prev.map((e) =>
-        e._id === id ? { ...e, status: checked ? "Active" : "Inactive" } : e,
-      ),
-    );
+  const handleStatusChange = async (record: Employee, checked: boolean) => {
+    try {
+      await updateEmployee({
+        id: record.id,
+        data: { user: { isActive: checked } },
+      }).unwrap();
+      message.success(checked ? "Activated" : "Deactivated");
+    } catch {
+      message.error("Could not update status");
+      refetch();
+    }
   };
 
-  // Submit (create or update)
-  const handleSubmit = (values: Omit<Employee, "_id">) => {
-    if (editData) {
-      // Update
-      setEmployees((prev) =>
-        prev.map((e) => (e._id === editData._id ? { ...e, ...values } : e)),
-      );
-    } else {
-      // Create
-      const newEmp: Employee = {
-        _id: Date.now().toString(),
-        ...values,
-      };
-      setEmployees((prev) => [newEmp, ...prev]);
+  const handleSubmit = async (values: EmployeeModalSubmit) => {
+    try {
+      if (editData) {
+        // Update request: user info is nested under 'user'
+        const data: UpdateEmployeeRequest = values;
+        await updateEmployee({ id: editData.id, data }).unwrap();
+        message.success("Employee updated");
+      } else {
+        // Create request: values already follow the CreateEmployeeRequest nested structure
+        const body: CreateEmployeeRequest = values;
+        console.log("body", body);
+        await createEmployee(body).unwrap();
+        message.success("Employee created");
+      }
+      setModalOpen(false);
+      setEditData(null);
+    } catch (err: unknown) {
+      const msg =
+        err &&
+        typeof err === "object" &&
+        "data" in err &&
+        err.data &&
+        typeof err.data === "object" &&
+        "message" in err.data &&
+        typeof (err.data as { message: unknown }).message === "string"
+          ? (err.data as { message: string }).message
+          : "Request failed";
+      message.error(msg);
+      throw err;
     }
   };
 
@@ -125,17 +133,15 @@ const EmployeeList = () => {
       width: 120,
       render: (_: unknown, record: Employee) => (
         <div className="flex items-center gap-2">
-          {/* View */}
           <Tooltip title="View Details">
             <CustomButton
               variant="outline"
               size="icon-sm"
-              onClick={() => setViewData(record)}
+              onClick={() => navigate(`/employee/${record.id}`)}
               icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
             />
           </Tooltip>
 
-          {/* Edit */}
           <Tooltip title="Edit Employee">
             <CustomButton
               variant="outline"
@@ -147,11 +153,10 @@ const EmployeeList = () => {
             />
           </Tooltip>
 
-          {/* Delete */}
           <Popconfirm
             title="Delete Employee"
             description="Are you sure you want to delete this employee?"
-            onConfirm={() => handleDelete(record._id)}
+            onConfirm={() => handleDelete(record.id)}
             okText="Delete"
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
@@ -174,12 +179,15 @@ const EmployeeList = () => {
       render: (name: string, record: Employee) => (
         <div className="flex items-center gap-3">
           <img
-            src={`https://i.pravatar.cc/150?u=${record.email}`}
+            src={
+              record.profile?.photo ||
+              `https://i.pravatar.cc/150?u=${record.email}`
+            }
             alt={name}
             className="w-8 h-8 rounded-full object-cover shrink-0"
           />
           <span className="font-semibold text-gray-800 text-sm whitespace-nowrap">
-            {name}
+            {name || "—"}
           </span>
         </div>
       ),
@@ -194,22 +202,24 @@ const EmployeeList = () => {
     },
     {
       title: "Phone",
-      dataIndex: "phone",
+      dataIndex: "mobile",
       key: "phone",
-      render: (phone: string) => (
-        <span className="text-sm text-gray-600 whitespace-nowrap">{phone}</span>
+      render: (mobile: string) => (
+        <span className="text-sm text-gray-600 whitespace-nowrap">
+          {mobile || "—"}
+        </span>
       ),
     },
     {
       title: "Designation",
       dataIndex: "designation",
       key: "designation",
-      render: (d: string) => (
+      render: (designation: string) => (
         <span
-          className="text-xs font-semibold text-white whitespace-nowrap px-3 py-1 rounded-sm"
+          className="text-xs font-semibold text-white whitespace-nowrap px-3 py-1 rounded-sm uppercase"
           style={{ backgroundColor: "#052e16" }}
         >
-          {d}
+          {designation || "—"}
         </span>
       ),
     },
@@ -225,9 +235,9 @@ const EmployeeList = () => {
             border: "1px solid #dcfce7",
             borderRadius: "4px",
           }}
-          className=" px-3 font-medium"
+          className=" px-3 font-medium uppercase"
         >
-          {dept}
+          {dept || "—"}
         </Tag>
       ),
     },
@@ -236,19 +246,45 @@ const EmployeeList = () => {
       dataIndex: "role",
       key: "role",
       render: (role: string) => (
-        <span className="text-sm text-gray-800 font-medium whitespace-nowrap">
-          {role}
+        <span className="text-xs text-gray-800 font-medium whitespace-nowrap uppercase">
+          {role?.replace("_", " ") || "—"}
         </span>
       ),
     },
     {
+      title: "Address",
+      key: "address",
+      render: (_: any, record: any) => (
+        <div className="text-xs text-gray-600">
+          <div>{record.address?.division || "—"}</div>
+          <div className="text-[10px] opacity-70">
+            {record.address?.district || "—"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Work Schedule",
+      key: "schedule",
+      render: (_: any, record: any) => (
+        <div className="text-xs text-gray-600">
+          <div className="font-medium">
+            {record.workInfo?.availableTime || "—"}
+          </div>
+          <div className="text-[10px] opacity-70">
+            {record.workInfo?.workStartTime?.split(" ")[0] || "—"}
+          </div>
+        </div>
+      ),
+    },
+    {
       title: "Status",
-      dataIndex: "status",
+      dataIndex: "isActive",
       key: "status",
-      render: (status: string, record: Employee) => (
+      render: (isActive: boolean, record: any) => (
         <CustomSwitch
-          checked={status === "Active"}
-          onChange={(checked) => handleStatusChange(record._id, checked)}
+          checked={isActive}
+          onChange={(checked) => handleStatusChange(record, checked)}
           size="default"
           checkedChildren="Active"
           unCheckedChildren="Inactive"
@@ -259,15 +295,14 @@ const EmployeeList = () => {
 
   return (
     <div className="space-y-5">
-      {/* Page Header */}
       <PageHeader
         breadcrumb={[{ label: "Home", path: "/" }, { label: "Employees" }]}
         title="All Employees"
-        subTitle="Manage employee records, roles, and statuses"
+        subTitle="User + Profile + WorkInfo (Prisma) via /employ API"
         extra={
           <CustomButton
             onClick={handleCreate}
-            variant="outline"
+            variant="primary"
             size="sm"
             icon={<FontAwesomeIcon icon={faPlus} />}
           >
@@ -276,73 +311,33 @@ const EmployeeList = () => {
         }
       />
 
-      {/* Table Card */}
+      {/* Filters or spacing can go here if needed */}
+      <div className="h-2" />
+
       <div className="">
         <DataTable
           data={employees}
           columns={columns}
-          isPaginate={true}
+          rowKey="id"
+          isPaginate={meta && meta.total > (meta.limit || 10)}
           showHeader={true}
+          loading={tableLoading}
         />
       </div>
 
-      {/* Create / Update Modal */}
       <EmployeeModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setEditData(null);
+        }}
         onSubmit={handleSubmit}
         editData={editData}
+        editDetail={editDetail ?? null}
+        detailLoading={editDetailLoading}
+        submitting={isCreating || isUpdating}
       />
 
-      {/* View Details Modal */}
-      {viewData && (
-        <div
-          className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4"
-          onClick={() => setViewData(null)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-4 mb-5">
-              <img
-                src={`https://i.pravatar.cc/150?u=${viewData.email}`}
-                alt={viewData.name}
-                className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
-              />
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  {viewData.name}
-                </h3>
-                <p className="text-sm text-gray-500">{viewData.designation}</p>
-              </div>
-            </div>
-            <div className="space-y-3 text-sm">
-              {[
-                { label: "Email", value: viewData.email },
-                { label: "Phone", value: viewData.phone },
-                { label: "Department", value: viewData.department },
-                { label: "Role", value: viewData.role },
-                { label: "Status", value: viewData.status },
-              ].map(({ label, value }) => (
-                <div
-                  key={label}
-                  className="flex justify-between items-center py-2 border-b border-gray-50"
-                >
-                  <span className="text-gray-500 font-medium">{label}</span>
-                  <span className="font-semibold text-gray-800">{value}</span>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => setViewData(null)}
-              className="mt-5 w-full py-2.5 rounded-xl bg-gray-50 text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

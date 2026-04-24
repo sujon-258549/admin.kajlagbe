@@ -1,8 +1,13 @@
 import { Modal, Form } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import ModalHeader from "../../common/ModalHeader";
+import { toast } from "sonner";
+import {
+  useAddCategoryMutation,
+  useUpdateCategoryMutation,
+} from "../../../redux/features/category/categoryApi";
 
 interface CategoryModalProps {
   open: boolean;
@@ -18,24 +23,65 @@ const CategoryModal = ({
   editData,
 }: CategoryModalProps) => {
   const [form] = Form.useForm();
-  const [status, setStatus] = useState(true);
 
+  const [addCategory, { isLoading }] = useAddCategoryMutation();
+  const [updateCategory, { isLoading: updateLoading }] =
+    useUpdateCategoryMutation();
+
+    
   useEffect(() => {
-    if (editData) {
-      form.setFieldsValue(editData);
-      setStatus(editData.status);
-    } else {
-      form.resetFields();
-      setStatus(true);
+    if (open) {
+      if (editData) {
+        // Ensuring status is always a boolean
+        const normalizedData = {
+          ...editData,
+          status: Boolean(editData.status)
+        };
+        form.setFieldsValue(normalizedData);
+      } else {
+        form.resetFields();
+      }
     }
   }, [editData, form, open]);
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
-      onSubmit({ ...values, status });
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      
+      const formData = {
+        ...values,
+        status: Boolean(values.status)
+      };
+
+      if (editData) {
+        await updateCategory({
+          id: editData._id || editData.id,
+          data: formData,
+        }).unwrap();
+      } else {
+        await addCategory(formData).unwrap();
+      }
+
+      toast.success(
+        editData
+          ? "Category updated successfully"
+          : "Category created successfully",
+      );
+
       form.resetFields();
       onClose();
-    });
+
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+    } catch (error: any) {
+      console.error("Failed to validate or add/update category:", error);
+      if (error?.data?.message || error?.message) {
+        toast.error(
+          error?.data?.message || error?.message || "Something went wrong!",
+        );
+      }
+    }
   };
 
   return (
@@ -43,6 +89,7 @@ const CategoryModal = ({
       open={open}
       onCancel={onClose}
       onOk={handleOk}
+      confirmLoading={isLoading || updateLoading}
       title={
         <ModalHeader
           title={editData ? "Update Category" : "Create Category"}
@@ -56,15 +103,20 @@ const CategoryModal = ({
       okText={editData ? "Update" : "Create"}
       cancelText="Cancel"
       okButtonProps={{
-        className: "!bg-primary !border-primary !rounded-lg !font-semibold",
+        className: "!bg-primary !border-primary !rounded-sm  !font-semibold",
       }}
       cancelButtonProps={{
-        className: "!rounded-lg !font-semibold",
+        className: "!rounded-sm !font-semibold hover:!bg-primary hover:!border-primary hover:!text-white",
       }}
       width={680}
       centered
     >
-      <Form form={form} layout="vertical" className="pt-4">
+      <Form 
+        form={form} 
+        layout="vertical" 
+        className="pt-4"
+        initialValues={{ status: true }}
+      >
         <Form.Item
           name="name"
           label={
@@ -79,7 +131,6 @@ const CategoryModal = ({
           <Form.Item
             name="slug"
             label={<span className="font-semibold text-gray-700">Slug</span>}
-            rules={[{ required: true, message: "Please enter slug" }]}
           >
             <CustomInput placeholder="e.g., technology" size="md" />
           </Form.Item>
@@ -104,17 +155,15 @@ const CategoryModal = ({
         </Form.Item>
 
         <Form.Item
+          name="status"
+          valuePropName="checked"
           label={<span className="font-semibold text-gray-700">Status</span>}
         >
-          <div className="flex items-center gap-3">
-            <CustomSwitch
-              checked={status}
-              onChange={setStatus}
-              checkedChildren="Active"
-              unCheckedChildren="Inactive"
-              size="default"
-            />
-          </div>
+          <CustomSwitch
+            checkedChildren="Active"
+            unCheckedChildren="Inactive"
+            size="default"
+          />
         </Form.Item>
       </Form>
     </Modal>

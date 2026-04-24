@@ -1,20 +1,14 @@
-import { useState, useEffect } from "react";
 import type { ApexOptions } from "apexcharts";
 import Chart from "react-apexcharts";
-import { type FilterType } from "../../filter/DateFilter";
+import type { FilterType } from "../../types";
 
 const RecruitmentFunnelChart = ({
   externalFilter,
 }: {
   externalFilter?: FilterType;
 }) => {
-  const [activeFilter, setActiveFilter] = useState<FilterType>("this-week");
-
-  useEffect(() => {
-    if (externalFilter) {
-      setActiveFilter(externalFilter);
-    }
-  }, [externalFilter]);
+  // Logic to filter data based on externalFilter would go here
+  console.log(externalFilter);
 
   const options: ApexOptions = {
     chart: { type: "bar", toolbar: { show: false } },

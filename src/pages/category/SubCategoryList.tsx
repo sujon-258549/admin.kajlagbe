@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
-import { Tooltip, Popconfirm } from "antd";
+import { Tooltip, Input, Modal } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -15,93 +15,133 @@ import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import SubCategoryModal from "../../Components/modal/category/SubCategoryModal";
+import type { TMeta, TSubCategory } from "../../Components/types";
+import {
+  useCreateSubCategoryMutation,
+  useDeleteSubCategoryMutation,
+  useGetAllSubCategoryQuery,
+  useUpdateSubCategoryMutation,
+  useUpdateSubCategoryStatusMutation,
+} from "../../redux/features/subCategoryApi/subCategoryApi";
+import { useGetAllCategoriesQuery } from "../../redux/features/category/categoryApi";
+import { toast } from "sonner";
+import formatDate from "../../Components/utils/dateFormate";
+import debounceSearch from "../../Components/utils/debounceSearch";
+
+interface TCategoryOption {
+  label: string;
+  value: string;
+}
 
 const SubCategoryList = () => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [editData, setEditData] = useState<any>(null);
+  const [editData, setEditData] = useState<TSubCategory | null>(null);
+  const [searchText, setSearchText] = useState("");
 
-  // Mock Categories for Selection
-  const categories = [
-    { value: "1", label: "Technology" },
-    { value: "2", label: "Healthcare" },
-    { value: "3", label: "Education" },
-  ];
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debounceSearch(e.target.value, 500).then((value: string) => {
+      setSearchText(value);
+    });
+  };
 
-  // Mock SubCategories Data
-  const [subCategories, setSubCategories] = useState([
-    {
-      id: "101",
-      name: "Frontend Developer",
-      slug: "frontend-developer",
-      categoryId: "1",
-      categoryName: "Technology",
-      icon: "code",
-      description: "React, Vue, etc.",
-      status: true,
-      createdAt: "15-02-2026",
-    },
-    {
-      id: "102",
-      name: "Backend Developer",
-      slug: "backend-developer",
-      categoryId: "1",
-      categoryName: "Technology",
-      icon: "server",
-      description: "Node, Python, Go, etc.",
-      status: true,
-      createdAt: "15-02-2026",
-    },
-    {
-      id: "103",
-      name: "Nurse",
-      slug: "nurse",
-      categoryId: "2",
-      categoryName: "Healthcare",
-      icon: "user-md",
-      description: "Registered Nurses",
-      status: true,
-      createdAt: "15-02-2026",
-    },
-  ]);
+  const queryObj = searchText ? { searchTerm: searchText } : {};
+
+  // API Queries & Mutations
+  const {
+    data: subCategoriesData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useGetAllSubCategoryQuery(queryObj);
+  const { data: categoriesData } = useGetAllCategoriesQuery({});
+  const [createSubCategory] = useCreateSubCategoryMutation();
+  const [updateSubCategory] = useUpdateSubCategoryMutation();
+  const [updateStatus] = useUpdateSubCategoryStatusMutation();
+  const [deleteSubCategory] = useDeleteSubCategoryMutation();
+
+  const allSubCategories: TSubCategory[] = subCategoriesData?.data || [];
+  const meta: TMeta = subCategoriesData?.meta || {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPage: 1,
+  };
+
+  const categories: TCategoryOption[] =
+    categoriesData?.data?.map((cat: any) => ({
+      label: cat.name,
+      value: cat.id,
+    })) || [];
 
   const handleCreate = () => {
     setEditData(null);
     setModalOpen(true);
   };
 
-  const handleEdit = (record: any) => {
+  const handleEdit = (record: TSubCategory) => {
     setEditData(record);
     setModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setSubCategories((prev: any) => prev.filter((c: any) => c.id !== id));
-  };
-
-  const handleStatusChange = (id: string, checked: boolean) => {
-    setSubCategories((prev: any) =>
-      prev.map((c: any) => (c.id === id ? { ...c, status: checked } : c)),
-    );
-  };
-
-  const handleSubmit = (values: any) => {
-    const category = categories.find((c) => c.value === values.categoryId);
-    const categoryName = category ? category.label : "";
-
-    if (editData) {
-      setSubCategories((prev: any) =>
-        prev.map((c: any) =>
-          c.id === editData.id ? { ...c, ...values, categoryName } : c,
-        ),
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await deleteSubCategory(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || "SubCategory deleted successfully");
+      } else {
+        toast.error(res?.message || "Failed to delete subcategory");
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || error?.message || "Something went wrong",
       );
-    } else {
-      const newSubCategory = {
-        id: Date.now().toString(),
-        ...values,
-        categoryName,
-        createdAt: new Date().toLocaleDateString("en-GB").replace(/\//g, "-"),
-      };
-      setSubCategories((prev: any) => [newSubCategory, ...prev]);
+    }
+  };
+
+  const handleStatusChange = async (id: string) => {
+    try {
+      const res = await updateStatus(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || "Status updated successfully");
+      } else {
+        toast.error(res?.message || "Failed to update status");
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || error?.message || "Something went wrong",
+      );
+    }
+  };
+
+  const handleSubmit = async (values: Partial<TSubCategory>) => {
+    try {
+      let res;
+      if (editData) {
+        res = await updateSubCategory({
+          id: editData.id,
+          data: values,
+        }).unwrap();
+      } else {
+        res = await createSubCategory(values).unwrap();
+      }
+
+      if (res?.success) {
+        toast.success(
+          res?.message ||
+            `SubCategory ${editData ? "updated" : "created"} successfully`,
+        );
+        setModalOpen(false);
+      } else {
+        toast.error(
+          res?.message ||
+            `Failed to ${editData ? "update" : "create"} subcategory`,
+        );
+      }
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message || error?.message || "Something went wrong",
+      );
+      throw error;
     }
   };
 
@@ -110,7 +150,7 @@ const SubCategoryList = () => {
       title: "ACTION",
       key: "action",
       width: 110,
-      render: (_: any, record: any) => (
+      render: (_: unknown, record: TSubCategory) => (
         <div className="flex items-center gap-2">
           {/* Edit */}
           <Tooltip title="Edit SubCategory">
@@ -125,22 +165,25 @@ const SubCategoryList = () => {
           </Tooltip>
 
           {/* Delete */}
-          <Popconfirm
-            title="Delete SubCategory"
-            description="Are you sure you want to delete this subcategory?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <Tooltip title="Delete SubCategory">
-              <CustomButton
-                variant="danger-outline"
-                size="icon-sm"
-                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
-              />
-            </Tooltip>
-          </Popconfirm>
+          <Tooltip title="Delete SubCategory">
+            <CustomButton
+              variant="danger-outline"
+              size="icon-sm"
+              onClick={() => {
+                Modal.confirm({
+                  title: "Delete SubCategory",
+                  content: "Are you sure you want to delete this subcategory?",
+                  okText: "Delete",
+                  okType: "danger",
+                  cancelText: "Cancel",
+                  onOk: async () => {
+                    await handleDelete(record.id);
+                  },
+                });
+              }}
+              icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+            />
+          </Tooltip>
         </div>
       ),
     },
@@ -164,12 +207,24 @@ const SubCategoryList = () => {
           <FontAwesomeIcon icon={faFilter} className="text-gray-300 text-xs" />
         </div>
       ),
-      dataIndex: "categoryName",
+      dataIndex: ["category", "name"],
       key: "categoryName",
       render: (text: string) => (
         <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-semibold">
           {text}
         </span>
+      ),
+    },
+    {
+      title: "ICON",
+      dataIndex: "icon",
+      key: "icon",
+      render: (text: string) => (
+        <div className="bg-gray-100 p-2 rounded-md inline-block w-8 h-8 flex items-center justify-center">
+          <i
+            className={`${text?.includes("fa-") ? text : `fa-solid fa-${text}`} text-gray-600`}
+          ></i>
+        </div>
       ),
     },
     {
@@ -186,13 +241,11 @@ const SubCategoryList = () => {
       ),
       dataIndex: "status",
       key: "status",
-      render: (status: boolean, record: any) => (
+      render: (status: boolean, record: TSubCategory) => (
         <div className="flex items-center gap-2">
           <CustomSwitch
             checked={status}
-            onChange={(checked: boolean) =>
-              handleStatusChange(record.id, checked)
-            }
+            onChange={() => handleStatusChange(record.id)}
             size="default"
           />
         </div>
@@ -208,7 +261,7 @@ const SubCategoryList = () => {
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date: string) => (
-        <span className="text-gray-600 font-medium">{date}</span>
+        <span className="text-gray-600 font-medium">{formatDate(date)}</span>
       ),
     },
   ];
@@ -229,6 +282,7 @@ const SubCategoryList = () => {
               variant="outline"
               size="sm"
               icon={<FontAwesomeIcon icon={faRotateRight} />}
+              onClick={() => refetch()}
             >
               Refresh
             </CustomButton>
@@ -244,13 +298,23 @@ const SubCategoryList = () => {
         }
       />
 
+      <div className="flex items-center gap-2">
+        <Input
+          onChange={handleSearch}
+          className="max-w-md"
+          placeholder="Search"
+        />
+      </div>
+
       <div className="">
         <DataTable
-          data={subCategories}
+          data={allSubCategories}
+          isLoading={isLoading || isFetching}
           columns={columns}
-          isPaginate={true}
+          isPaginate={meta.total > meta.limit}
           showHeader={true}
           rowKey="id"
+          meta={meta}
         />
       </div>
 
