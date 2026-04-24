@@ -16,12 +16,19 @@ import FolderList from "../pages/media/FolderList";
 import WorkTypeList from "../pages/work-type/WorkTypeList";
 import EmployeeDetails from "../pages/employee/EmployeeDetails";
 import Login from "../pages/auth/Login";
+import ForgotPassword from "../pages/auth/ForgotPassword";
 import ProtectedRoute from "../mainLayout/ProtectedRoute";
+import ProfileView from "../pages/profile/ProfileView";
+import ProfileEdit from "../pages/profile/ProfileEdit";
 
 const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
   },
   {
     path: "/",
@@ -79,6 +86,14 @@ const router = createBrowserRouter([
       {
         path: "setup/media",
         element: <FolderList />,
+      },
+      {
+        path: "profile",
+        element: <ProfileView />,
+      },
+      {
+        path: "profile/edit",
+        element: <ProfileEdit />,
       },
       {
         path: "*",

@@ -1,7 +1,7 @@
 import React from "react";
 import { Form, Input, Button, message, Checkbox } from "antd";
 import { UserOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch } from "../../redux/hooks";
 import { useLoginMutation } from "../../redux/features/auth/authApi";
 import { setUser, type TUser } from "../../redux/features/auth/authSlice";
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
       ></div>
 
       <div
-        style={{ boxShadow: "1px 1px 25px" }}
+        style={{ boxShadow: "1px 1px 25px rgba(0,0,0,0.1)" }}
         className="relative z-10 w-full max-w-[850px] mx-4 bg-white rounded-md overflow-hidden flex flex-col md:flex-row"
       >
         {/* Left Branding Section - Using Primary Color */}
@@ -132,13 +132,13 @@ const Login: React.FC = () => {
                   Remember me
                 </Checkbox>
               </Form.Item>
-              <a
-                href="#"
-                className="text-sm font-bold transition-all"
+              <Link
+                to="/forgot-password"
+                className="text-sm font-bold transition-all hover:opacity-75"
                 style={{ color: PRIMARY }}
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             <Form.Item className="mb-0">

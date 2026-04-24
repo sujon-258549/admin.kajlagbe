@@ -255,9 +255,9 @@ const EmployeeList = () => {
       title: "Address",
       key: "address",
       render: (_: any, record: any) => (
-        <div className="text-xs text-gray-600">
+        <div className="text-xs text-gray-600 whitespace-nowrap">
           <div>{record.address?.division || "—"}</div>
-          <div className="text-[10px] opacity-70">
+          <div className="text-[10px] opacity-70 whitespace-nowrap">
             {record.address?.district || "—"}
           </div>
         </div>
@@ -337,7 +337,6 @@ const EmployeeList = () => {
         detailLoading={editDetailLoading}
         submitting={isCreating || isUpdating}
       />
-
     </div>
   );
 };

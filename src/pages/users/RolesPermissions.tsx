@@ -279,7 +279,7 @@ const RolesPermissions = () => {
       <PermissionModal
         open={permissionModalOpen}
         onClose={() => setPermissionModalOpen(false)}
-        designationName={selectedDesignation?.name || ""}
+        role={selectedDesignation ? { id: selectedDesignation._id, role: selectedDesignation.name } as any : null}
       />
     </div>
   );

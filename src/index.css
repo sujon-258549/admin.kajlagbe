@@ -442,6 +442,18 @@ input:focus {
   outline: 0 !important;
 }
 
+.custom-select.h-6 .ant-select-selector {
+  height: 24px !important;
+}
+
+.custom-select.h-8 .ant-select-selector {
+  height: 32px !important;
+}
+
+.custom-select.h-10 .ant-select-selector {
+  height: 40px !important;
+}
+
 .custom-select .ant-select-selector,
 custom-select:hover .ant-select-selector {
   transition: all 0.2s ease-in-out !important;

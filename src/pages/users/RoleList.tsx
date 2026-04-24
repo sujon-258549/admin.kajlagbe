@@ -10,11 +10,13 @@ import {
   faSearch,
   faFilter,
   faSort,
+  faShieldHalved,
 } from "@fortawesome/free-solid-svg-icons";
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import RoleModal from "../../Components/modal/users/RoleModal";
+import PermissionModal from "../../Components/modal/users/PermissionModal";
 import {
   useCreateRoleMutation,
   useDeleteRoleMutation,
@@ -32,7 +34,10 @@ import formatDate from "../../Components/utils/dateFormate";
 
 const RoleList = () => {
   const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [permissionModalOpen, setPermissionModalOpen] = useState(false);
   const [editData, setEditData] = useState<TRole | null>(null);
+  const [selectedRole, setSelectedRole] = useState<TRole | null>(null);
+
   const { data: rolesData, isLoading, isFetching, refetch } = useGetAllRolesQuery(
     {},
   );
@@ -67,6 +72,11 @@ const RoleList = () => {
   const handleEdit = (record: TRole) => {
     setEditData(record);
     setRoleModalOpen(true);
+  };
+
+  const handleManagePermissions = (record: TRole) => {
+    setSelectedRole(record);
+    setPermissionModalOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -136,9 +146,22 @@ const RoleList = () => {
     {
       title: "ACTION",
       key: "action",
-      width: 110,
+      width: 150,
       render: (_: unknown, record: TRole) => (
         <div className="flex items-center gap-2">
+          {/* Permissions */}
+          <Tooltip title="Manage Permissions">
+            <CustomButton
+              variant="outline"
+              size="icon-sm"
+              onClick={() => handleManagePermissions(record)}
+              className="text-primary border-primary/30"
+              icon={
+                <FontAwesomeIcon icon={faShieldHalved} className="text-xs" />
+              }
+            />
+          </Tooltip>
+
           {/* Edit */}
           <Tooltip title="Edit Role">
             <CustomButton
@@ -275,6 +298,13 @@ const RoleList = () => {
         onClose={() => setRoleModalOpen(false)}
         onSubmit={handleSubmitRole}
         editData={editData}
+      />
+
+      {/* Permission Modal */}
+      <PermissionModal
+        open={permissionModalOpen}
+        onClose={() => setPermissionModalOpen(false)}
+        role={selectedRole}
       />
     </div>
   );

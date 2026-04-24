@@ -64,11 +64,11 @@ const variantDefaultStyle: Record<ButtonVariant, React.CSSProperties> = {
 
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-xs rounded-sm! h-8 ",
+  sm: "px-3 py-1.5 text-xs rounded-sm! h-8",
   md: "px-4 py-2 text-sm rounded-sm! h-10",
   lg: "px-6 py-3 text-base rounded-sm! h-12",
-  icon: "w-11 h-11 rounded-sm!",
-  "icon-sm": "w-8 h-8 rounded-sm!",
+  icon: "w-11 h-11 rounded-sm! p-0 flex items-center justify-center",
+  "icon-sm": "w-8 h-8 rounded-sm! p-0 flex items-center justify-center",
 };
 
 const Button: React.FC<CustomButtonProps> = ({
@@ -82,7 +82,7 @@ const Button: React.FC<CustomButtonProps> = ({
 
 
   const baseClasses =
-    "transition-all font-medium flex items-center justify-center border-solid";
+    "transition-all font-medium !flex !items-center !justify-center border-solid";
 
   const combinedClasses = `${baseClasses} ${sizeClasses[size]} btn-${variant} ${className}`;
 

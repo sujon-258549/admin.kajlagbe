@@ -368,7 +368,7 @@ const EmployeeModal = ({
             fontWeight: 600,
           },
         }}
-        width={1100}
+        width={1000}
         centered
         destroyOnClose
         wrapClassName="px-3 py-5 sm:px-5 sm:py-8"
