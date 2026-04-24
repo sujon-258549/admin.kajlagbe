@@ -87,7 +87,7 @@ export type CreateEmployeeRequest = {
     experience?: string;
     workType?: string;
     workTypeIds?: string[];
-    categories?: string[];
+    subCategoryIds?: string[];
     workStartTime?: string;
     workTimeLimit?: string;
     availableTime?: string;
@@ -126,7 +126,7 @@ export type UpdateEmployeeRequest = {
     experience?: string | null;
     workType?: string | null;
     workTypeIds?: string[] | null;
-    categories?: string[];
+    subCategoryIds?: string[];
     workStartTime?: string | null;
     workTimeLimit?: string | null;
     availableTime?: string | null;
@@ -165,7 +165,8 @@ export type EmployApiUser = {
     workType?: string | null;
     workTypeIds?: string[] | null;
     workTypes?: { id: string; name: string }[];
-    categories?: string[];
+    subCategoryIds?: string[];
+    subCategories?: { id: string; name: string }[];
     workStartTime?: string | null;
     workTimeLimit?: string | null;
     availableTime?: string | null;
@@ -176,11 +177,14 @@ export type EmployeeRow = {
   id: string;
   name: string;
   email: string;
-  phone: string;
+  mobile: string;
   designation: string;
   department: string;
-  role: PrismaRole;
-  status: "Active" | "Inactive";
+  role: string;
+  isActive: boolean;
+  profile?: any;
+  workInfo?: any;
+  address?: any;
 };
 
 export type EmployeeModalSubmit = {
@@ -215,7 +219,7 @@ export type EmployeeModalSubmit = {
     experience?: string;
     workType?: string;
     workTypeIds?: string[];
-    categories?: string[];
+    subCategoryIds?: string[];
     workStartTime?: string;
     workTimeLimit?: string;
     availableTime?: string;
@@ -261,11 +265,14 @@ export function mapApiUserToEmployeeRow(u: EmployApiUser): EmployeeRow {
     id: u.id,
     name: u.profile?.name?.trim() || "—",
     email: u.email,
-    phone: u.mobile,
+    mobile: u.mobile,
     designation: u.workInfo?.experience?.trim() || "—",
-    department: u.workInfo?.workType?.trim() || "—",
-    role: coerceRole(deriveRoleString(u)),
-    status: u.isActive ? "Active" : "Inactive",
+    department: (u as any).department?.name || "—",
+    role: deriveRoleString(u),
+    isActive: u.isActive,
+    profile: u.profile,
+    workInfo: u.workInfo,
+    address: u.address,
   };
 }
 

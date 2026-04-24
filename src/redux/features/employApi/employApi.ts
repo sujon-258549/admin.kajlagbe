@@ -23,7 +23,7 @@ const employApi = baseApi.injectEndpoints({
     }),
 
     getAllEmployees: builder.query<
-      EmployeeRow[],
+      { data: EmployeeRow[]; meta: any },
       Record<string, string | number | boolean | undefined>
     >({
       query: (args) => {
@@ -39,12 +39,14 @@ const employApi = baseApi.injectEndpoints({
           params,
         };
       },
-      transformResponse: (res: unknown) =>
-        unwrapEmployeeListResponse(res).map(mapApiUserToEmployeeRow),
+      transformResponse: (res: any) => ({
+        data: unwrapEmployeeListResponse(res).map(mapApiUserToEmployeeRow),
+        meta: res?.meta,
+      }),
       providesTags: (result) =>
-        result
+        result?.data
           ? [
-              ...result.map(({ id }) => ({ type: "Employee" as const, id })),
+              ...result.data.map(({ id }) => ({ type: "Employee" as const, id })),
               "Employee",
             ]
           : ["Employee"],

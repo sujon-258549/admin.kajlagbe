@@ -141,6 +141,7 @@ const SubCategoryList = () => {
       toast.error(
         error?.data?.message || error?.message || "Something went wrong",
       );
+      throw error;
     }
   };
 

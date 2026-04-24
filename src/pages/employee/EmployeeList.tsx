@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tag, Tooltip, Popconfirm, message } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -26,15 +27,22 @@ import type {
   EmployeeModalSubmit,
   UpdateEmployeeRequest,
 } from "../../Components/types";
-import { ROLE_LABELS } from "../../Components/types";
 
 const EmployeeList = () => {
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("searchTerm") || "";
+
   const {
-    data: employees = [],
+    data: response,
     isLoading,
     isFetching,
     refetch,
-  } = useGetAllEmployeesQuery({});
+  } = useGetAllEmployeesQuery({ searchTerm });
+
+  const employees = response?.data ?? [];
+  console.log("employees", employees);
+  const meta = response?.meta;
+
   const [createEmployee, { isLoading: isCreating }] =
     useCreateEmployeeMutation();
   const [updateEmployee, { isLoading: isUpdating }] =
@@ -114,6 +122,7 @@ const EmployeeList = () => {
           ? (err.data as { message: string }).message
           : "Request failed";
       message.error(msg);
+      throw err;
     }
   };
 
@@ -165,17 +174,20 @@ const EmployeeList = () => {
     },
     {
       title: "Name",
-      dataIndex: "name",
+      dataIndex: ["profile", "name"],
       key: "name",
-      render: (name: string, record: Employee) => (
+      render: (name: string, record: any) => (
         <div className="flex items-center gap-3">
           <img
-            src={`https://i.pravatar.cc/150?u=${record.email}`}
+            src={
+              record.profile?.photo ||
+              `https://i.pravatar.cc/150?u=${record.email}`
+            }
             alt={name}
             className="w-8 h-8 rounded-full object-cover shrink-0"
           />
           <span className="font-semibold text-gray-800 text-sm whitespace-nowrap">
-            {name}
+            {name || "—"}
           </span>
         </div>
       ),
@@ -190,30 +202,32 @@ const EmployeeList = () => {
     },
     {
       title: "Phone",
-      dataIndex: "phone",
+      dataIndex: "mobile",
       key: "phone",
-      render: (phone: string) => (
-        <span className="text-sm text-gray-600 whitespace-nowrap">{phone}</span>
+      render: (mobile: string) => (
+        <span className="text-sm text-gray-600 whitespace-nowrap">
+          {mobile || "—"}
+        </span>
       ),
     },
     {
       title: "Designation",
-      dataIndex: "designation",
+      dataIndex: ["workInfo", "experience"],
       key: "designation",
-      render: (d: string) => (
+      render: (exp: string) => (
         <span
-          className="text-xs font-semibold text-white whitespace-nowrap px-3 py-1 rounded-sm"
+          className="text-xs font-semibold text-white whitespace-nowrap px-3 py-1 rounded-sm uppercase"
           style={{ backgroundColor: "#052e16" }}
         >
-          {d}
+          {exp || "—"}
         </span>
       ),
     },
     {
       title: "Department",
-      dataIndex: "department",
+      dataIndex: ["department", "name"],
       key: "department",
-      render: (dept: string) => (
+      render: (_: string, record: Employee) => (
         <Tag
           style={{
             backgroundColor: "#f0fdf4",
@@ -221,29 +235,55 @@ const EmployeeList = () => {
             border: "1px solid #dcfce7",
             borderRadius: "4px",
           }}
-          className=" px-3 font-medium"
+          className=" px-3 font-medium uppercase"
         >
-          {dept}
+          {record.department?.name || "—"}
         </Tag>
       ),
     },
     {
       title: "Role",
-      dataIndex: "role",
+      dataIndex: ["role", "role"],
       key: "role",
-      render: (role: Employee["role"]) => (
-        <span className="text-sm text-gray-800 font-medium whitespace-nowrap">
-          {ROLE_LABELS[role]}
+      render: (_: string, record: Employee) => (
+        <span className="text-xs text-gray-800 font-medium whitespace-nowrap uppercase">
+          {record.role?.role?.replace("_", " ") || "—"}
         </span>
       ),
     },
     {
+      title: "Address",
+      key: "address",
+      render: (_: any, record: any) => (
+        <div className="text-xs text-gray-600">
+          <div>{record.address?.division || "—"}</div>
+          <div className="text-[10px] opacity-70">
+            {record.address?.district || "—"}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Work Schedule",
+      key: "schedule",
+      render: (_: any, record: any) => (
+        <div className="text-xs text-gray-600">
+          <div className="font-medium">
+            {record.workInfo?.availableTime || "—"}
+          </div>
+          <div className="text-[10px] opacity-70">
+            {record.workInfo?.workStartTime?.split(" ")[0] || "—"}
+          </div>
+        </div>
+      ),
+    },
+    {
       title: "Status",
-      dataIndex: "status",
+      dataIndex: "isActive",
       key: "status",
-      render: (status: string, record: Employee) => (
+      render: (isActive: boolean, record: any) => (
         <CustomSwitch
-          checked={status === "Active"}
+          checked={isActive}
           onChange={(checked) => handleStatusChange(record, checked)}
           size="default"
           checkedChildren="Active"
@@ -271,12 +311,15 @@ const EmployeeList = () => {
         }
       />
 
+      {/* Filters or spacing can go here if needed */}
+      <div className="h-2" />
+
       <div className="">
         <DataTable
           data={employees}
           columns={columns}
           rowKey="id"
-          isPaginate={true}
+          isPaginate={meta && meta.total > (meta.limit || 10)}
           showHeader={true}
           loading={tableLoading}
         />
@@ -320,10 +363,16 @@ const EmployeeList = () => {
             <div className="space-y-3 text-sm">
               {[
                 { label: "Email", value: viewData.email },
-                { label: "Phone", value: viewData.phone },
-                { label: "Department", value: viewData.department },
-                { label: "Role", value: ROLE_LABELS[viewData.role] },
-                { label: "Status", value: viewData.status },
+                { label: "Phone", value: viewData.mobile },
+                {
+                  label: "Department",
+                  value: (viewData as any).department?.name,
+                },
+                { label: "Role", value: (viewData as any).role?.role },
+                {
+                  label: "Status",
+                  value: viewData.isActive ? "Active" : "Inactive",
+                },
               ].map(({ label, value }) => (
                 <div
                   key={label}

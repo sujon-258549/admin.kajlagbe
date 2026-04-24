@@ -37,16 +37,19 @@ const SubCategoryModal = ({
     }
   }, [editData, open, form]);
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
       const formData = {
         ...values,
-        status: Boolean(values.status)
+        status: Boolean(values.status),
       };
-      onSubmit(formData);
+      await onSubmit(formData);
       form.resetFields();
       onClose();
-    });
+    } catch (error) {
+      console.error("SubCategory handleOk error:", error);
+    }
   };
 
   return (

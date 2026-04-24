@@ -1,4 +1,5 @@
-import { Modal, Form, Select, Spin, Divider } from "antd";
+import { Modal, Form, Select, Spin, Divider, TimePicker, DatePicker } from "antd";
+import dayjs from "dayjs";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
@@ -60,7 +61,7 @@ type FormValues = {
   designation: string;
   department: string[]; // Used for workTypeIds
   workStartTime?: string;
-  workTimeLimit?: string;
+  workEndTime?: string; // Maps to workTimeLimit
   password?: string;
   gender?: string;
   age?: number;
@@ -75,8 +76,9 @@ type FormValues = {
   district?: string;
   upazila?: string;
   addressLine?: string;
-  categories?: string[];
-  availableTime?: string;
+  subCategoryIds?: string[];
+  workTimeRange?: [dayjs.Dayjs, dayjs.Dayjs];
+  availableTimeRange?: [dayjs.Dayjs, dayjs.Dayjs];
 };
 
 type FormShape = FormValues & { confirmPassword?: string };
@@ -185,14 +187,29 @@ const EmployeeModal = ({
         mobile: normalizeMobile(src.mobile),
         roleId:
           src.roleId ||
-          (typeof src.role === "object" ? src.role.id : undefined),
+          (typeof src.role === "object" ? (src.role as any).id : undefined) ||
+          src.roleId,
         isActive: src.isActive,
         isVerified: Boolean(src.isVerified),
-        departmentId: src.departmentId ?? undefined,
+        departmentId: 
+          src.departmentId || 
+          (typeof (src as any).department === "object" ? (src as any).department?.id : undefined),
         designation: src.workInfo?.experience?.trim() ?? "",
         department: (src.workInfo?.workTypes ?? []).map((w) => w.id),
-        workStartTime: src.workInfo?.workStartTime ?? "",
-        workTimeLimit: src.workInfo?.workTimeLimit ?? "",
+        workTimeRange:
+          src.workInfo?.workStartTime && src.workInfo?.workTimeLimit
+            ? [
+                dayjs(src.workInfo.workStartTime, "YYYY-MM-DD hh:mm A"),
+                dayjs(src.workInfo.workTimeLimit, "YYYY-MM-DD hh:mm A"),
+              ]
+            : undefined,
+        availableTimeRange:
+          src.workInfo?.availableTime && src.workInfo?.availableTime.includes(" - ")
+            ? [
+                dayjs(src.workInfo.availableTime.split(" - ")[0], "hh:mm A"),
+                dayjs(src.workInfo.availableTime.split(" - ")[1], "hh:mm A"),
+              ]
+            : undefined,
         gender: (src.profile?.gender as PrismaGender | undefined) ?? undefined,
         age: src.profile?.age ?? undefined,
         dob: src.profile?.dob
@@ -210,8 +227,7 @@ const EmployeeModal = ({
         district: src.address?.district ?? "",
         upazila: src.address?.upazila ?? "",
         addressLine: src.address?.address ?? "",
-        categories: src.workInfo?.categories ?? [],
-        availableTime: src.workInfo?.availableTime ?? "",
+        subCategoryIds: (src.workInfo?.subCategories ?? []).map((s: any) => s.id),
         password: undefined,
         confirmPassword: undefined,
       });
@@ -224,15 +240,15 @@ const EmployeeModal = ({
       form.setFieldsValue({
         name: editData.name === "—" ? "" : editData.name,
         email: editData.email,
-        mobile: normalizeMobile(editData.phone),
+        mobile: normalizeMobile(editData.mobile),
         roleId: initialRoleId,
-        isActive: editData.status === "Active",
+        isActive: editData.isActive,
         isVerified: false,
         departmentId: undefined,
         designation: editData.designation === "—" ? "" : editData.designation,
         department: [],
-        workStartTime: "",
-        workTimeLimit: "",
+        workTimeRange: undefined,
+        availableTimeRange: undefined,
         gender: undefined,
         age: undefined,
         dob: undefined,
@@ -246,8 +262,7 @@ const EmployeeModal = ({
         district: "",
         upazila: "",
         addressLine: "",
-        categories: [],
-        availableTime: "",
+        subCategoryIds: [],
         password: undefined,
         confirmPassword: undefined,
       });
@@ -268,7 +283,7 @@ const EmployeeModal = ({
           departmentId: values.departmentId || undefined,
           isActive: values.isActive,
           isVerified: values.isVerified,
-          ...(values.password && { password: values.password }),
+          password: values.password || (editData ? undefined : "password1234"),
         },
         profile: {
           name: values.name.trim(),
@@ -296,10 +311,13 @@ const EmployeeModal = ({
               .filter((w) => (values.department || []).includes(w.id))
               .map((w) => w.name)
               .join(", ") || undefined,
-          workStartTime: values.workStartTime?.trim() || undefined,
-          workTimeLimit: values.workTimeLimit?.trim() || undefined,
-          categories: values.categories || [],
-          availableTime: values.availableTime?.trim() || undefined,
+          workStartTime: values.workTimeRange?.[0]?.format("YYYY-MM-DD hh:mm A") || undefined,
+          workTimeLimit: values.workTimeRange?.[1]?.format("YYYY-MM-DD hh:mm A") || undefined,
+          subCategoryIds: values.subCategoryIds || [],
+          availableTime:
+            values.availableTimeRange?.[0] && values.availableTimeRange?.[1]
+              ? `${values.availableTimeRange[0].format("hh:mm A")} - ${values.availableTimeRange[1].format("hh:mm A")}`
+              : undefined,
         },
       };
       await onSubmit(payload);
@@ -417,7 +435,7 @@ const EmployeeModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
               <Form.Item
                 name="name"
-                label="Full name (Profile.name)"
+                label="Full name"
                 rules={[
                   { required: true, message: "Please enter employee name" },
                 ]}
@@ -427,7 +445,7 @@ const EmployeeModal = ({
 
               <Form.Item
                 name="departmentId"
-                label="Department (User.departmentId)"
+                label="Department"
               >
                 <CustomSelect
                   placeholder={deptLoading ? "Loading…" : "Select department"}
@@ -447,7 +465,7 @@ const EmployeeModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
               <Form.Item
                 name="email"
-                label="Email (User.email)"
+                label="Email"
                 rules={[
                   { required: true, message: "Please enter email" },
                   { type: "email", message: "Enter a valid email" },
@@ -458,7 +476,7 @@ const EmployeeModal = ({
 
               <Form.Item
                 name="mobile"
-                label="Mobile (User.mobile / Profile.mobile)"
+                label="Mobile"
                 rules={[
                   { required: true, message: "Please enter mobile number" },
                 ]}
@@ -471,7 +489,7 @@ const EmployeeModal = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-1">
                 <Form.Item
                   name="password"
-                  label="Password (User.password)"
+                  label="Password"
                   rules={[
                     { required: true, message: "Password is required" },
                     { min: 8, message: "At least 8 characters" },
@@ -632,7 +650,7 @@ const EmployeeModal = ({
             >
               Profile
             </Divider>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 gap-y-1">
               <Form.Item
                 name="gender"
                 label="Gender "
@@ -664,7 +682,7 @@ const EmployeeModal = ({
                 </CustomSelect>
               </Form.Item>
 
-              <Form.Item name="nid" label="NID (Profile.nid)">
+              <Form.Item name="nid" label="NID">
                 <CustomInput placeholder="National ID" size="md" />
               </Form.Item>
             </div>
@@ -702,18 +720,18 @@ const EmployeeModal = ({
               Address
             </Divider>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-4 gap-y-1">
-              <Form.Item name="division" label="Division (Address.division)">
+              <Form.Item name="division" label="Division">
                 <CustomInput placeholder="Division" size="md" />
               </Form.Item>
-              <Form.Item name="district" label="District (Address.district)">
+              <Form.Item name="district" label="District">
                 <CustomInput placeholder="District" size="md" />
               </Form.Item>
-              <Form.Item name="upazila" label="Upazila (Address.upazila)">
+              <Form.Item name="upazila" label="Upazila">
                 <CustomInput placeholder="Upazila" size="md" />
               </Form.Item>
               <Form.Item
                 name="addressLine"
-                label="Address line (Address.address)"
+                label="Address line"
               >
                 <CustomInput placeholder="Street, holding, etc." size="md" />
               </Form.Item>
@@ -728,7 +746,7 @@ const EmployeeModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
               <Form.Item
                 name="designation"
-                label="Experience / title (WorkInfo.experience)"
+                label="Experience / title"
                 rules={[
                   { required: true, message: "Enter experience or job title" },
                 ]}
@@ -738,7 +756,7 @@ const EmployeeModal = ({
 
               <Form.Item
                 name="department"
-                label="Work Type (WorkInfo.workType)"
+                label="Work Type"
                 rules={[{ required: true, message: "Select work type(s)" }]}
               >
                 <CustomSelect
@@ -753,53 +771,39 @@ const EmployeeModal = ({
               </Form.Item>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-              <Form.Item
-                name="workStartTime"
-                label="Work Start Time (WorkInfo.workStartTime)"
-              >
-                <CustomInput placeholder="e.g. 9:00 AM" size="md" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-1">
+              <Form.Item name="workTimeRange" label="Work Time Range">
+                <DatePicker.RangePicker 
+                  showTime={{ format: "hh:mm A", use12Hours: true }}
+                  format="YYYY-MM-DD hh:mm A" 
+                  className="w-full" 
+                  size="middle" 
+                />
               </Form.Item>
 
               <Form.Item
-                name="workTimeLimit"
-                label="Work Time Limit (WorkInfo.workTimeLimit)"
+                name="subCategoryIds"
+                label="Categories"
               >
-                <CustomInput placeholder="e.g. 8 Hours" size="md" />
+                <CustomSelect
+                  mode="multiple"
+                  placeholder="Select categories"
+                  allowClear
+                  disabled={subCategoryLoading}
+                  loading={subCategoryLoading}
+                >
+                  {subCategories.map((s) => (
+                    <Option key={s.id} value={s.id}>
+                      {s.name}
+                    </Option>
+                  ))}
+                </CustomSelect>
+              </Form.Item>
+
+              <Form.Item name="availableTimeRange" label="Available Time Range">
+                <TimePicker.RangePicker format="hh:mm A" use12Hours className="w-full" size="middle" />
               </Form.Item>
             </div>
-
-            <Form.Item
-              name="categories"
-              label="Categories (WorkInfo.categories)"
-            >
-              <CustomSelect
-                mode="multiple"
-                placeholder={
-                  subCategoryLoading
-                    ? "Loading categories…"
-                    : "Select categories"
-                }
-                size="md"
-                allowClear
-                disabled={subCategoryLoading}
-                loading={subCategoryLoading}
-              >
-                {subCategories.map((s) => (
-                  <Option key={s.id} value={s.id}>
-                    {s.name}
-                  </Option>
-                ))}
-              </CustomSelect>
-            </Form.Item>
-
-            <Form.Item
-              name="availableTime"
-              label="Available time (WorkInfo.availableTime)"
-              className="mb-0"
-            >
-              <CustomInput placeholder="e.g. Weekends, 6pm–10pm" size="md" />
-            </Form.Item>
           </Form>
         </Spin>
       </Modal>
