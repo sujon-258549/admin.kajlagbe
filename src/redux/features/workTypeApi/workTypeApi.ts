@@ -1,5 +1,5 @@
 import { baseApi } from "../../api/baseApi";
-import {
+import type {
   TWorkType,
   CreateWorkTypeRequest,
   UpdateWorkTypeRequest,

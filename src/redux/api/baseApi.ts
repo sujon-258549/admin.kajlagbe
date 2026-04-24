@@ -25,6 +25,7 @@ export const baseApi = createApi({
     'Role',
     'Folder',
     'Media',
+    'WorkType',
   ],
   endpoints: () => ({}), // Endpoints will be injected from specific slice APIs
 })

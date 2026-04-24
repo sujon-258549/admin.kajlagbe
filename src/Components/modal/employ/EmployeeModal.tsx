@@ -8,6 +8,7 @@ import MediaLibraryImageUploader from "../../ui/MediaLibraryImageUploader";
 import { useGetAllDepartmentsQuery } from "../../../redux/features/departmentApi/departmentApi";
 import { useGetAllRolesQuery } from "../../../redux/features/roleApi/roleApi";
 import { useGetAllSubCategoryQuery } from "../../../redux/features/subCategoryApi/subCategoryApi";
+import { useGetAllWorkTypesQuery } from "../../../redux/features/workTypeApi/workTypeApi";
 import {
   BLOOD_GROUP_LABELS,
   GENDER_LABELS,
@@ -57,7 +58,9 @@ type FormValues = {
   isVerified: boolean;
   departmentId?: string;
   designation: string;
-  department: string;
+  department: string[]; // Used for workTypeIds
+  workStartTime?: string;
+  workTimeLimit?: string;
   password?: string;
   gender?: string;
   age?: number;
@@ -114,6 +117,15 @@ const EmployeeModal = ({
   const subCategories = useMemo(
     () => (subCategoryResponse?.data ?? []).filter((s) => s.status !== false),
     [subCategoryResponse?.data],
+  );
+
+  const { data: workTypesResponse } = useGetAllWorkTypesQuery(undefined, {
+    skip: !open,
+  });
+
+  const workTypes = useMemo(
+    () => (workTypesResponse || []).filter((w) => w.isActive),
+    [workTypesResponse],
   );
 
   const roleSelectOptions = useMemo((): TRole[] => {
@@ -178,7 +190,9 @@ const EmployeeModal = ({
         isVerified: Boolean(src.isVerified),
         departmentId: src.departmentId ?? undefined,
         designation: src.workInfo?.experience?.trim() ?? "",
-        department: src.workInfo?.workType?.trim() ?? "",
+        department: (src.workInfo?.workTypes ?? []).map((w) => w.id),
+        workStartTime: src.workInfo?.workStartTime ?? "",
+        workTimeLimit: src.workInfo?.workTimeLimit ?? "",
         gender: (src.profile?.gender as PrismaGender | undefined) ?? undefined,
         age: src.profile?.age ?? undefined,
         dob: src.profile?.dob
@@ -216,7 +230,9 @@ const EmployeeModal = ({
         isVerified: false,
         departmentId: undefined,
         designation: editData.designation === "—" ? "" : editData.designation,
-        department: editData.department === "—" ? "" : editData.department,
+        department: [],
+        workStartTime: "",
+        workTimeLimit: "",
         gender: undefined,
         age: undefined,
         dob: undefined,
@@ -274,7 +290,14 @@ const EmployeeModal = ({
         },
         workInfo: {
           experience: values.designation?.trim() || undefined,
-          workType: values.department?.trim() || undefined,
+          workTypeIds: values.department || [],
+          workType:
+            workTypes
+              .filter((w) => (values.department || []).includes(w.id))
+              .map((w) => w.name)
+              .join(", ") || undefined,
+          workStartTime: values.workStartTime?.trim() || undefined,
+          workTimeLimit: values.workTimeLimit?.trim() || undefined,
           categories: values.categories || [],
           availableTime: values.availableTime?.trim() || undefined,
         },
@@ -715,10 +738,34 @@ const EmployeeModal = ({
 
               <Form.Item
                 name="department"
-                label="Work type / unit (WorkInfo.workType)"
-                rules={[{ required: true, message: "Enter work type or unit" }]}
+                label="Work Type (WorkInfo.workType)"
+                rules={[{ required: true, message: "Select work type(s)" }]}
               >
-                <CustomInput placeholder="e.g. Field operations" size="md" />
+                <CustomSelect
+                  mode="multiple"
+                  placeholder="Select work type(s)"
+                  options={workTypes.map((w) => ({
+                    label: w.name,
+                    value: w.id,
+                  }))}
+                  size="md"
+                />
+              </Form.Item>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+              <Form.Item
+                name="workStartTime"
+                label="Work Start Time (WorkInfo.workStartTime)"
+              >
+                <CustomInput placeholder="e.g. 9:00 AM" size="md" />
+              </Form.Item>
+
+              <Form.Item
+                name="workTimeLimit"
+                label="Work Time Limit (WorkInfo.workTimeLimit)"
+              >
+                <CustomInput placeholder="e.g. 8 Hours" size="md" />
               </Form.Item>
             </div>
 

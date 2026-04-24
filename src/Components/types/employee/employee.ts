@@ -85,8 +85,11 @@ export type CreateEmployeeRequest = {
   };
   workInfo: {
     experience?: string;
-    workType?: string;
+    workType?: string[];
+    workTypeIds?: string[];
     categories?: string[];
+    workStartTime?: string;
+    workTimeLimit?: string;
     availableTime?: string;
   };
 };
@@ -122,7 +125,10 @@ export type UpdateEmployeeRequest = {
   workInfo?: {
     experience?: string | null;
     workType?: string | null;
+    workTypeIds?: string[] | null;
     categories?: string[];
+    workStartTime?: string | null;
+    workTimeLimit?: string | null;
     availableTime?: string | null;
   };
 };
@@ -157,7 +163,11 @@ export type EmployApiUser = {
   workInfo?: {
     experience?: string | null;
     workType?: string | null;
+    workTypeIds?: string[] | null;
+    workTypes?: { id: string; name: string }[];
     categories?: string[];
+    workStartTime?: string | null;
+    workTimeLimit?: string | null;
     availableTime?: string | null;
   } | null;
 };
@@ -204,7 +214,10 @@ export type EmployeeModalSubmit = {
   workInfo: {
     experience?: string;
     workType?: string;
+    workTypeIds?: string[];
     categories?: string[];
+    workStartTime?: string;
+    workTimeLimit?: string;
     availableTime?: string;
   };
 };
