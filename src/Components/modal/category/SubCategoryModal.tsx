@@ -111,7 +111,6 @@ const SubCategoryModal = ({
           <Form.Item
             name="slug"
             label={<span className="font-semibold text-gray-700">Slug</span>}
-            rules={[{ required: true, message: "Please enter slug" }]}
           >
             <CustomInput placeholder="e.g., technology" size="md" />
           </Form.Item>

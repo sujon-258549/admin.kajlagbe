@@ -85,7 +85,7 @@ export type CreateEmployeeRequest = {
   };
   workInfo: {
     experience?: string;
-    workType?: string[];
+    workType?: string;
     workTypeIds?: string[];
     categories?: string[];
     workStartTime?: string;

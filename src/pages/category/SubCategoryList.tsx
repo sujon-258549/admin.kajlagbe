@@ -68,7 +68,7 @@ const SubCategoryList = () => {
   };
 
   const categories: TCategoryOption[] =
-    categoriesData?.data?.data?.map((cat: any) => ({
+    categoriesData?.data?.map((cat: any) => ({
       label: cat.name,
       value: cat.id,
     })) || [];
