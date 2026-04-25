@@ -21,4 +21,5 @@ export const routePermissions: Record<string, { module: string; action: string }
   "/productions/work-orders": { module: "Productions", action: "view" },
   "/sales/summary": { module: "Sales Management", action: "view" },
   "/sales/ledger": { module: "Sales Management", action: "view" },
+  "/crm/user-list": { module: "CRM", action: "view" },
 };

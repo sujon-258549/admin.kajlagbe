@@ -39,6 +39,7 @@ const modules = [
   },
   { name: "Apply Job", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "AI Agent", permissions: ["View", "Create", "Update", "Delete"] },
+  { name: "CRM", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Media Library", permissions: ["View", "Create", "Delete"] },
   { name: "Profile Management", permissions: ["View", "Update", "Edit", "Change Password"] },
 ];

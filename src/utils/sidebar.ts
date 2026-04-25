@@ -119,6 +119,14 @@ export const menuItems = [
       { name: "Media", path: "/setup/media", module: "Media Library" },
     ],
   },
+  {
+    name: "CRM",
+    icon: faUsers,
+    path: "/crm",
+    submenu: [
+      { name: "User List", path: "/crm/user-list", module: "CRM" },
+    ],
+  },
 ];
 
 export const usePermission = () => {

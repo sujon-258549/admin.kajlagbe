@@ -12,6 +12,11 @@ const Login: React.FC = () => {
   const dispatch = useAppDispatch();
   const [login, { isLoading }] = useLoginMutation();
 
+  // Get remembered user from localStorage
+  const rememberedUser = JSON.parse(
+    localStorage.getItem("rememberedUser") || "{}",
+  );
+
   const onFinish = async (values: any) => {
     try {
       const res = await login({
@@ -29,6 +34,20 @@ const Login: React.FC = () => {
         };
 
         dispatch(setUser({ user, token: res.data.accessToken }));
+
+        // Handle Remember Me logic
+        if (values.remember) {
+          localStorage.setItem(
+            "rememberedUser",
+            JSON.stringify({
+              email: values.email,
+              password: values.password,
+            }),
+          );
+        } else {
+          localStorage.removeItem("rememberedUser");
+        }
+
         message.success(res.message || "Login successful!");
         navigate("/");
       } else {
@@ -98,18 +117,25 @@ const Login: React.FC = () => {
             onFinish={onFinish}
             size="large"
             autoComplete="off"
+            initialValues={{
+              email: rememberedUser.email || "",
+              password: rememberedUser.password || "",
+              remember: !!rememberedUser.email,
+            }}
           >
             <Form.Item
               name="email"
               className="mb-5"
               rules={[
-                { required: true, message: "Email is required" },
-                { type: "email", message: "Enter a valid email" },
+                {
+                  required: true,
+                  message: "Email or mobile number is required",
+                },
               ]}
             >
               <Input
                 prefix={<UserOutlined className="text-gray-400 mr-2" />}
-                placeholder="Email Address"
+                placeholder="Email or Mobile Number"
                 className="h-11 rounded-md border-gray-300 bg-gray-50/30"
               />
             </Form.Item>

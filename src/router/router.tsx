@@ -23,6 +23,7 @@ import ProtectedRoute from "../mainLayout/ProtectedRoute";
 import ProfileView from "../pages/profile/ProfileView";
 import ProfileEdit from "../pages/profile/ProfileEdit";
 import AgentGenerate from "../pages/agent/AgentGenerate";
+import CrmUserList from "../pages/crm/CrmUserList";
 
 const router = createBrowserRouter([
   {
@@ -109,6 +110,10 @@ const router = createBrowserRouter([
       {
         path: "profile/edit",
         element: <ProfileEdit />,
+      },
+      {
+        path: "crm/user-list",
+        element: <CrmUserList />,
       },
       {
         path: "*",
