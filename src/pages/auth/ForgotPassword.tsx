@@ -34,11 +34,11 @@ const ForgotPassword: React.FC = () => {
   const handleSendOtp = async (values: { email: string }) => {
     try {
       const res = await forgotPassword({ email: values.email }).unwrap();
-      console.log("send otp response", res);
-
-      setEmail(values.email);
-      message.success("OTP sent to your email!");
-      setCurrentStep(1);
+      if (res) {
+        setEmail(values.email);
+        message.success("OTP sent to your email!");
+        setCurrentStep(1);
+      }
     } catch (err: any) {
       message.error(err?.data?.message || "Failed to send OTP. Try again.");
     }

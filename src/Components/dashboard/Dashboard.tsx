@@ -32,10 +32,8 @@ const Dashboard = () => {
 
   const handleGlobalFilterChange = (
     type: FilterType,
-    range: [string, string],
   ) => {
     setGlobalFilter(type);
-    console.log("Global Dashboard Filter:", type, range);
   };
 
   const stats = [

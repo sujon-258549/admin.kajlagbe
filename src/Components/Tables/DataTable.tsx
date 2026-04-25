@@ -1,9 +1,9 @@
 import { Table } from "antd";
 import { useEffect, useState, useRef } from "react";
 import "./AntTable.css";
+import TableSkeleton from "../skeleton/TableSkeleton/TableSkeleton";
 
 export default function DataTable(props: any) {
-  // const { isExpanded } = useSidebar();
   const {
     data,
     columns,
@@ -16,25 +16,22 @@ export default function DataTable(props: any) {
     showHeader,
     total,
     limit,
-    loading = false,
+    isLoading = false,
     onSelectRowsChange,
     showSizeChanger = false,
-    // add this sujon
     clearSelectionTrigger = false,
     expandable,
-    ...rest // click details page jabe
+    ...rest
   } = props;
+
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
-  // change this clear select  sujon
   useEffect(() => {
     if (clearSelectionTrigger) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedRowKeys([]);
     }
   }, [clearSelectionTrigger]);
 
-  // Handle row selection change
   const handleRowSelectionChange = (
     selectedRowKeys: any,
     selectedRows: any,
@@ -45,7 +42,6 @@ export default function DataTable(props: any) {
     }
   };
 
-  // rowSelection object for row selection features
   const rowSelection = {
     selectedRowKeys,
     onChange: handleRowSelectionChange,
@@ -54,7 +50,6 @@ export default function DataTable(props: any) {
     },
   };
 
-  /* Drag to Scroll Logic */
   const tableWrapperRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
 
@@ -62,14 +57,10 @@ export default function DataTable(props: any) {
     const wrapper = tableWrapperRef.current;
     if (!wrapper) return;
 
-    // Function to find the scrollable element
     const findScrollable = () => {
-      // Priority: .ant-table-content (standard horizontal scroll) -> .ant-table-body (fixed header scroll) -> .ant-table-scroll -> wrapper
-      // Also checking if the element actually has overflow hidden/auto/scroll style could be robust,
-      // but targeting Ant classes is more reliable for this specific UI.
       return (wrapper.querySelector(".ant-table-content") ||
         wrapper.querySelector(".ant-table-body") ||
-        (wrapper.firstChild as HTMLElement)) as HTMLElement; // basic fallback to the Table root
+        (wrapper.firstChild as HTMLElement)) as HTMLElement;
     };
 
     const slider = findScrollable();
@@ -81,9 +72,9 @@ export default function DataTable(props: any) {
 
     const onMouseDown = (e: MouseEvent) => {
       isDown = true;
-      isDraggingRef.current = false; // Reset drag state
+      isDraggingRef.current = false;
       slider.style.cursor = "grabbing";
-      slider.style.userSelect = "none"; // Disable text selection while dragging
+      slider.style.userSelect = "none";
       startX = e.pageX - slider.offsetLeft;
       scrollLeft = slider.scrollLeft;
     };
@@ -98,12 +89,6 @@ export default function DataTable(props: any) {
       isDown = false;
       slider.style.cursor = "grab";
       slider.style.removeProperty("user-select");
-
-      // Reset drag state after a short delay to allow click events to process safely
-      // if they haven't already. BUT strictly speaking, we want to block the IMMEDIATE click.
-      // We'll let the click handler read the ref, so we don't reset immediately here
-      // if we want to blocking in capture phase or bubbling phase.
-      // However, usually React onClick fires after onMouseUp.
       setTimeout(() => {
         isDraggingRef.current = false;
       }, 0);
@@ -113,20 +98,15 @@ export default function DataTable(props: any) {
       if (!isDown) return;
       e.preventDefault();
       const x = e.pageX - slider.offsetLeft;
-      // Multiplier can adjust speed. 1 is 1:1 movement.
       const walk = (x - startX) * 1;
 
-      // Determine if it was a drag (move > 5px)
       if (Math.abs(walk) > 5) {
         isDraggingRef.current = true;
       }
-
       slider.scrollLeft = scrollLeft - walk;
     };
 
-    // Initialize cursor
     slider.style.cursor = "grab";
-
     slider.addEventListener("mousedown", onMouseDown);
     slider.addEventListener("mouseleave", onMouseLeave);
     slider.addEventListener("mouseup", onMouseUp);
@@ -140,20 +120,14 @@ export default function DataTable(props: any) {
       slider.style.cursor = "";
       slider.style.removeProperty("user-select");
     };
-  }, [data, loading, columns]); // Re-run when table structure might change
+  }, [data, isLoading, columns]);
 
-  // Intercept onRow to prevent click if dragging
   const handleOnRow = (record: any, rowIndex: number) => {
-    // Get the original props from rest (if passed)
     const originalOnRowProps = rest.onRow ? rest.onRow(record, rowIndex) : {};
-
     return {
       ...originalOnRowProps,
       onClick: (e: any) => {
-        if (isDraggingRef.current) {
-          // If we were dragging, do NOT fire the click handler
-          return;
-        }
+        if (isDraggingRef.current) return;
         if (originalOnRowProps.onClick) {
           originalOnRowProps.onClick(e);
         }
@@ -161,40 +135,37 @@ export default function DataTable(props: any) {
     };
   };
 
+  // Use the new TableSkeleton component logic
+  const { skeletonColumns, skeletonData } = TableSkeleton({ 
+    columns, 
+    rowCount: limit || 10 
+  });
+
   return (
     <div ref={tableWrapperRef} className="w-full">
       <Table
         {...rest}
         onRow={handleOnRow}
-        loading={loading}
-        className="border border-gray-200 rounded-lg overflow-hidden shadow-none"
+        className="border border-gray-200 rounded-lg overflow-hidden shadow-none custom-table"
         rowKey={rowKey ? rowKey : "_id"}
-        rowSelection={selectRow ? rowSelection : undefined}
-        dataSource={data || []}
-        columns={columns}
+        rowSelection={selectRow && !isLoading ? rowSelection : undefined}
+        dataSource={isLoading ? skeletonData : (data || [])}
+        columns={isLoading ? skeletonColumns : columns}
         tableLayout="fixed"
         scroll={{ x: true }}
         expandable={expandable}
         pagination={
-          isPaginate
+          isPaginate && !isLoading
             ? {
                 pageSize: limit || 20,
                 total: total || data?.count || data?.length || 0,
                 current: currentPage,
-                // onChange: handlePageChange,
                 onChange: (page) => {
-                  // handlePageChange(page);
                   setCurrentPage(page);
                 },
                 showSizeChanger: showSizeChanger,
                 pageSizeOptions: [
-                  "10",
-                  "25",
-                  "50",
-                  "100",
-                  "200",
-                  "500",
-                  "1000",
+                  "10", "25", "50", "100", "200", "500", "1000",
                 ],
                 onShowSizeChange: (_current, newSize) => {
                   setLimit(newSize);
@@ -209,3 +180,4 @@ export default function DataTable(props: any) {
     </div>
   );
 }
+

@@ -9,17 +9,20 @@ import {
   faIndustry,
   faChartLine,
   faTasksAlt,
+  faMagic,
 } from "@fortawesome/free-solid-svg-icons";
 import { useMyData } from "../redux/hooks";
 import { config } from "../config";
 
 export const menuItems = [
   { name: "Dashboard", icon: faTableColumns, path: "/", module: "Dashboard" },
+ 
   {
     name: "User Management",
     icon: faUsers,
     path: "/users",
     submenu: [
+      { name: "All User", path: "/users/all", module: "Users" },
       { name: "All Employee", path: "/employee/all", module: "Employees" },
       { name: "Roles", path: "/users/roles", module: "Roles" },
       {
@@ -43,7 +46,6 @@ export const menuItems = [
     name: "Job Management",
     icon: faBuilding,
     path: "/job",
-    module: "Job Management",
     submenu: [
       { name: "Job List", path: "/job/list", module: "Job Management" },
     ],
@@ -58,7 +60,6 @@ export const menuItems = [
     name: "Apply Job",
     icon: faToolbox,
     path: "/apply-job",
-    module: "Apply Job",
     submenu: [
       { name: "Apply Job List", path: "/apply-job/list", module: "Apply Job" },
       {
@@ -72,7 +73,6 @@ export const menuItems = [
     name: "Productions",
     icon: faIndustry,
     path: "/productions",
-    module: "Productions",
     submenu: [
       {
         name: "Production Plan",
@@ -90,7 +90,6 @@ export const menuItems = [
     name: "Sales Management",
     icon: faChartLine,
     path: "/sales",
-    module: "Sales Management",
     submenu: [
       {
         name: "Sales Summary",
@@ -105,26 +104,32 @@ export const menuItems = [
     ],
   },
   {
+    name: "AI Agent",
+    icon: faMagic,
+    path: "/agent/generate",
+    module: "AI Agent",
+  },
+  {
     name: "Setup Menu",
     icon: faCogs,
     path: "/setup",
-    module: "Settings",
     submenu: [
-      { name: "General Settings", path: "/setup/general", module: "Settings" },
-      { name: "Business Setup", path: "/setup/business", module: "Settings" },
-      { name: "Media", path: "/setup/media", module: "Settings" },
+      { name: "General Settings", path: "/setup/general", module: "General Settings" },
+      { name: "Business Setup", path: "/setup/business", module: "Business Setup" },
+      { name: "Media", path: "/setup/media", module: "Media Library" },
     ],
   },
 ];
 
 export const usePermission = () => {
   const { user: currentUser, isLoading } = useMyData();
-  const userPermissions = currentUser?.role?.permissions || [];
+  const userPermissions = useMemo(() => currentUser?.role?.permissions || [], [currentUser]);
   const isSuperAdmin = currentUser?.email === config.superAdminEmail;
 
   const hasPermission = useCallback((moduleName: string, action: string) => {
     if (isSuperAdmin) return true;
     if (!moduleName) return false;
+   
 
     const modulePerm = userPermissions.find(
       (p: any) => p.module.toLowerCase() === moduleName.toLowerCase()
@@ -153,12 +158,38 @@ export const useFilteredMenuItems = () => {
           if (visibleSubmenu.length > 0) {
             return { ...item, submenu: visibleSubmenu };
           }
-          return hasPermission(item.module || "", "view") || hasPermission(item.module || "", "list") ? item : null;
+          return null; // Don't show parent if no submenu is visible and parent has no module
         }
-        return hasPermission(item.module || "", "view") || hasPermission(item.module || "", "list") ? item : null;
+        
+        // For items without submenu, check their own module permission
+        if (item.module) {
+           return hasPermission(item.module, "view") || hasPermission(item.module, "list") ? item : null;
+        }
+        
+        return null;
       })
       .filter(Boolean);
   }, [hasPermission]);
 
   return { filteredMenuItems, currentUser, isSuperAdmin, isLoading, hasPermission };
+};
+
+export const canActions = (
+  permissions: any[],
+  moduleName: string,
+  action: string,
+  userEmail?: string,
+) => {
+  if (userEmail === config.superAdminEmail) return true;
+  if (!moduleName || !permissions) return false;
+
+  const modulePerm = permissions.find(
+    (p: any) => p.module.toLowerCase() === moduleName.toLowerCase(),
+  );
+
+  if (!modulePerm) return false;
+
+  return modulePerm.permissions.some(
+    (p: string) => p.toLowerCase() === action.toLowerCase(),
+  );
 };

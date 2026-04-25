@@ -20,6 +20,7 @@
     "apexcharts": "^5.10.1",
     "async-mutex": "^0.5.0",
     "dom": "^0.0.3",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-apexcharts": "^2.1.0",

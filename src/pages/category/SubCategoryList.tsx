@@ -2,6 +2,9 @@ import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
 import { Tooltip, Input, Modal } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { toast } from "sonner";
+import formatDate from "../../Components/utils/dateFormate";
+import debounceSearch from "../../Components/utils/debounceSearch";
 import {
   faPlus,
   faRotateRight,
@@ -15,18 +18,10 @@ import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import SubCategoryModal from "../../Components/modal/category/SubCategoryModal";
-import type { TMeta, TSubCategory } from "../../Components/types";
-import {
-  useCreateSubCategoryMutation,
-  useDeleteSubCategoryMutation,
-  useGetAllSubCategoryQuery,
-  useUpdateSubCategoryMutation,
-  useUpdateSubCategoryStatusMutation,
-} from "../../redux/features/subCategoryApi/subCategoryApi";
-import { useGetAllCategoriesQuery } from "../../redux/features/category/categoryApi";
-import { toast } from "sonner";
-import formatDate from "../../Components/utils/dateFormate";
-import debounceSearch from "../../Components/utils/debounceSearch";
+import type { TSubCategory } from "../../Components/types";
+import { useRoutePermission } from "../../utils/buttonPurmission";
+import { useSubCategory } from "../../apihooks/useSubCategory";
+import { useCategory } from "../../apihooks/useCategory";
 
 interface TCategoryOption {
   label: string;
@@ -44,31 +39,25 @@ const SubCategoryList = () => {
     });
   };
 
+  const { can } = useRoutePermission();
   const queryObj = searchText ? { searchTerm: searchText } : {};
 
   // API Queries & Mutations
   const {
-    data: subCategoriesData,
+    subCategories,
+    meta,
     isLoading,
-    isFetching,
     refetch,
-  } = useGetAllSubCategoryQuery(queryObj);
-  const { data: categoriesData } = useGetAllCategoriesQuery({});
-  const [createSubCategory] = useCreateSubCategoryMutation();
-  const [updateSubCategory] = useUpdateSubCategoryMutation();
-  const [updateStatus] = useUpdateSubCategoryStatusMutation();
-  const [deleteSubCategory] = useDeleteSubCategoryMutation();
+    createSubCategory,
+    updateSubCategory,
+    updateStatus,
+    deleteSubCategory,
+  } = useSubCategory(queryObj);
 
-  const allSubCategories: TSubCategory[] = subCategoriesData?.data || [];
-  const meta: TMeta = subCategoriesData?.meta || {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPage: 1,
-  };
+  const { response: categoriesResponse } = useCategory({});
 
   const categories: TCategoryOption[] =
-    categoriesData?.data?.map((cat: any) => ({
+    categoriesResponse?.data?.map((cat: any) => ({
       label: cat.name,
       value: cat.id,
     })) || [];
@@ -153,37 +142,41 @@ const SubCategoryList = () => {
       render: (_: unknown, record: TSubCategory) => (
         <div className="flex items-center gap-2">
           {/* Edit */}
-          <Tooltip title="Edit SubCategory">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleEdit(record)}
-              icon={
-                <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
-              }
-            />
-          </Tooltip>
+          {can("update") && (
+            <Tooltip title="Edit SubCategory">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => handleEdit(record)}
+                icon={
+                  <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                }
+              />
+            </Tooltip>
+          )}
 
           {/* Delete */}
-          <Tooltip title="Delete SubCategory">
-            <CustomButton
-              variant="danger-outline"
-              size="icon-sm"
-              onClick={() => {
-                Modal.confirm({
-                  title: "Delete SubCategory",
-                  content: "Are you sure you want to delete this subcategory?",
-                  okText: "Delete",
-                  okType: "danger",
-                  cancelText: "Cancel",
-                  onOk: async () => {
-                    await handleDelete(record.id);
-                  },
-                });
-              }}
-              icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
-            />
-          </Tooltip>
+          {can("delete") && (
+            <Tooltip title="Delete SubCategory">
+              <CustomButton
+                variant="danger-outline"
+                size="icon-sm"
+                onClick={() => {
+                  Modal.confirm({
+                    title: "Delete SubCategory",
+                    content: "Are you sure you want to delete this subcategory?",
+                    okText: "Delete",
+                    okType: "danger",
+                    cancelText: "Cancel",
+                    onOk: async () => {
+                      await handleDelete(record.id);
+                    },
+                  });
+                }}
+                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+              />
+            </Tooltip>
+          )}
         </div>
       ),
     },
@@ -244,6 +237,7 @@ const SubCategoryList = () => {
       render: (status: boolean, record: TSubCategory) => (
         <div className="flex items-center gap-2">
           <CustomSwitch
+            disabled={!can("update")}
             checked={status}
             onChange={() => handleStatusChange(record.id)}
             size="default"
@@ -286,14 +280,16 @@ const SubCategoryList = () => {
             >
               Refresh
             </CustomButton>
-            <CustomButton
-              variant="primary"
-              size="sm"
-              onClick={handleCreate}
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Add SubCategory
-            </CustomButton>
+            {can("create") && (
+              <CustomButton
+                variant="primary"
+                size="sm"
+                onClick={handleCreate}
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Add SubCategory
+              </CustomButton>
+            )}
           </div>
         }
       />
@@ -308,10 +304,10 @@ const SubCategoryList = () => {
 
       <div className="">
         <DataTable
-          data={allSubCategories}
-          isLoading={isLoading || isFetching}
+          data={subCategories}
+          isLoading={isLoading}
           columns={columns}
-          isPaginate={meta.total > meta.limit}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey="id"
           meta={meta}

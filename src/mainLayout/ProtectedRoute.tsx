@@ -14,6 +14,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  console.log('hasPermission', hasPermission)
+
   if (isLoading) {
     return (
       <div className="h-screen w-full flex items-center justify-center">
@@ -29,7 +31,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   // 2. Check for explicit route-level permissions
   const matchedRoute = Object.keys(routePermissions).find((path) =>
-    matchPath({ path, end: true }, location.pathname)
+    matchPath({ path, end: true }, location.pathname),
   );
 
   if (matchedRoute) {

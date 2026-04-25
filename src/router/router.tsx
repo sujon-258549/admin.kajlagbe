@@ -7,6 +7,8 @@ import ErrorPage from "../pages/error/ErrorPage";
 import RoleList from "../pages/users/RoleList";
 import RolesPermissions from "../pages/users/RolesPermissions";
 import DepartmentList from "../pages/users/DepartmentList";
+import UserList from "../pages/users/UserList";
+import UserDetails from "../pages/users/UserDetails";
 
 import CategoryList from "../pages/category/CategoryList";
 import SubCategoryList from "../pages/category/SubCategoryList";
@@ -20,6 +22,7 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import ProtectedRoute from "../mainLayout/ProtectedRoute";
 import ProfileView from "../pages/profile/ProfileView";
 import ProfileEdit from "../pages/profile/ProfileEdit";
+import AgentGenerate from "../pages/agent/AgentGenerate";
 
 const router = createBrowserRouter([
   {
@@ -42,6 +45,18 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Dashboard />,
+      },
+      {
+        path: "agent/generate",
+        element: <AgentGenerate />,
+      },
+      {
+        path: "users/all",
+        element: <UserList />,
+      },
+      {
+        path: "users/:id",
+        element: <UserDetails />,
       },
       {
         path: "employee/all",

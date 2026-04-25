@@ -16,20 +16,14 @@ import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import DepartmentModal from "../../Components/modal/users/DepartmentModal";
-import {
-  useCreateDepartmentMutation,
-  useDeleteDepartmentMutation,
-  useGetAllDepartmentsQuery,
-  useUpdateDepartmentMutation,
-  useUpdateDepartmentStatusMutation,
-} from "../../redux/features/departmentApi/departmentApi";
 import type {
   TDepartment,
   TDepartmentCreateUpdatePayload,
-  TDepartmentMeta,
 } from "../../Components/types";
 import { toast } from "sonner";
 import formatDate from "../../Components/utils/dateFormate";
+import { useRoutePermission } from "../../utils/buttonPurmission";
+import { useDepartment } from "../../apihooks/useDepartment";
 
 const DepartmentList = () => {
   const [searchParams] = useSearchParams();
@@ -39,24 +33,19 @@ const DepartmentList = () => {
 
   const queryObj = searchText ? { searchTerm: searchText } : {};
 
+  const { can } = useRoutePermission();
+  
+  // Custom Hook usage
   const {
-    data: departmentsData,
+    departments,
+    meta,
     isLoading,
-    isFetching,
     refetch,
-  } = useGetAllDepartmentsQuery(queryObj);
-  const [createDepartment] = useCreateDepartmentMutation();
-  const [updateDepartment] = useUpdateDepartmentMutation();
-  const [deleteDepartment] = useDeleteDepartmentMutation();
-  const [updateDepartmentStatus] = useUpdateDepartmentStatusMutation();
-
-  const departments: TDepartment[] = departmentsData?.data || [];
-  const meta: TDepartmentMeta = departmentsData?.meta || {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPage: 1,
-  };
+    createDepartment,
+    updateDepartment,
+    deleteDepartment,
+    updateDepartmentStatus,
+  } = useDepartment(queryObj);
 
   const getRecordId = (record: { id?: string; _id?: string }) =>
     record.id || record._id || "";
@@ -151,34 +140,38 @@ const DepartmentList = () => {
       render: (_: unknown, record: TDepartment) => (
         <div className="flex items-center gap-2">
           {/* Edit */}
-          <Tooltip title="Edit Department">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleEdit(record)}
-              icon={
-                <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
-              }
-            />
-          </Tooltip>
-
-          {/* Delete */}
-          <Popconfirm
-            title="Delete Department"
-            description="Are you sure you want to delete this department?"
-            onConfirm={() => handleDelete(getRecordId(record))}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <Tooltip title="Delete Department">
+          {can("update") && (
+            <Tooltip title="Edit Department">
               <CustomButton
-                variant="danger-outline"
+                variant="outline"
                 size="icon-sm"
-                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                onClick={() => handleEdit(record)}
+                icon={
+                  <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                }
               />
             </Tooltip>
-          </Popconfirm>
+          )}
+
+          {/* Delete */}
+          {can("delete") && (
+            <Popconfirm
+              title="Delete Department"
+              description="Are you sure you want to delete this department?"
+              onConfirm={() => handleDelete(getRecordId(record))}
+              okText="Delete"
+              cancelText="Cancel"
+              okButtonProps={{ danger: true }}
+            >
+              <Tooltip title="Delete Department">
+                <CustomButton
+                  variant="danger-outline"
+                  size="icon-sm"
+                  icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </div>
       ),
     },
@@ -207,6 +200,7 @@ const DepartmentList = () => {
       render: (isActive: boolean, record: TDepartment) => (
         <div className="flex items-center gap-2">
           <CustomSwitch
+            disabled={!can("update")}
             checked={isActive}
             onChange={() => handleStatusChange(getRecordId(record))}
             size="default"
@@ -255,14 +249,16 @@ const DepartmentList = () => {
             >
               Refresh
             </CustomButton>
-            <CustomButton
-              variant="primary"
-              size="sm"
-              onClick={handleCreate}
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Add Department
-            </CustomButton>
+            {can("create") && (
+              <CustomButton
+                variant="primary"
+                size="sm"
+                onClick={handleCreate}
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Add Department
+              </CustomButton>
+            )}
           </div>
         }
       />
@@ -270,7 +266,7 @@ const DepartmentList = () => {
       <div className="">
         <DataTable
           data={departments}
-          isLoading={isLoading || isFetching}
+          isLoading={isLoading}
           columns={columns}
           isPaginate={meta.total > meta.limit}
           showHeader={true}

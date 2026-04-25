@@ -21,6 +21,7 @@ interface PermissionModalProps {
 
 const modules = [
   { name: "Dashboard", permissions: ["View"] },
+  { name: "Users", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Employees", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Departments", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Designations", permissions: ["View", "Create", "Update", "Delete"] },
@@ -37,7 +38,9 @@ const modules = [
     permissions: ["View", "Create", "Update", "Delete"],
   },
   { name: "Apply Job", permissions: ["View", "Create", "Update", "Delete"] },
-  { name: "Settings", permissions: ["View", "Update"] },
+  { name: "AI Agent", permissions: ["View", "Create", "Update", "Delete"] },
+  { name: "Media Library", permissions: ["View", "Create", "Delete"] },
+  { name: "Profile Management", permissions: ["View", "Update", "Edit", "Change Password"] },
 ];
 
 const PermissionModal = ({ 
@@ -179,7 +182,7 @@ const PermissionModal = ({
         permissions: transformedPermissions,
       }).unwrap();
       
-      console.log(res, "resss");
+   
 
       if (res?.success) {
         toast.success(res?.message || "Permissions updated successfully");

@@ -10,36 +10,31 @@ import {
   faFilter,
   faSort,
 } from "@fortawesome/free-solid-svg-icons";
+import type { TWorkType, CreateWorkTypeRequest } from "../../Components/types";
+import { toast } from "sonner";
+import formatDate from "../../Components/utils/dateFormate";
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import WorkTypeModal from "../../Components/modal/users/WorkTypeModal";
-import {
-  useCreateWorkTypeMutation,
-  useDeleteWorkTypeMutation,
-  useGetAllWorkTypesQuery,
-  useUpdateWorkTypeMutation,
-  useUpdateWorkTypeStatusMutation,
-} from "../../redux/features/workTypeApi/workTypeApi";
-import type { TWorkType, CreateWorkTypeRequest } from "../../Components/types";
-import { toast } from "sonner";
-import formatDate from "../../Components/utils/dateFormate";
+import { useRoutePermission } from "../../utils/buttonPurmission";
+import { useWorkType } from "../../apihooks/useWorkType";
 
 const WorkTypeList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<TWorkType | null>(null);
 
+  const { can } = useRoutePermission();
+
   const {
-    data: workTypes,
+    workTypes,
     isLoading,
-    isFetching,
     refetch,
-  } = useGetAllWorkTypesQuery();
-  
-  const [createWorkType] = useCreateWorkTypeMutation();
-  const [updateWorkType] = useUpdateWorkTypeMutation();
-  const [deleteWorkType] = useDeleteWorkTypeMutation();
-  const [updateWorkTypeStatus] = useUpdateWorkTypeStatusMutation();
+    createWorkType,
+    updateWorkType,
+    deleteWorkType,
+    updateStatus,
+  } = useWorkType();
 
   const getErrorMessage = (error: unknown): string => {
     if (typeof error === "object" && error !== null) {
@@ -74,7 +69,7 @@ const WorkTypeList = () => {
 
   const handleStatusChange = async (id: string) => {
     try {
-      const res: any = await updateWorkTypeStatus({ id }).unwrap();
+      const res: any = await updateStatus({ id }).unwrap();
       if (res?.success) {
         toast.success(res?.message || "Status updated successfully");
       } else {
@@ -130,31 +125,37 @@ const WorkTypeList = () => {
       width: 110,
       render: (_: unknown, record: TWorkType) => (
         <div className="flex items-center gap-2">
-          <Tooltip title="Edit Work Type">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleEdit(record)}
-              icon={<FontAwesomeIcon icon={faPenToSquare} className="text-xs" />}
-            />
-          </Tooltip>
-
-          <Popconfirm
-            title="Delete Work Type"
-            description="Are you sure you want to delete this work type?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <Tooltip title="Delete Work Type">
+          {can("update") && (
+            <Tooltip title="Edit Work Type">
               <CustomButton
-                variant="danger-outline"
+                variant="outline"
                 size="icon-sm"
-                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                onClick={() => handleEdit(record)}
+                icon={
+                  <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                }
               />
             </Tooltip>
-          </Popconfirm>
+          )}
+
+          {can("delete") && (
+            <Popconfirm
+              title="Delete Work Type"
+              description="Are you sure you want to delete this work type?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Delete"
+              cancelText="Cancel"
+              okButtonProps={{ danger: true }}
+            >
+              <Tooltip title="Delete Work Type">
+                <CustomButton
+                  variant="danger-outline"
+                  size="icon-sm"
+                  icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </div>
       ),
     },
@@ -178,6 +179,7 @@ const WorkTypeList = () => {
       render: (isActive: boolean, record: TWorkType) => (
         <div className="flex items-center gap-2">
           <CustomSwitch
+            disabled={!can("update")}
             checked={isActive}
             onChange={() => handleStatusChange(record.id)}
             size="default"
@@ -228,21 +230,23 @@ const WorkTypeList = () => {
             >
               Refresh
             </CustomButton>
-            <CustomButton
-              variant="primary"
-              size="sm"
-              onClick={handleCreate}
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Add Work Type
-            </CustomButton>
+            {can("create") && (
+              <CustomButton
+                variant="primary"
+                size="sm"
+                onClick={handleCreate}
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Add Work Type
+              </CustomButton>
+            )}
           </div>
         }
       />
 
       <DataTable
         data={workTypes || []}
-        isLoading={isLoading || isFetching}
+        isLoading={isLoading}
         columns={columns}
         showHeader={true}
         rowKey={(record: TWorkType) => record.id}

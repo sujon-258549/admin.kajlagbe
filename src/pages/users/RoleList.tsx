@@ -12,25 +12,19 @@ import {
   faSort,
   faShieldHalved,
 } from "@fortawesome/free-solid-svg-icons";
+import type {
+  TRole,
+  TRoleCreateUpdatePayload,
+} from "../../Components/types";
+import { toast } from "sonner";
+import formatDate from "../../Components/utils/dateFormate";
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import RoleModal from "../../Components/modal/users/RoleModal";
 import PermissionModal from "../../Components/modal/users/PermissionModal";
-import {
-  useCreateRoleMutation,
-  useDeleteRoleMutation,
-  useGetAllRolesQuery,
-  useUpdateRoleMutation,
-  useUpdateRoleStatusMutation,
-} from "../../redux/features/roleApi/roleApi";
-import type {
-  TRole,
-  TRoleCreateUpdatePayload,
-  TRoleMeta,
-} from "../../Components/types";
-import { toast } from "sonner";
-import formatDate from "../../Components/utils/dateFormate";
+import { useRoutePermission } from "../../utils/buttonPurmission";
+import { useRole } from "../../apihooks/useRole";
 
 const RoleList = () => {
   const [roleModalOpen, setRoleModalOpen] = useState(false);
@@ -38,21 +32,18 @@ const RoleList = () => {
   const [editData, setEditData] = useState<TRole | null>(null);
   const [selectedRole, setSelectedRole] = useState<TRole | null>(null);
 
-  const { data: rolesData, isLoading, isFetching, refetch } = useGetAllRolesQuery(
-    {},
-  );
-  const [createRole] = useCreateRoleMutation();
-  const [updateRole] = useUpdateRoleMutation();
-  const [deleteRole] = useDeleteRoleMutation();
-  const [updateRoleStatus, { isLoading: isUpdatingStatus }] = useUpdateRoleStatusMutation();
+  const { can } = useRoutePermission();
 
-  const roles: TRole[] = rolesData?.data || [];
-  const meta: TRoleMeta = rolesData?.meta || {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPage: 1,
-  };
+  const {
+    roles,
+    meta,
+    isLoading,
+    refetch,
+    createRole,
+    updateRole,
+    deleteRole,
+    updateRoleStatus,
+  } = useRole({});
 
   const getRecordId = (record: { id?: string; _id?: string }) =>
     record.id || record._id || "";
@@ -150,47 +141,53 @@ const RoleList = () => {
       render: (_: unknown, record: TRole) => (
         <div className="flex items-center gap-2">
           {/* Permissions */}
-          <Tooltip title="Manage Permissions">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleManagePermissions(record)}
-              className="text-primary border-primary/30"
-              icon={
-                <FontAwesomeIcon icon={faShieldHalved} className="text-xs" />
-              }
-            />
-          </Tooltip>
-
-          {/* Edit */}
-          <Tooltip title="Edit Role">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleEdit(record)}
-              icon={
-                <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
-              }
-            />
-          </Tooltip>
-
-          {/* Delete */}
-          <Popconfirm
-            title="Delete Role"
-            description="Are you sure you want to delete this role?"
-            onConfirm={() => handleDelete(getRecordId(record))}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <Tooltip title="Delete Role">
+          {can("update") && (
+            <Tooltip title="Manage Permissions">
               <CustomButton
-                variant="danger-outline"
+                variant="outline"
                 size="icon-sm"
-                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                onClick={() => handleManagePermissions(record)}
+                className="text-primary border-primary/30"
+                icon={
+                  <FontAwesomeIcon icon={faShieldHalved} className="text-xs" />
+                }
               />
             </Tooltip>
-          </Popconfirm>
+          )}
+
+          {/* Edit */}
+          {can("update") && (
+            <Tooltip title="Edit Role">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => handleEdit(record)}
+                icon={
+                  <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                }
+              />
+            </Tooltip>
+          )}
+
+          {/* Delete */}
+          {can("delete") && (
+            <Popconfirm
+              title="Delete Role"
+              description="Are you sure you want to delete this role?"
+              onConfirm={() => handleDelete(getRecordId(record))}
+              okText="Delete"
+              cancelText="Cancel"
+              okButtonProps={{ danger: true }}
+            >
+              <Tooltip title="Delete Role">
+                <CustomButton
+                  variant="danger-outline"
+                  size="icon-sm"
+                  icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </div>
       ),
     },
@@ -219,10 +216,11 @@ const RoleList = () => {
       render: (isActive: boolean, record: TRole) => (
         <div className="flex items-center gap-2">
           <CustomSwitch
+            disabled={!can("update")}
             checked={isActive}
             onChange={() => handleStatusChange(getRecordId(record))}
             size="default"
-            loading={isUpdatingStatus}
+            loading={isLoading}
           />
         </div>
       ),
@@ -268,14 +266,16 @@ const RoleList = () => {
             >
               Refresh
             </CustomButton>
-            <CustomButton
-              variant="primary"
-              size="sm"
-              onClick={handleCreate}
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Add New Role
-            </CustomButton>
+            {can("create") && (
+              <CustomButton
+                variant="primary"
+                size="sm"
+                onClick={handleCreate}
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Add New Role
+              </CustomButton>
+            )}
           </div>
         }
       />
@@ -283,9 +283,9 @@ const RoleList = () => {
       <div className="">
         <DataTable
           data={roles}
-          isLoading={isLoading || isFetching}
+          isLoading={isLoading}
           columns={roleColumns}
-          isPaginate={meta.total > meta.limit}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey={(record: TRole) => getRecordId(record)}
           meta={meta}

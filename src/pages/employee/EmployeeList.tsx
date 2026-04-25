@@ -16,40 +16,32 @@ import CustomButton from "../../Components/ui/Button";
 import CustomSwitch from "../../Components/ui/Switch";
 import PageHeader from "../../Components/common/PageHeader";
 import {
-  useCreateEmployeeMutation,
-  useDeleteEmployeeMutation,
-  useGetAllEmployeesQuery,
   useGetEmployeeByIdQuery,
-  useUpdateEmployeeMutation,
 } from "../../redux/features/employApi/employApi";
 import type {
   CreateEmployeeRequest,
   EmployeeModalSubmit,
   UpdateEmployeeRequest,
 } from "../../Components/types";
+import { useRoutePermission } from "../../utils/buttonPurmission";
+import { useEmployee } from "../../apihooks/useEmployee";
 
 const EmployeeList = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const searchTerm = searchParams.get("searchTerm") || "";
 
+  const { can } = useRoutePermission(); // current route → "Employees" module auto-detect
+
   const {
-    data: response,
+    employees,
+    meta,
     isLoading,
-    isFetching,
     refetch,
-  } = useGetAllEmployeesQuery({ searchTerm });
-
-  const employees = response?.data ?? [];
-  console.log("employees", employees);
-  const meta = response?.meta;
-
-  const [createEmployee, { isLoading: isCreating }] =
-    useCreateEmployeeMutation();
-  const [updateEmployee, { isLoading: isUpdating }] =
-    useUpdateEmployeeMutation();
-  const [deleteEmployee, { isLoading: isDeleting }] =
-    useDeleteEmployeeMutation();
+    createEmployee,
+    updateEmployee,
+    deleteEmployee,
+  } = useEmployee({ searchTerm });
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<Employee | null>(null);
@@ -59,8 +51,7 @@ const EmployeeList = () => {
       skip: !modalOpen || !editData?.id,
     });
 
-  const tableLoading =
-    isLoading || isFetching || isCreating || isUpdating || isDeleting;
+  const tableLoading = isLoading;
 
   const handleCreate = () => {
     setEditData(null);
@@ -133,6 +124,7 @@ const EmployeeList = () => {
       width: 120,
       render: (_: unknown, record: Employee) => (
         <div className="flex items-center gap-2">
+          {/* View — সবসময় দেখাবে */}
           <Tooltip title="View Details">
             <CustomButton
               variant="outline"
@@ -142,33 +134,39 @@ const EmployeeList = () => {
             />
           </Tooltip>
 
-          <Tooltip title="Edit Employee">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleEdit(record)}
-              icon={
-                <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
-              }
-            />
-          </Tooltip>
-
-          <Popconfirm
-            title="Delete Employee"
-            description="Are you sure you want to delete this employee?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
-            <Tooltip title="Delete">
+          {/* Edit — update permission লাগবে */}
+          {can("update") && (
+            <Tooltip title="Edit Employee">
               <CustomButton
-                variant="danger-outline"
+                variant="outline"
                 size="icon-sm"
-                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                onClick={() => handleEdit(record)}
+                icon={
+                  <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                }
               />
             </Tooltip>
-          </Popconfirm>
+          )}
+
+          {/* Delete — delete permission লাগবে */}
+          {can("delete") && (
+            <Popconfirm
+              title="Delete Employee"
+              description="Are you sure you want to delete this employee?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Delete"
+              cancelText="Cancel"
+              okButtonProps={{ danger: true }}
+            >
+              <Tooltip title="Delete">
+                <CustomButton
+                  variant="danger-outline"
+                  size="icon-sm"
+                  icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+                />
+              </Tooltip>
+            </Popconfirm>
+          )}
         </div>
       ),
     },
@@ -300,14 +298,16 @@ const EmployeeList = () => {
         title="All Employees"
         subTitle="User + Profile + WorkInfo (Prisma) via /employ API"
         extra={
-          <CustomButton
-            onClick={handleCreate}
-            variant="primary"
-            size="sm"
-            icon={<FontAwesomeIcon icon={faPlus} />}
-          >
-            Add Employee
-          </CustomButton>
+          can("create") ? (
+            <CustomButton
+              onClick={handleCreate}
+              variant="primary"
+              size="sm"
+              icon={<FontAwesomeIcon icon={faPlus} />}
+            >
+              Add Employee
+            </CustomButton>
+          ) : null
         }
       />
 
@@ -321,7 +321,7 @@ const EmployeeList = () => {
           rowKey="id"
           isPaginate={meta && meta.total > (meta.limit || 10)}
           showHeader={true}
-          loading={tableLoading}
+          isLoading={tableLoading}
         />
       </div>
 
@@ -335,7 +335,7 @@ const EmployeeList = () => {
         editData={editData}
         editDetail={editDetail ?? null}
         detailLoading={editDetailLoading}
-        submitting={isCreating || isUpdating}
+        submitting={isLoading}
       />
     </div>
   );

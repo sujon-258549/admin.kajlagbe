@@ -15,20 +15,19 @@ import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import CategoryModal from "../../Components/modal/category/CategoryModal";
-import { useDeleteCategoryMutation, useGetAllCategoriesQuery, useChangeCategoryStatusMutation } from "../../redux/features/category/categoryApi";
+import { useChangeCategoryStatusMutation } from "../../redux/features/category/categoryApi";
 import debounceSearch from "../../Components/utils/debounceSearch";
 import formatDate from "../../Components/utils/dateFormate";
 import { toast } from "sonner";
+import { useRoutePermission } from "../../utils/buttonPurmission";
+import { useCategory } from "../../apihooks/useCategory";
 
 const CategoryList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
 
-  // Mock Categories Data
-
-
   const [searchText, setSearchText] = useState("");
-  const [loading , setLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     debounceSearch(e.target.value, 500).then((value: string) => {
@@ -36,21 +35,18 @@ const CategoryList = () => {
     });
   };
 
-
+  const { can } = useRoutePermission();
   const queryObj = searchText ? { searchTerm: searchText } : {};
-  const { data: categoriesData, isLoading, isFetching, refetch } = useGetAllCategoriesQuery(queryObj);
+  
+  const {
+    categories,
+    meta,
+    isLoading,
+    refetch,
+    deleteCategory,
+  } = useCategory(queryObj);
 
-  const [deleteCategory] = useDeleteCategoryMutation();
   const [changeStatus] = useChangeCategoryStatusMutation();
-
-  const allCategories = categoriesData?.data || [];
-  const meta = categoriesData?.meta || {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPage: 1,
-  };
-  console.log("categoryData", allCategories);
 
   const handleCreate = () => {
     setEditData(null);
@@ -77,9 +73,9 @@ const CategoryList = () => {
   };
 
   const handleStatusChange = async (id: string) => {
-   try {
-    setLoading(true);
-    const res: any = await changeStatus({ id }).unwrap();
+    try {
+      setStatusLoading(true);
+      const res: any = await changeStatus({ id }).unwrap();
 
     if (res?.success) {
       toast.success(res?.message || "Category status changed successfully");
@@ -88,9 +84,9 @@ const CategoryList = () => {
     }
    } catch (error: any) {
     toast.error(error?.data?.message || error?.message || "Something went wrong");
-   } finally {
-    setLoading(false);
-   }
+    } finally {
+      setStatusLoading(false);
+    }
   };
 
   const handleSubmit = (values: any) => {
@@ -105,37 +101,41 @@ const CategoryList = () => {
       render: (_: any, record: any) => (
         <div className="flex items-center gap-2">
           {/* Edit */}
-          <Tooltip title="Edit Category">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleEdit(record)}
-              icon={
-                <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
-              }
-            />
-          </Tooltip>
+          {can("update") && (
+            <Tooltip title="Edit Category">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => handleEdit(record)}
+                icon={
+                  <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                }
+              />
+            </Tooltip>
+          )}
 
           {/* Delete */}
-          <Tooltip title="Delete Category">
-            <CustomButton
-              variant="danger-outline"
-              size="icon-sm"
-              onClick={() => {
-                Modal.confirm({
-                  title: "Delete Category",
-                  content: "Are you sure you want to delete this category?",
-                  okText: "Delete",
-                  okType: "danger",
-                  cancelText: "Cancel",
-                  onOk: async () => {
-                    await handleDelete(record.id);
-                  },
-                });
-              }}
-              icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
-            />
-          </Tooltip>
+          {can("delete") && (
+            <Tooltip title="Delete Category">
+              <CustomButton
+                variant="danger-outline"
+                size="icon-sm"
+                onClick={() => {
+                  Modal.confirm({
+                    title: "Delete Category",
+                    content: "Are you sure you want to delete this category?",
+                    okText: "Delete",
+                    okType: "danger",
+                    cancelText: "Cancel",
+                    onOk: async () => {
+                      await handleDelete(record.id);
+                    },
+                  });
+                }}
+                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+              />
+            </Tooltip>
+          )}
         </div>
       ),
     },
@@ -188,8 +188,9 @@ const CategoryList = () => {
       render: (status: boolean, record: any) => (
         <div className="flex items-center gap-2">
           <CustomSwitch
+            disabled={!can("update")}
             checked={status}
-            loading={loading}
+            loading={statusLoading}
             onChange={() => handleStatusChange(record.id)}
             size="default"
           />
@@ -231,14 +232,16 @@ const CategoryList = () => {
             >
               Refresh
             </CustomButton>
-            <CustomButton
-              variant="primary"
-              size="sm"
-              onClick={handleCreate}
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Add Category
-            </CustomButton>
+            {can("create") && (
+              <CustomButton
+                variant="primary"
+                size="sm"
+                onClick={handleCreate}
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Add Category
+              </CustomButton>
+            )}
           </div>
         }
       />
@@ -251,10 +254,10 @@ const CategoryList = () => {
       </div>
       <div className="">
         <DataTable
-          data={allCategories}
-          isLoading={isLoading || isFetching}
+          data={categories}
+          isLoading={isLoading}
           columns={columns}
-          isPaginate={meta.total > meta.limit}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey="id"
           meta={meta}
