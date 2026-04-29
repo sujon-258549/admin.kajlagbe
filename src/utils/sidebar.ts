@@ -122,7 +122,7 @@ export const menuItems = [
   },
   {
     name: "Blog Management",
-    icon: faChartLine, // Using a suitable icon, or faTasksAlt
+    icon: faNewspaper,
     path: "/blog",
     submenu: [
       { name: "Blog List", path: "/blog/list", module: "Blog" },

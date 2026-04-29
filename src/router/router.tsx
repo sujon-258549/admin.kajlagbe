@@ -24,6 +24,8 @@ import ProfileView from "../pages/profile/ProfileView";
 import ProfileEdit from "../pages/profile/ProfileEdit";
 import AgentGenerate from "../pages/agent/AgentGenerate";
 import CrmUserList from "../pages/crm/CrmUserList";
+import BlogList from "../pages/blog/BlogList";
+import CreateBlog from "../pages/blog/CreateBlog";
 
 const router = createBrowserRouter([
   {
@@ -114,6 +116,18 @@ const router = createBrowserRouter([
       {
         path: "crm/user-list",
         element: <CrmUserList />,
+      },
+      {
+        path: "blog/list",
+        element: <BlogList />,
+      },
+      {
+        path: "blog/create",
+        element: <CreateBlog />,
+      },
+      {
+        path: "blog/edit/:id",
+        element: <CreateBlog />,
       },
       {
         path: "*",
