@@ -26,6 +26,16 @@ import {
   faInfoCircle,
   faListCheck,
   faLightbulb,
+  faGraduationCap,
+  faUserTie,
+  faEarthAmericas,
+  faLink,
+  faTag,
+  faClock,
+  faUserGroup,
+  faPhone,
+  faEnvelope,
+  faGlobe,
 } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "../../Components/common/PageHeader";
 import CustomButton from "../../Components/ui/Button";
@@ -200,7 +210,7 @@ const CreateJob = () => {
               </Row>
 
               <Row gutter={16}>
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item name="categoryId" label="Category">
                     <CustomSelect
                       options={categories?.map((c: any) => ({
@@ -211,7 +221,7 @@ const CreateJob = () => {
                     />
                   </Form.Item>
                 </Col>
-                <Col span={12}>
+                <Col span={8}>
                   <Form.Item name="subCategoryId" label="Sub-Category">
                     <CustomSelect
                       options={subCategories?.map((c: any) => ({
@@ -222,7 +232,94 @@ const CreateJob = () => {
                     />
                   </Form.Item>
                 </Col>
+                <Col span={8}>
+                  <Form.Item name="industry" label="Industry">
+                    <CustomInput placeholder="e.g. IT, Banking" />
+                  </Form.Item>
+                </Col>
               </Row>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="vacancy" label="Vacancy">
+                  <InputNumber className="w-full!" placeholder="No. of openings" />
+                </Form.Item>
+                <Form.Item name="jobNature" label="Job Nature">
+                  <CustomSelect
+                    options={[
+                      { label: "On-site", value: "On-site" },
+                      { label: "Remote", value: "Remote" },
+                      { label: "Hybrid", value: "Hybrid" },
+                    ]}
+                  />
+                </Form.Item>
+                <Form.Item name="experience" label="Experience">
+                  <CustomInput placeholder="e.g. 2-3 years" prefix={<FontAwesomeIcon icon={faUserTie} className="text-gray-400" />} />
+                </Form.Item>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="education" label="Education">
+                  <CustomInput placeholder="e.g. B.Sc in CSE" prefix={<FontAwesomeIcon icon={faGraduationCap} className="text-gray-400" />} />
+                </Form.Item>
+                <Form.Item name="gender" label="Gender">
+                  <CustomSelect
+                    options={[
+                      { label: "Male", value: "Male" },
+                      { label: "Female", value: "Female" },
+                      { label: "Both", value: "Both" },
+                    ]}
+                  />
+                </Form.Item>
+                <Form.Item name="ageRange" label="Age Range">
+                  <CustomInput placeholder="e.g. 25-35 years" />
+                </Form.Item>
+              </div>
+            </Card>
+
+            <Card className="border !mt-6 border-gray-200">
+              <div className="flex items-center gap-2 mb-4 text-primary font-bold">
+                <FontAwesomeIcon icon={faBuilding} />
+                <span>Company Details & Contact</span>
+              </div>
+              <Divider className="my-3" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="email" label="Contact Email">
+                  <CustomInput prefix={<FontAwesomeIcon icon={faEnvelope} className="text-gray-400" />} placeholder="hr@company.com" />
+                </Form.Item>
+                <Form.Item name="phone" label="Contact Phone">
+                  <CustomInput prefix={<FontAwesomeIcon icon={faPhone} className="text-gray-400" />} placeholder="+880..." />
+                </Form.Item>
+                <Form.Item name="website" label="Website">
+                  <CustomInput prefix={<FontAwesomeIcon icon={faGlobe} className="text-gray-400" />} placeholder="https://..." />
+                </Form.Item>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item name="address" label="Full Address">
+                  <CustomInput.TextArea rows={2} placeholder="Full office address..." />
+                </Form.Item>
+                <Form.Item name="companySize" label="Company Size">
+                  <CustomSelect
+                    options={[
+                      { label: "1-10 Employees", value: "1-10" },
+                      { label: "11-50 Employees", value: "11-50" },
+                      { label: "51-200 Employees", value: "51-200" },
+                      { label: "201-500 Employees", value: "201-500" },
+                      { label: "500+ Employees", value: "500+" },
+                    ]}
+                  />
+                </Form.Item>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="founded" label="Founded In">
+                  <CustomInput placeholder="e.g. 2010" />
+                </Form.Item>
+                <Form.Item name="ceoName" label="CEO Name">
+                  <CustomInput placeholder="CEO Name" />
+                </Form.Item>
+                <Form.Item name="contactPerson" label="Contact Person">
+                  <CustomInput placeholder="HR Manager Name" />
+                </Form.Item>
+              </div>
             </Card>
 
             <Card className="border mt-4! border-gray-200">
@@ -415,68 +512,99 @@ const CreateJob = () => {
               </Form.Item>
             </Card>
 
-            <Card className="border mt-4! border-gray-200 ">
+            <Card className="border !mt-6 border-gray-200">
               <div className="flex items-center gap-2 mb-4 text-primary font-bold">
-                <FontAwesomeIcon icon={faLightbulb} />
-                <span>Settings & Visibility</span>
+                <FontAwesomeIcon icon={faClock} />
+                <span>Working Hours & Environment</span>
               </div>
               <Divider className="my-3" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="workingHours" label="Working Hours">
+                  <CustomInput placeholder="e.g. 9 AM - 6 PM" />
+                </Form.Item>
+                <Form.Item name="weekend" label="Weekend">
+                  <CustomInput placeholder="e.g. Friday, Saturday" />
+                </Form.Item>
+                <Form.Item name="remotePolicy" label="Remote Policy">
+                  <CustomInput placeholder="e.g. 2 days remote/week" />
+                </Form.Item>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item name="workStartTime" label="Work Start Time">
+                  <CustomInput placeholder="e.g. 09:00 AM" />
+                </Form.Item>
+                <Form.Item name="workTimeLimit" label="Work Time Limit">
+                  <CustomInput placeholder="e.g. 8 Hours" />
+                </Form.Item>
+              </div>
+            </Card>
+
+            <Card className="border !mt-6 border-gray-200">
+              <div className="flex items-center gap-2 mb-4 text-primary font-bold">
+                <FontAwesomeIcon icon={faTag} />
+                <span>Additional Benefits & Settings</span>
+              </div>
+              <Divider className="my-3" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="lunchFacility" label="Lunch Facility">
+                  <CustomInput placeholder="e.g. Partially Subsidized" />
+                </Form.Item>
+                <Form.Item name="salaryReview" label="Salary Review">
+                  <CustomInput placeholder="e.g. Yearly" />
+                </Form.Item>
+                <Form.Item name="festivalBonus" label="Festival Bonus">
+                  <CustomInput placeholder="e.g. 2 per year" />
+                </Form.Item>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl">
+                  <span className="text-gray-600 text-sm">Performance Bonus</span>
+                  <Form.Item name="performanceBonus" valuePropName="checked" className="!mb-0">
+                    <CustomSwitch />
+                  </Form.Item>
+                </div>
+                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl">
+                  <span className="text-gray-600 text-sm">Health Insurance</span>
+                  <Form.Item name="healthInsurance" valuePropName="checked" className="!mb-0">
+                    <CustomSwitch />
+                  </Form.Item>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Form.Item name="deadline" label="Application Deadline">
-                  <DatePicker
-                    className="w-full!"
-                    format="DD-MM-YYYY"
-                    placeholder="Select Deadline"
-                  />
+                <Form.Item name="visaSponsorship" valuePropName="checked">
+                  <CustomSwitch checkedChildren="Visa Sponsorship" unCheckedChildren="No Visa Sponsorship" />
                 </Form.Item>
-
-                <Form.Item name="vacancy" label="Vacancy">
-                  <InputNumber
-                    className="w-full!"
-                    placeholder="Number of openings"
-                  />
+                <Form.Item name="relocationAssistance" valuePropName="checked">
+                  <CustomSwitch checkedChildren="Relocation Assistance" unCheckedChildren="No Relocation Assistance" />
                 </Form.Item>
               </div>
+            </Card>
 
-              <div className="pt-2 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl min-h-[48px]">
-                  <span className="text-gray-600 text-sm leading-none">
-                    Urgent Hiring
-                  </span>
-                  <Form.Item
-                    name="isUrgent"
-                    valuePropName="checked"
-                    className="!mb-0"
-                  >
-                    <CustomSwitch />
-                  </Form.Item>
-                </div>
-                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl min-h-[48px]">
-                  <span className="text-gray-600 text-sm leading-none">
-                    Published Status
-                  </span>
-                  <Form.Item
-                    name="isPublished"
-                    valuePropName="checked"
-                    className="!mb-0"
-                  >
-                    <CustomSwitch />
-                  </Form.Item>
-                </div>
-                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl min-h-[48px]">
-                  <span className="text-gray-600 text-sm leading-none">
-                    Active Status
-                  </span>
-                  <Form.Item
-                    name="status"
-                    valuePropName="checked"
-                    className="!mb-0"
-                  >
-                    <CustomSwitch />
-                  </Form.Item>
-                </div>
+            <Card className="border !mt-6 border-gray-200">
+              <div className="flex items-center gap-2 mb-4 text-primary font-bold">
+                <FontAwesomeIcon icon={faTag} />
+                <span>SEO & Internal Info</span>
               </div>
+              <Divider className="my-3" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item name="internalId" label="Internal ID">
+                  <CustomInput placeholder="Internal company ID" />
+                </Form.Item>
+                <Form.Item name="referenceCode" label="Reference Code">
+                  <CustomInput placeholder="Job reference code" />
+                </Form.Item>
+              </div>
+              <Form.Item name="keywords" label="SEO Keywords (comma separated)">
+                <CustomSelect mode="tags" placeholder="Add keywords" />
+              </Form.Item>
+              <Form.Item name="metaDescription" label="Meta Description (for Google)">
+                <CustomInput.TextArea rows={3} placeholder="SEO Meta description..." />
+              </Form.Item>
+              <Form.Item name="applicationLink" label="External Application Link (if any)">
+                <CustomInput prefix={<FontAwesomeIcon icon={faLink} className="text-gray-400" />} placeholder="https://..." />
+              </Form.Item>
             </Card>
 
             <div className="mt-6!">
