@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
 import { Tooltip, Modal, Tag } from "antd";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
