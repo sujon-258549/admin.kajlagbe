@@ -10,6 +10,7 @@ import MediaLibraryPickerModal from "../../Components/modal/media/MediaLibraryPi
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faImage, faSave, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useBlog, useSingleBlog } from "../../apihooks/useBlog";
+import { usePermission } from "../../utils/sidebar";
 import { toast } from "sonner";
 import type { TMediaImage } from "../../Components/types";
 
@@ -26,6 +27,7 @@ const CreateBlog = () => {
   const isEditMode = !!id;
   const { blog, isLoading: isBlogLoading } = useSingleBlog(id || "");
   const { addBlog, updateBlog, isLoading: isMutationLoading } = useBlog();
+  const { currentUser } = usePermission();
 
   const config = useMemo(() => ({
     readonly: false,
@@ -63,6 +65,7 @@ const CreateBlog = () => {
       const payload = {
         ...values,
         content,
+        authorId: currentUser?.id,
         coverId: selectedCover?.id || null,
         tags: values.tags ? values.tags.split(",").map((t: string) => t.trim()) : [],
       };
