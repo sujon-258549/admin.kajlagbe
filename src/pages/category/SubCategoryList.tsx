@@ -164,7 +164,8 @@ const SubCategoryList = () => {
                 onClick={() => {
                   Modal.confirm({
                     title: "Delete SubCategory",
-                    content: "Are you sure you want to delete this subcategory?",
+                    content:
+                      "Are you sure you want to delete this subcategory?",
                     okText: "Delete",
                     okType: "danger",
                     cancelText: "Cancel",
