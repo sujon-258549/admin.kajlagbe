@@ -10,6 +10,7 @@ import {
   faChartLine,
   faTasksAlt,
   faMagic,
+  faNewspaper,
 } from "@fortawesome/free-solid-svg-icons";
 import { useMyData } from "../redux/hooks";
 import { config } from "../config";
@@ -117,6 +118,15 @@ export const menuItems = [
       { name: "General Settings", path: "/setup/general", module: "General Settings" },
       { name: "Business Setup", path: "/setup/business", module: "Business Setup" },
       { name: "Media", path: "/setup/media", module: "Media Library" },
+    ],
+  },
+  {
+    name: "Blog Management",
+    icon: faChartLine, // Using a suitable icon, or faTasksAlt
+    path: "/blog",
+    submenu: [
+      { name: "Blog List", path: "/blog/list", module: "Blog" },
+      { name: "Create Blog", path: "/blog/create", module: "Blog" },
     ],
   },
   {
