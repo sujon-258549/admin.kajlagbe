@@ -11,8 +11,9 @@ import type { TJob } from "../../types";
 interface JobModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (values: Omit<TJob, "id" | "createdAt">) => void;
+  onSubmit: (values: any) => void;
   editData?: TJob | null;
+  isLoading?: boolean;
 }
 
 const jobTypeOptions = [
@@ -53,7 +54,7 @@ const subCategoryOptions = [
   { label: "QA Engineer", value: "QA Engineer" },
 ];
 
-const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
+const JobModal = ({ open, onClose, onSubmit, editData, isLoading }: JobModalProps) => {
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -79,8 +80,6 @@ const JobModal = ({ open, onClose, onSubmit, editData }: JobModalProps) => {
         ...values,
         skills: cleanedSkills,
       });
-      form.resetFields();
-      onClose();
     });
   };
 

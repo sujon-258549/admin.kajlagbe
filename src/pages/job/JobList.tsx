@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
-import { Tooltip, Popconfirm, Tag } from "antd";
+import { Tooltip, Modal, Tag } from "antd";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -13,6 +14,7 @@ import {
   faBolt,
   faLocationDot,
   faMoneyBillWave,
+  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
@@ -20,88 +22,11 @@ import CustomSwitch from "../../Components/ui/Switch";
 import JobModal from "../../Components/modal/job/JobModal";
 import type { TJob } from "../../Components/types";
 import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+import { useJob } from "../../apihooks/useJob";
+import { toast } from "sonner";
+import { useRoutePermission } from "../../utils/buttonPurmission";
 
-// Mock Data
-const mockJobs: TJob[] = [
-  {
-    id: "1",
-    title: "Senior React Developer",
-    company: "Kajlagbe Ltd.",
-    location: "Dhaka, Bangladesh",
-    type: "Full-time",
-    category: "Technology",
-    subCategory: "Frontend Developer",
-    salaryMin: "50000",
-    salaryMax: "80000",
-    experience: "3-5 Years",
-    deadline: "31-03-2026",
-    description: "We are looking for a skilled React developer...",
-    skills: ["React.js", "TypeScript", "Tailwind CSS", "Redux"],
-    isRemote: false,
-    isUrgent: true,
-    status: true,
-    createdAt: "01-03-2026",
-  },
-  {
-    id: "2",
-    title: "Full Stack Engineer",
-    company: "TechBridge BD",
-    location: "Chittagong, Bangladesh",
-    type: "Full-time",
-    category: "Technology",
-    subCategory: "Full Stack Developer",
-    salaryMin: "60000",
-    salaryMax: "100000",
-    experience: "5-8 Years",
-    deadline: "15-04-2026",
-    description: "Full stack role with React and Node.js focus...",
-    skills: ["React.js", "Node.js", "MongoDB", "AWS"],
-    isRemote: true,
-    isUrgent: false,
-    status: true,
-    createdAt: "02-03-2026",
-  },
-  {
-    id: "3",
-    title: "UI/UX Designer",
-    company: "Creative Minds Co.",
-    location: "Dhaka, Bangladesh",
-    type: "Contract",
-    category: "Design",
-    subCategory: "UI/UX Designer",
-    salaryMin: "30000",
-    salaryMax: "50000",
-    experience: "1-2 Years",
-    deadline: "20-04-2026",
-    description: "Design beautiful user experiences for our products...",
-    skills: ["Figma", "Adobe XD", "Prototyping"],
-    isRemote: true,
-    isUrgent: false,
-    status: true,
-    createdAt: "05-03-2026",
-  },
-  {
-    id: "4",
-    title: "DevOps Engineer",
-    company: "CloudSys Technologies",
-    location: "Remote",
-    type: "Full-time",
-    category: "Technology",
-    subCategory: "DevOps Engineer",
-    salaryMin: "70000",
-    salaryMax: "120000",
-    experience: "5-8 Years",
-    deadline: "10-04-2026",
-    description: "Manage CI/CD pipelines and cloud infrastructure...",
-    skills: ["Docker", "Kubernetes", "AWS", "Jenkins"],
-    isRemote: true,
-    isUrgent: true,
-    status: false,
-    createdAt: "06-03-2026",
-  },
-];
-
-// Column definitions used by FilterColumn (key must match column key in the columns array)
+// Column definitions used by FilterColumn
 const filterableColumns = [
   { key: "action", title: "Action" },
   { key: "title", title: "Job Title" },
@@ -115,12 +40,26 @@ const filterableColumns = [
 ];
 
 const JobList = () => {
-  const [jobs, setJobs] = useState<TJob[]>(mockJobs);
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("searchTerm") || "";
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<TJob | null>(null);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
     filterableColumns.map((c) => c.key),
   );
+
+  const { can } = useRoutePermission();
+  const queryObj = searchTerm ? { searchTerm } : {};
+  const {
+    jobs,
+    meta,
+    isLoading,
+    refetch,
+    createJob,
+    updateJob,
+    deleteJob,
+    changeStatus,
+  } = useJob(queryObj);
 
   const handleCreate = () => {
     setEditData(null);
@@ -132,28 +71,40 @@ const JobList = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setJobs((prev) => prev.filter((j) => j.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const res: any = await deleteJob(id).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || "Job deleted successfully");
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to delete job");
+    }
   };
 
-  const handleStatusChange = (id: string, checked: boolean) => {
-    setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, status: checked } : j)),
-    );
+  const handleStatusChange = async (id: string) => {
+    try {
+      const res: any = await changeStatus({ id }).unwrap();
+      if (res?.success) {
+        toast.success(res?.message || "Status updated");
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to update status");
+    }
   };
 
-  const handleSubmit = (values: Omit<TJob, "id" | "createdAt">) => {
-    if (editData) {
-      setJobs((prev) =>
-        prev.map((j) => (j.id === editData.id ? { ...j, ...values } : j)),
-      );
-    } else {
-      const newJob: TJob = {
-        id: Date.now().toString(),
-        ...values,
-        createdAt: new Date().toLocaleDateString("en-GB").replace(/\//g, "-"),
-      };
-      setJobs((prev) => [newJob, ...prev]);
+  const handleSubmit = async (values: any) => {
+    try {
+      if (editData) {
+        const res: any = await updateJob({ id: editData.id, data: values }).unwrap();
+        if (res?.success) toast.success("Job updated successfully");
+      } else {
+        const res: any = await createJob(values).unwrap();
+        if (res?.success) toast.success("Job posted successfully");
+      }
+      setModalOpen(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Something went wrong");
     }
   };
 
@@ -172,33 +123,37 @@ const JobList = () => {
       width: 110,
       render: (_: unknown, record: TJob) => (
         <div className="flex items-center gap-2">
-          <Tooltip title="Edit Job Post">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => handleEdit(record)}
-              icon={
-                <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
-              }
-            />
-          </Tooltip>
+          {can("update") && (
+            <Tooltip title="Edit Job Post">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => handleEdit(record)}
+                icon={
+                  <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                }
+              />
+            </Tooltip>
+          )}
 
-          <Popconfirm
-            title="Delete Job Post"
-            description="Are you sure you want to delete this job?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Delete"
-            cancelText="Cancel"
-            okButtonProps={{ danger: true }}
-          >
+          {can("delete") && (
             <Tooltip title="Delete Job Post">
               <CustomButton
                 variant="danger-outline"
                 size="icon-sm"
+                onClick={() => {
+                  Modal.confirm({
+                    title: "Delete Job",
+                    content: "Are you sure you want to delete this job posting?",
+                    okText: "Delete",
+                    okType: "danger",
+                    onOk: () => handleDelete(record.id),
+                  });
+                }}
                 icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
               />
             </Tooltip>
-          </Popconfirm>
+          )}
         </div>
       ),
     },
@@ -247,7 +202,7 @@ const JobList = () => {
       dataIndex: "company",
       key: "company",
       render: (company: string) => (
-        <span className="font-semibold text-gray-700 text-sm">{company}</span>
+        <span className="font-semibold text-gray-700 text-sm">{company || "N/A"}</span>
       ),
     },
     {
@@ -264,7 +219,7 @@ const JobList = () => {
           color={jobTypeColorMap[type] || "default"}
           className="font-medium text-xs"
         >
-          {type}
+          {type || "Full-time"}
         </Tag>
       ),
     },
@@ -272,12 +227,12 @@ const JobList = () => {
       title: "CATEGORY",
       dataIndex: "category",
       key: "category",
-      render: (category: string, record: TJob) => (
+      render: (category: any, record: any) => (
         <div>
           <span className="font-semibold text-gray-700 text-sm">
-            {category}
+            {category?.name || record.categoryName || "N/A"}
           </span>
-          <p className="text-xs text-gray-400 mt-0.5">{record.subCategory}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{record.subCategory?.name || "N/A"}</p>
         </div>
       ),
     },
@@ -295,11 +250,11 @@ const JobList = () => {
       render: (_: unknown, record: TJob) => (
         <div>
           <span className="font-bold text-emerald-600 text-sm">
-            ৳{Number(record.salaryMin).toLocaleString()}
+            ৳{Number(record.salaryMin || 0).toLocaleString()}
           </span>
           <span className="text-gray-400 text-xs"> – </span>
           <span className="font-bold text-emerald-600 text-sm">
-            ৳{Number(record.salaryMax).toLocaleString()}
+            ৳{Number(record.salaryMax || 0).toLocaleString()}
           </span>
         </div>
       ),
@@ -310,7 +265,7 @@ const JobList = () => {
       key: "skills",
       render: (skills: string[]) => (
         <div className="flex flex-wrap gap-1 max-w-[160px]">
-          {skills.slice(0, 3).map((skill, i) => (
+          {(skills || []).slice(0, 3).map((skill, i) => (
             <span
               key={i}
               className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap"
@@ -318,7 +273,7 @@ const JobList = () => {
               {skill}
             </span>
           ))}
-          {skills.length > 3 && (
+          {(skills || []).length > 3 && (
             <Tooltip title={skills.slice(3).join(", ")}>
               <span className="bg-primary/10 text-primary text-[10px] font-semibold px-2 py-0.5 rounded-full cursor-pointer">
                 +{skills.length - 3}
@@ -338,7 +293,7 @@ const JobList = () => {
       dataIndex: "deadline",
       key: "deadline",
       render: (deadline: string) => (
-        <span className="text-gray-600 font-medium text-sm">{deadline}</span>
+        <span className="text-gray-600 font-medium text-sm">{deadline || "No Limit"}</span>
       ),
     },
     {
@@ -347,8 +302,9 @@ const JobList = () => {
       key: "status",
       render: (status: boolean, record: TJob) => (
         <CustomSwitch
+          disabled={!can("update")}
           checked={status}
-          onChange={(checked) => handleStatusChange(record.id, checked)}
+          onChange={() => handleStatusChange(record.id)}
           size="default"
           checkedChildren="Active"
           unCheckedChildren="Inactive"
@@ -377,23 +333,25 @@ const JobList = () => {
               variant="outline"
               size="sm"
               icon={<FontAwesomeIcon icon={faRotateRight} />}
+              onClick={() => refetch()}
             >
               Refresh
             </CustomButton>
-            <CustomButton
-              variant="primary"
-              size="sm"
-              onClick={handleCreate}
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Post Job
-            </CustomButton>
+            {can("create") && (
+              <CustomButton
+                variant="primary"
+                size="sm"
+                onClick={handleCreate}
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Post Job
+              </CustomButton>
+            )}
           </div>
         }
       />
 
       <div>
-        {/* Toolbar */}
         <div className="flex justify-end mb-3">
           <FilterColumn
             tableName="job_list"
@@ -404,10 +362,12 @@ const JobList = () => {
 
         <DataTable
           data={jobs}
+          isLoading={isLoading}
           columns={visibleColumns}
-          isPaginate={true}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey="id"
+          meta={meta}
         />
       </div>
 

@@ -8,7 +8,6 @@ import {
   faToolbox,
   faIndustry,
   faChartLine,
-  faTasksAlt,
   faMagic,
   faNewspaper,
 } from "@fortawesome/free-solid-svg-icons";
@@ -50,12 +49,6 @@ export const menuItems = [
     submenu: [
       { name: "Job List", path: "/job/list", module: "Job Management" },
     ],
-  },
-  {
-    name: "Subscription",
-    icon: faTasksAlt,
-    path: "/subscription",
-    module: "Subscription",
   },
   {
     name: "Apply Job",
