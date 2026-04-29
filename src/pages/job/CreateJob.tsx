@@ -55,14 +55,13 @@ const CreateJob = () => {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (isEditMode && jobData) {
+    if (isEditMode && jobData?.data) {
+      const data = jobData.data;
       form.setFieldsValue({
-        ...jobData,
-        deadline: jobData.deadline
-          ? dayjs(jobData.deadline, "DD-MM-YYYY")
-          : null,
+        ...data,
+        deadline: data.deadline ? dayjs(data.deadline, "DD-MM-YYYY") : null,
       });
-      setDescription(jobData.description || "");
+      setDescription(data.description || "");
     } else if (!isEditMode) {
       form.resetFields();
       form.setFieldsValue({

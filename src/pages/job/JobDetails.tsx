@@ -19,7 +19,8 @@ const JobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { useGetJobById } = useJob();
-  const { data: job, isLoading } = useGetJobById(id || "");
+  const { data: response, isLoading } = useGetJobById(id || "");
+  const job = response?.data;
 
   if (isLoading) {
     return (
