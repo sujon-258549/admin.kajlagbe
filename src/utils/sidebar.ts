@@ -17,7 +17,7 @@ import { config } from "../config";
 
 export const menuItems = [
   { name: "Dashboard", icon: faTableColumns, path: "/", module: "Dashboard" },
- 
+
   {
     name: "User Management",
     icon: faUsers,
@@ -115,81 +115,107 @@ export const menuItems = [
     icon: faCogs,
     path: "/setup",
     submenu: [
-      { name: "General Settings", path: "/setup/general", module: "General Settings" },
-      { name: "Business Setup", path: "/setup/business", module: "Business Setup" },
+      {
+        name: "General Settings",
+        path: "/setup/general",
+        module: "General Settings",
+      },
+      {
+        name: "Business Setup",
+        path: "/setup/business",
+        module: "Business Setup",
+      },
       { name: "Media", path: "/setup/media", module: "Media Library" },
     ],
   },
   {
-    name: "Blog Management",
+    name: "Blog List",
     icon: faNewspaper,
-    path: "/blog",
-    submenu: [
-      { name: "Blog List", path: "/blog/list", module: "Blog" },
-      { name: "Create Blog", path: "/blog/create", module: "Blog" },
-    ],
+    path: "/blog/list",
+    module: "Blog",
   },
   {
     name: "CRM",
     icon: faUsers,
     path: "/crm",
-    submenu: [
-      { name: "User List", path: "/crm/user-list", module: "CRM" },
-    ],
+    submenu: [{ name: "User List", path: "/crm/user-list", module: "CRM" }],
   },
 ];
 
 export const usePermission = () => {
   const { user: currentUser, isLoading } = useMyData();
-  const userPermissions = useMemo(() => currentUser?.role?.permissions || [], [currentUser]);
+  const userPermissions = useMemo(
+    () => currentUser?.role?.permissions || [],
+    [currentUser],
+  );
   const isSuperAdmin = currentUser?.email === config.superAdminEmail;
 
-  const hasPermission = useCallback((moduleName: string, action: string) => {
-    if (isSuperAdmin) return true;
-    if (!moduleName) return false;
-   
+  const hasPermission = useCallback(
+    (moduleName: string, action: string) => {
+      if (isSuperAdmin) return true;
+      if (!moduleName) return false;
 
-    const modulePerm = userPermissions.find(
-      (p: any) => p.module.toLowerCase() === moduleName.toLowerCase()
-    );
+      const modulePerm = userPermissions.find(
+        (p: any) => p.module.toLowerCase() === moduleName.toLowerCase(),
+      );
 
-    if (!modulePerm) return false;
+      if (!modulePerm) return false;
 
-    return modulePerm.permissions.some(
-      (p: string) => p.toLowerCase() === action.toLowerCase()
-    );
-  }, [userPermissions, isSuperAdmin]);
+      return modulePerm.permissions.some(
+        (p: string) => p.toLowerCase() === action.toLowerCase(),
+      );
+    },
+    [userPermissions, isSuperAdmin],
+  );
 
-  return { hasPermission, isLoading, isSuperAdmin, currentUser, userPermissions };
+  return {
+    hasPermission,
+    isLoading,
+    isSuperAdmin,
+    currentUser,
+    userPermissions,
+  };
 };
 
 export const useFilteredMenuItems = () => {
-  const { hasPermission, isLoading, isSuperAdmin, currentUser } = usePermission();
+  const { hasPermission, isLoading, isSuperAdmin, currentUser } =
+    usePermission();
 
   const filteredMenuItems = useMemo(() => {
     return menuItems
       .map((item) => {
         if (item.submenu) {
-          const visibleSubmenu = item.submenu.filter((sub) =>
-            hasPermission(sub.module || "", "view") || hasPermission(sub.module || "", "list"),
+          const visibleSubmenu = item.submenu.filter(
+            (sub) =>
+              hasPermission(sub.module || "", "view") ||
+              hasPermission(sub.module || "", "list"),
           );
           if (visibleSubmenu.length > 0) {
             return { ...item, submenu: visibleSubmenu };
           }
           return null; // Don't show parent if no submenu is visible and parent has no module
         }
-        
+
         // For items without submenu, check their own module permission
         if (item.module) {
-           return hasPermission(item.module, "view") || hasPermission(item.module, "list") ? item : null;
+          return hasPermission(item.module, "view") ||
+            hasPermission(item.module, "list")
+            ? item
+            : null;
         }
-        
+
         return null;
       })
       .filter(Boolean);
   }, [hasPermission]);
 
-  return { filteredMenuItems, currentUser, isSuperAdmin, isLoading, hasPermission };
+  return {
+    filteredMenuItems,
+    currentUser,
+    isSuperAdmin,
+    isLoading,
+    hasPermission,
+  };
 };
 
 export const canActions = (

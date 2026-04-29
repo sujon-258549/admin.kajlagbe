@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
-import { Tooltip, Input, Modal, Tag } from "antd";
+import { Tooltip, Modal, Tag } from "antd";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -15,26 +16,19 @@ import {
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
-import debounceSearch from "../../Components/utils/debounceSearch";
 import formatDate from "../../Components/utils/dateFormate";
 import { toast } from "sonner";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useBlog } from "../../apihooks/useBlog";
-import { useNavigate } from "react-router";
 
 const BlogList = () => {
   const navigate = useNavigate();
-  const [searchText, setSearchText] = useState("");
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("searchTerm") || "";
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debounceSearch(e.target.value, 500).then((value: string) => {
-      setSearchText(value);
-    });
-  };
-
   const { can } = useRoutePermission();
-  const queryObj = searchText ? { searchTerm: searchText } : {};
+  const queryObj = searchTerm ? { searchTerm } : {};
   
   const {
     blogs,
@@ -81,6 +75,18 @@ const BlogList = () => {
       width: 120,
       render: (_: any, record: any) => (
         <div className="flex items-center gap-2">
+          {/* View Details */}
+          {can("view") && (
+            <Tooltip title="View Details">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => navigate(`/blog/details/${record.id}`)}
+                icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
+              />
+            </Tooltip>
+          )}
+
           {/* View/Edit */}
           {can("update") && (
             <Tooltip title="Edit Blog">
@@ -158,6 +164,39 @@ const BlogList = () => {
       render: (text: string) => text ? <Tag color="blue">{text}</Tag> : <span className="text-gray-400">-</span>,
     },
     {
+      title: "AUTHOR",
+      dataIndex: "author",
+      key: "author",
+      render: (author: any) => (
+        <div className="flex items-center gap-2">
+          {author?.profile?.photo && (
+            <img 
+              src={author.profile.photo} 
+              alt="Author" 
+              className="w-6 h-6 rounded-full object-cover border border-gray-200"
+            />
+          )}
+          <span className="text-xs font-medium text-gray-600">
+            {author?.profile?.name || "Unknown"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      title: "TAGS",
+      dataIndex: "tags",
+      key: "tags",
+      render: (tags: string[]) => (
+        <div className="flex flex-wrap gap-1 max-w-[150px]">
+          {tags?.map((tag) => (
+            <Tag key={tag} className="text-[10px] px-1 m-0">
+              {tag}
+            </Tag>
+          ))}
+        </div>
+      ),
+    },
+    {
       title: (
         <div className="flex items-center justify-between">
           <span>PUBLISHED</span>
@@ -226,14 +265,6 @@ const BlogList = () => {
           </div>
         }
       />
-      <div className="flex items-center gap-2">
-        <Input
-          onChange={handleSearch}
-          className="max-w-md"
-          placeholder="Search blogs by title, slug, content..."
-          prefix={<FontAwesomeIcon icon={faSearch} className="text-gray-400 mr-2" />}
-        />
-      </div>
       <div className="">
         <DataTable
           data={blogs}

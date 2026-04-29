@@ -22,4 +22,10 @@ export const routePermissions: Record<string, { module: string; action: string }
   "/sales/summary": { module: "Sales Management", action: "view" },
   "/sales/ledger": { module: "Sales Management", action: "view" },
   "/crm/user-list": { module: "CRM", action: "view" },
+  // blogs =============================================
+  "/blog/list": { module: "Blog", action: "view" },
+  "/blog/:id": { module: "Blog", action: "view" },
+  "/blog/edit/:id": { module: "Blog", action: "view" },
+  "/blog/create": { module: "Blog", action: "view" },
+  "/blog/details/:id": { module: "Blog", action: "view" },
 };

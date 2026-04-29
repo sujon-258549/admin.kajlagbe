@@ -34,7 +34,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         {
           name: "plus",
           tooltip: "Increase Font Size",
-          icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/><text x="2" y="18" font-family="Arial" font-size="12" font-weight="bold" stroke="none" fill="currentColor">A</text></svg>',
+          icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>',
           exec: (editor: any) => {
             const current = editor.s.style("fontSize") || "14px";
             const newSize = (parseInt(current) || 14) + 2;
@@ -44,7 +44,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         {
           name: "minus",
           tooltip: "Decrease Font Size",
-          icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><text x="2" y="18" font-family="Arial" font-size="12" font-weight="bold" stroke="none" fill="currentColor">A</text></svg>',
+          icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>',
           exec: (editor: any) => {
             const current = editor.s.style("fontSize") || "14px";
             const newSize = Math.max(8, (parseInt(current) || 14) - 2);
@@ -141,7 +141,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   );
 
   return (
-    <div className="rich-text-editor-wrapper shadow-sm rounded-xl overflow-hidden border border-gray-200 transition-all duration-300">
+    <div className="rich-text-editor-wrapper rounded-md border border-gray-200 transition-all duration-300">
       <JoditEditor
         ref={editor}
         value={value}
@@ -150,8 +150,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         onChange={() => {}}
       />
       <style>{`
+        .rich-text-editor-wrapper {
+          overflow: hidden;
+        }
         .rich-text-editor-wrapper .jodit-container {
           border: none !important;
+          border-radius: 0 !important;
         }
         .rich-text-editor-wrapper .jodit-toolbar__box {
           background-color: #ffffff !important;
@@ -159,7 +163,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           padding: 8px !important;
         }
         .rich-text-editor-wrapper .jodit-toolbar-button {
-          border-radius: 6px !important;
+          border-radius: 4px !important;
           transition: all 0.2s !important;
         }
         .rich-text-editor-wrapper .jodit-toolbar-button:hover {
@@ -180,13 +184,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
         .rich-text-editor-wrapper:focus-within {
           border-color: ${PRIMARY} !important;
-          box-shadow: 0 0 0 3px ${PRIMARY}20 !important;
+          box-shadow: 0 0 0 2px ${PRIMARY}15 !important;
+          outline: none !important;
         }
-        /* Style to ensure custom SVG icons look correct */
+        /* Style for custom icons */
         .jodit-toolbar-button_plus svg, .jodit-toolbar-button_minus svg {
-           color: #1e293b !important;
-           width: 14px;
-           height: 14px;
+           fill: currentColor !important;
         }
       `}</style>
     </div>

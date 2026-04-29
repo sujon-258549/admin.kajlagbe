@@ -1,62 +1,54 @@
-import { useEffect, useRef, useState, useMemo } from "react";
-import { Form, Card, Tag, message } from "antd";
+import { useEffect, useState, useRef } from "react";
+import { Form, Card } from "antd";
 import { useParams, useNavigate } from "react-router";
-import JoditEditor from "jodit-react";
 import PageHeader from "../../Components/common/PageHeader";
 import CustomInput from "../../Components/ui/Input";
 import CustomButton from "../../Components/ui/Button";
 import CustomSwitch from "../../Components/ui/Switch";
 import MediaLibraryPickerModal from "../../Components/modal/media/MediaLibraryPickerModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage, faSave, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import {
+  faImage,
+  faSave,
+  faArrowLeft,
+} from "@fortawesome/free-solid-svg-icons";
 import { useBlog, useSingleBlog } from "../../apihooks/useBlog";
 import { usePermission } from "../../utils/sidebar";
 import { toast } from "sonner";
 import type { TMediaImage } from "../../Components/types";
+import RichTextEditor from "../../Components/ui/RichTextEditor";
 
 const CreateBlog = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const editorRef = useRef(null);
-  
+
   const [content, setContent] = useState("");
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [selectedCover, setSelectedCover] = useState<TMediaImage | null>(null);
 
   const isEditMode = !!id;
-  const { blog, isLoading: isBlogLoading } = useSingleBlog(id || "");
+  const { blog } = useSingleBlog(id || "");
   const { addBlog, updateBlog, isLoading: isMutationLoading } = useBlog();
   const { currentUser } = usePermission();
 
-  const config = useMemo(() => ({
-    readonly: false,
-    placeholder: 'Start writing your blog content here...',
-    minHeight: 400,
-    toolbarButtonSize: 'middle',
-    buttons: [
-      'source', '|',
-      'bold', 'strikethrough', 'underline', 'italic', '|',
-      'ul', 'ol', '|',
-      'outdent', 'indent', '|',
-      'font', 'fontsize', 'brush', 'paragraph', '|',
-      'image', 'video', 'table', 'link', '|',
-      'align', 'undo', 'redo', '|',
-      'hr', 'eraser', 'copyformat', '|',
-      'symbol', 'fullsize', 'print', 'about'
-    ],
-  }), []);
+
+
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    if (isEditMode && blog) {
+    if (isEditMode && blog && !isInitialized.current) {
       form.setFieldsValue({
         ...blog,
-        tags: blog.tags?.join(", "),
+        tags: Array.isArray(blog.tags) ? blog.tags.join(", ") : blog.tags,
       });
-      setContent(blog.content || "");
-      if (blog.cover) {
-        setSelectedCover(blog.cover);
-      }
+      setTimeout(() => {
+        setContent(blog.content || "");
+        if (blog.cover) {
+          setSelectedCover(blog.cover);
+        }
+      }, 0);
+      isInitialized.current = true;
     }
   }, [blog, isEditMode, form]);
 
@@ -67,7 +59,11 @@ const CreateBlog = () => {
         content,
         authorId: currentUser?.id,
         coverId: selectedCover?.id || null,
-        tags: values.tags ? values.tags.split(",").map((t: string) => t.trim()) : [],
+        tags: values.tags
+          ? Array.isArray(values.tags)
+            ? values.tags
+            : values.tags.split(",").map((t: string) => t.trim())
+          : [],
       };
 
       if (isEditMode) {
@@ -98,7 +94,11 @@ const CreateBlog = () => {
           { label: isEditMode ? "Edit Blog" : "Create Blog" },
         ]}
         title={isEditMode ? "Edit Blog Post" : "Create New Blog"}
-        subTitle={isEditMode ? `Editing: ${blog?.title || "..."}` : "Share your thoughts with the world"}
+        subTitle={
+          isEditMode
+            ? `Editing: ${blog?.title || "..."}`
+            : "Share your thoughts with the world"
+        }
         extra={
           <CustomButton
             variant="outline"
@@ -118,123 +118,159 @@ const CreateBlog = () => {
         initialValues={{ isPublished: false }}
         className="space-y-6"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main content area */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="shadow-sm border-gray-200">
-              <Form.Item
-                name="title"
-                label={<span className="font-semibold text-gray-700 text-lg">Blog Title</span>}
-                rules={[{ required: true, message: "Title is required" }]}
-              >
-                <CustomInput placeholder="Enter a catchy title..." size="lg" className="text-xl font-bold" />
-              </Form.Item>
+        <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-6">
+            <div
+              className="w-32 h-32 mb-6 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden group"
+              onClick={() => setIsMediaModalOpen(true)}
+            >
+              {selectedCover ? (
+                <div className="relative w-full h-full">
+                  <img
+                    src={selectedCover.url}
+                    alt="Cover"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-white text-xs font-medium text-center px-2">
+                      Change Image
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <FontAwesomeIcon
+                    icon={faImage}
+                    className="text-2xl text-gray-300 mb-2"
+                  />
+                  <span className="text-gray-400 text-xs text-center px-4">
+                    Select Cover Image
+                  </span>
+                </>
+              )}
+            </div>
+
+            <Card className="border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item
+                  name="title"
+                  label={
+                    <span className="font-semibold text-gray-700">
+                      Blog Title
+                    </span>
+                  }
+                  rules={[{ required: true, message: "Title is required" }]}
+                >
+                  <CustomInput placeholder="Enter title..." size="md" />
+                </Form.Item>
+
+                <Form.Item
+                  name="slug"
+                  label={
+                    <span className="font-semibold text-gray-700">Slug</span>
+                  }
+                >
+                  <CustomInput placeholder="e.g. my-awesome-post" size="md" />
+                </Form.Item>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item
+                  name="category"
+                  label={
+                    <span className="font-semibold text-gray-700">
+                      Category
+                    </span>
+                  }
+                >
+                  <CustomInput
+                    placeholder="e.g. Technology, Lifestyle"
+                    size="md"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="tags"
+                  label={
+                    <span className="font-semibold text-gray-700">Tags</span>
+                  }
+                  help="Separate tags with commas"
+                >
+                  <CustomInput
+                    placeholder="e.g. react, nodejs, web"
+                    size="md"
+                  />
+                </Form.Item>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item
+                  name="description"
+                  label={
+                    <span className="font-semibold text-gray-700">
+                      Description
+                    </span>
+                  }
+                >
+                  <CustomInput.TextArea
+                    placeholder="Enter brief description..."
+                    rows={2}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="excerpt"
+                  label={
+                    <span className="font-semibold text-gray-700">
+                      Excerpt / Short Summary
+                    </span>
+                  }
+                >
+                  <CustomInput.TextArea
+                    placeholder="A brief summary for search results..."
+                    rows={2}
+                  />
+                </Form.Item>
+              </div>
 
               <Form.Item
-                label={<span className="font-semibold text-gray-700">Content</span>}
+                label={
+                  <span className="font-semibold text-gray-700">Content</span>
+                }
                 required
               >
                 <div className="border border-gray-200 rounded-md overflow-hidden min-h-[400px]">
-                  <JoditEditor
-                    ref={editorRef}
-                    value={content}
-                    config={config}
-                    onBlur={newContent => setContent(newContent)}
-                  />
+                  <RichTextEditor value={content} onChange={setContent} />
                 </div>
               </Form.Item>
             </Card>
 
-            <Card title={<span className="text-gray-700 font-bold">SEO & Metadata</span>} className="shadow-sm border-gray-200">
-              <Form.Item
-                name="excerpt"
-                label={<span className="font-semibold text-gray-700">Excerpt / Short Summary</span>}
-              >
-                <CustomInput.TextArea placeholder="A brief summary for search results..." rows={3} />
-              </Form.Item>
-              
-              <Form.Item
-                name="slug"
-                label={<span className="font-semibold text-gray-700">Custom URL Slug (Optional)</span>}
-              >
-                <CustomInput placeholder="e.g. my-awesome-blog-post" />
-              </Form.Item>
-            </Card>
-          </div>
+            <Card className="border-gray-200 mt-4!">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <Form.Item
+                  name="isPublished"
+                  valuePropName="checked"
+                  label={
+                    <span className="font-semibold text-gray-700">Status</span>
+                  }
+                  className="mb-0"
+                >
+                  <CustomSwitch
+                    checkedChildren="Published"
+                    unCheckedChildren="Draft"
+                    size="default"
+                  />
+                </Form.Item>
 
-          {/* Sidebar area */}
-          <div className="space-y-6">
-            <Card title={<span className="text-gray-700 font-bold">Publishing</span>} className="shadow-sm border-gray-200">
-              <Form.Item
-                name="isPublished"
-                valuePropName="checked"
-                label={<span className="font-semibold text-gray-700">Status</span>}
-              >
-                <CustomSwitch
-                  checkedChildren="Published"
-                  unCheckedChildren="Draft"
-                  size="default"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="category"
-                label={<span className="font-semibold text-gray-700">Category</span>}
-              >
-                <CustomInput placeholder="e.g. Technology, Lifestyle" />
-              </Form.Item>
-
-              <Form.Item
-                name="tags"
-                label={<span className="font-semibold text-gray-700">Tags</span>}
-                help="Separate tags with commas"
-              >
-                <CustomInput placeholder="e.g. react, nodejs, web" />
-              </Form.Item>
-
-              <div className="pt-4 border-t border-gray-100 mt-4">
                 <CustomButton
-                  type="submit"
+                  htmlType="submit"
                   variant="primary"
-                  className="w-full h-12 text-lg"
+                  className="h-12 px-10 text-lg"
                   loading={isMutationLoading}
                   icon={<FontAwesomeIcon icon={faSave} />}
                 >
                   {isEditMode ? "Update Post" : "Publish Blog"}
                 </CustomButton>
-              </div>
-            </Card>
-
-            <Card 
-              title={<span className="text-gray-700 font-bold">Cover Image</span>} 
-              className="shadow-sm border-gray-200"
-              extra={
-                <button 
-                  type="button" 
-                  onClick={() => setIsMediaModalOpen(true)}
-                  className="text-primary hover:underline text-sm font-medium"
-                >
-                  Choose
-                </button>
-              }
-            >
-              <div 
-                className="aspect-video rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden group"
-                onClick={() => setIsMediaModalOpen(true)}
-              >
-                {selectedCover ? (
-                  <div className="relative w-full h-full">
-                    <img src={selectedCover.url} alt="Cover" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                       <span className="text-white font-medium">Change Image</span>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faImage} className="text-3xl text-gray-300 mb-2" />
-                    <span className="text-gray-400 text-sm">Click to select cover</span>
-                  </>
-                )}
               </div>
             </Card>
           </div>

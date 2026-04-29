@@ -39,32 +39,40 @@ const modules = [
   },
   { name: "Apply Job", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "AI Agent", permissions: ["View", "Create", "Update", "Delete"] },
+  { name: "Blog", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "CRM", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Media Library", permissions: ["View", "Create", "Delete"] },
-  { name: "Profile Management", permissions: ["View", "Update", "Edit", "Change Password"] },
+  {
+    name: "Profile Management",
+    permissions: ["View", "Update", "Edit", "Change Password"],
+  },
 ];
 
-const PermissionModal = ({ 
-  open, 
-  onClose, 
-  role, 
-  initialPermissions 
+const PermissionModal = ({
+  open,
+  onClose,
+  role,
+  initialPermissions,
 }: PermissionModalProps) => {
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Use role permissions query based on props
-  const { data: rolePermissions, isLoading: roleLoading } = useGetRolePermissionsQuery(role?.id, {
-    skip: !open || !role?.id,
-  });
+  const { data: rolePermissions, isLoading: roleLoading } =
+    useGetRolePermissionsQuery(role?.id, {
+      skip: !open || !role?.id,
+    });
 
-  const [updateRolePermissions, { isLoading: isUpdatingRole }] = useUpdateRolePermissionsMutation();
+  const [updateRolePermissions, { isLoading: isUpdatingRole }] =
+    useUpdateRolePermissionsMutation();
 
   const isFetching = roleLoading;
   const isUpdating = isUpdatingRole;
 
   // Decide which data source to use: initialPermissions or rolePermissions
-  const permissionsData = initialPermissions ? { success: true, data: initialPermissions } : rolePermissions;
+  const permissionsData = initialPermissions
+    ? { success: true, data: initialPermissions }
+    : rolePermissions;
 
   // Track last synced data to avoid infinite loops and cascading renders
   const [lastSyncedData, setLastSyncedData] = useState<any>(null);
@@ -76,7 +84,7 @@ const PermissionModal = ({
     // Only sync if this is a fresh data object we haven't processed yet
     if (permissionsData !== lastSyncedData) {
       setLastSyncedData(permissionsData);
-      
+
       const flat: string[] = [];
       permissionsData.data.forEach((item: any) => {
         if (item.module && item.permissions) {
@@ -85,13 +93,18 @@ const PermissionModal = ({
           });
         }
       });
-      
+
       setSelectedPermissions(flat);
     }
-  } 
-  
+  }
+
   // Reset state when modal is closed to prepare for next use
-  if (!open && (lastSyncedData !== null || selectedPermissions.length > 0 || searchQuery !== "")) {
+  if (
+    !open &&
+    (lastSyncedData !== null ||
+      selectedPermissions.length > 0 ||
+      searchQuery !== "")
+  ) {
     setLastSyncedData(null);
     setSelectedPermissions([]);
     setSearchQuery("");
@@ -177,13 +190,11 @@ const PermissionModal = ({
 
     try {
       if (!role?.id) return;
-      
+
       const res = await updateRolePermissions({
         roleId: role.id,
         permissions: transformedPermissions,
       }).unwrap();
-      
-   
 
       if (res?.success) {
         toast.success(res?.message || "Permissions updated successfully");

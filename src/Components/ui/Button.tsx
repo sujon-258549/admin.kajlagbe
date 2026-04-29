@@ -77,6 +77,7 @@ const Button: React.FC<CustomButtonProps> = ({
   className = "",
   children,
   style,
+  htmlType = "button",
   ...props
 }) => {
 
@@ -96,6 +97,7 @@ const Button: React.FC<CustomButtonProps> = ({
     <AntButton
       className={combinedClasses}
       style={computedStyle}
+      htmlType={htmlType}
       {...props}
     >
       {children}
