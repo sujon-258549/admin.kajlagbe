@@ -376,6 +376,7 @@ const JobList = () => {
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
         editData={editData}
+        isLoading={isLoading}
       />
     </div>
   );

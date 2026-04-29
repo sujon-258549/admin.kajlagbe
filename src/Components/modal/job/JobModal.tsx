@@ -88,6 +88,7 @@ const JobModal = ({ open, onClose, onSubmit, editData, isLoading }: JobModalProp
       open={open}
       onCancel={onClose}
       onOk={handleOk}
+      confirmLoading={isLoading}
       title={
         <ModalHeader
           title={editData ? "Update Job Post" : "Create Job Post"}
