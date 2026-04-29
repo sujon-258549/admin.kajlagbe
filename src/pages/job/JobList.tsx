@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
 import { Tooltip, Modal, Tag } from "antd";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
@@ -19,7 +19,6 @@ import {
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
-import JobModal from "../../Components/modal/job/JobModal";
 import type { TJob } from "../../Components/types";
 import FilterColumn from "../../Components/FilterColumn/FilterColumn";
 import { useJob } from "../../apihooks/useJob";
@@ -42,33 +41,29 @@ const filterableColumns = [
 const JobList = () => {
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("searchTerm") || "";
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editData, setEditData] = useState<TJob | null>(null);
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
     filterableColumns.map((c) => c.key),
   );
 
   const { can } = useRoutePermission();
+  const navigate = useNavigate();
+  
   const queryObj = searchTerm ? { searchTerm } : {};
   const {
     jobs,
     meta,
     isLoading,
     refetch,
-    createJob,
-    updateJob,
     deleteJob,
     changeStatus,
   } = useJob(queryObj);
 
   const handleCreate = () => {
-    setEditData(null);
-    setModalOpen(true);
+    navigate("/job/create");
   };
 
-  const handleEdit = (record: TJob) => {
-    setEditData(record);
-    setModalOpen(true);
+  const handleEdit = (id: string) => {
+    navigate(`/job/edit/${id}`);
   };
 
   const handleDelete = async (id: string) => {
@@ -93,21 +88,6 @@ const JobList = () => {
     }
   };
 
-  const handleSubmit = async (values: any) => {
-    try {
-      if (editData) {
-        const res: any = await updateJob({ id: editData.id, data: values }).unwrap();
-        if (res?.success) toast.success("Job updated successfully");
-      } else {
-        const res: any = await createJob(values).unwrap();
-        if (res?.success) toast.success("Job posted successfully");
-      }
-      setModalOpen(false);
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Something went wrong");
-    }
-  };
-
   const jobTypeColorMap: Record<string, string> = {
     "Full-time": "green",
     "Part-time": "blue",
@@ -120,15 +100,26 @@ const JobList = () => {
     {
       title: "ACTION",
       key: "action",
-      width: 110,
+      width: 150,
       render: (_: unknown, record: TJob) => (
         <div className="flex items-center gap-2">
+          {can("view") && (
+            <Tooltip title="View Details">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => navigate(`/job/details/${record.id}`)}
+                icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
+              />
+            </Tooltip>
+          )}
+
           {can("update") && (
             <Tooltip title="Edit Job Post">
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => handleEdit(record)}
+                onClick={() => handleEdit(record.id)}
                 icon={
                   <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
                 }
@@ -370,14 +361,6 @@ const JobList = () => {
           meta={meta}
         />
       </div>
-
-      <JobModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleSubmit}
-        editData={editData}
-        isLoading={isLoading}
-      />
     </div>
   );
 };

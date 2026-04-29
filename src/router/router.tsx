@@ -14,6 +14,8 @@ import CategoryList from "../pages/category/CategoryList";
 import SubCategoryList from "../pages/category/SubCategoryList";
 import SubscriptionList from "../pages/subscription/SubscriptionList";
 import JobList from "../pages/job/JobList";
+import CreateJob from "../pages/job/CreateJob";
+import JobDetails from "../pages/job/JobDetails";
 import FolderList from "../pages/media/FolderList";
 import WorkTypeList from "../pages/work-type/WorkTypeList";
 import EmployeeDetails from "../pages/employee/EmployeeDetails";
@@ -101,6 +103,18 @@ const router = createBrowserRouter([
       {
         path: "job/list",
         element: <JobList />,
+      },
+      {
+        path: "job/create",
+        element: <CreateJob />,
+      },
+      {
+        path: "job/edit/:id",
+        element: <CreateJob />,
+      },
+      {
+        path: "job/details/:id",
+        element: <JobDetails />,
       },
       {
         path: "setup/media",
