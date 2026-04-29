@@ -91,6 +91,7 @@ export const baseApi = createApi({
     'Job',
     'Subscription',
     'RolePermission',
+    'Blog',
   ],
   endpoints: () => ({}),
 })
