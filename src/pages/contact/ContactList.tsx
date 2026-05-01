@@ -9,14 +9,29 @@ import CustomButton from "../../Components/ui/Button";
 import PageHeader from "../../Components/common/PageHeader";
 import { useContact } from "../../apihooks/useContact";
 import { useRoutePermission } from "../../utils/buttonPurmission";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import formatDate from "../../Components/utils/dateFormate";
+import { useSocket } from "../../context/SocketContext";
+import { toast } from "sonner";
 
 const ContactList = () => {
   const { can } = useRoutePermission();
   const { contacts, isLoading, deleteContact, refetch } = useContact();
+  const { socket } = useSocket();
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("new-contact", () => {
+        refetch();
+      });
+
+      return () => {
+        socket.off("new-contact");
+      };
+    }
+  }, [socket, refetch]);
 
   const handleDelete = async (id: string) => {
     try {

@@ -8,12 +8,15 @@ import { RouterProvider } from "react-router-dom";
 import router from "./router/router";
 import { store } from "./redux/store";
 import { antdTheme } from "./config/antdTheme";
+import { SocketProvider } from "./context/SocketContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConfigProvider theme={antdTheme}>
       <Provider store={store}>
-        <RouterProvider router={router} />
+        <SocketProvider>
+          <RouterProvider router={router} />
+        </SocketProvider>
       </Provider>
     </ConfigProvider>
   </StrictMode>,
