@@ -1,72 +1,72 @@
-import { useState } from "react";
-import { Bell, BriefcaseIcon, UserCheck, CheckCheck } from "lucide-react";
-
-const initialNotifications = [
-  {
-    id: 1,
-    title: "New Application",
-    message: "Sujon Ahmed applied for UI Designer",
-    time: "2 min ago",
-    read: false,
-    icon: UserCheck,
-    iconColor: "text-indigo-500",
-    iconBg: "bg-indigo-50",
-  },
-  {
-    id: 2,
-    title: "Job Post Approved",
-    message: "Full Stack Developer post is now live",
-    time: "15 min ago",
-    read: false,
-    icon: BriefcaseIcon,
-    iconColor: "text-emerald-500",
-    iconBg: "bg-emerald-50",
-  },
-  {
-    id: 3,
-    title: "Candidate Shortlisted",
-    message: "Jane Doe was shortlisted for Designer role",
-    time: "1 hour ago",
-    read: true,
-    icon: UserCheck,
-    iconColor: "text-amber-500",
-    iconBg: "bg-amber-50",
-  },
-  {
-    id: 4,
-    title: "New Application",
-    message: "Alex Hunter applied for Product Manager",
-    time: "3 hours ago",
-    read: true,
-    icon: UserCheck,
-    iconColor: "text-indigo-500",
-    iconBg: "bg-indigo-50",
-  },
-];
+import { useState, useEffect } from "react";
+import { Bell, BriefcaseIcon, CheckCheck, MessageSquare, ChevronDown } from "lucide-react";
+import { useNotification } from "../../apihooks/useNotification";
+import { useSocket } from "../../context/SocketContext";
+import formatDate from "../utils/dateFormate";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NotificationDropdownProps {
-  onOpen?: () => void; // called when opened (to close other dropdowns)
+  onOpen?: () => void;
 }
 
 const NotificationDropdown = ({ onOpen }: NotificationDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifs, setNotifs] = useState(initialNotifications);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { notifications, refetch, markAllRead, updateNotification } = useNotification();
+  const { socket } = useSocket();
 
-  const unreadCount = notifs.filter((n) => !n.read).length;
+  // Filter out deleted and only take unread for the badge, but show all in list
+  const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("new-notification", () => {
+        refetch();
+      });
+
+      return () => {
+        socket.off("new-notification");
+      };
+    }
+  }, [socket, refetch]);
 
   const toggle = () => {
     if (!isOpen && onOpen) onOpen();
     setIsOpen((prev) => !prev);
+    if (isOpen) setExpandedId(null); // Reset expansion when closing dropdown
   };
 
-  const markAllRead = () => {
-    setNotifs((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllRead({}).unwrap();
+    } catch (error) {
+      console.error("Failed to mark all as read", error);
+    }
   };
 
-  const markRead = (id: number) => {
-    setNotifs((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+  const handleNotificationClick = async (notif: any) => {
+    // Toggle accordion
+    setExpandedId(expandedId === notif.id ? null : notif.id);
+
+    // Mark as read if not already
+    if (!notif.isRead) {
+      try {
+        await updateNotification({ id: notif.id, data: { isRead: true } }).unwrap();
+      } catch (error) {
+        console.error("Failed to mark notification as read", error);
+      }
+    }
+  };
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "CONTACT":
+        return { icon: MessageSquare, color: "text-blue-500", bg: "bg-blue-50" };
+      case "JOB":
+        return { icon: BriefcaseIcon, color: "text-emerald-500", bg: "bg-emerald-50" };
+      default:
+        return { icon: Bell, color: "text-indigo-500", bg: "bg-indigo-50" };
+    }
   };
 
   return (
@@ -77,17 +77,19 @@ const NotificationDropdown = ({ onOpen }: NotificationDropdownProps) => {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full" />
+          <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
 
       {isOpen && (
         <div
           onMouseLeave={() => setIsOpen(false)}
-          className="absolute top-full right-0 mt-3 w-80 bg-white rounded-lg border border-gray-200 animate-in fade-in slide-in-from-top-2 duration-200 z-50 overflow-hidden"
+          className="absolute top-full right-0 mt-3 w-80 bg-white rounded-lg border border-gray-200 animate-in fade-in slide-in-from-top-2 duration-200 z-50 overflow-hidden shadow-xl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50 bg-gray-50/30">
             <div className="flex items-center gap-2">
               <h4 className="text-sm font-bold text-gray-900">Notifications</h4>
               {unreadCount > 0 && (
@@ -97,7 +99,7 @@ const NotificationDropdown = ({ onOpen }: NotificationDropdownProps) => {
               )}
             </div>
             <button
-              onClick={markAllRead}
+              onClick={handleMarkAllRead}
               className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
             >
               <CheckCheck className="w-3.5 h-3.5" />
@@ -107,35 +109,75 @@ const NotificationDropdown = ({ onOpen }: NotificationDropdownProps) => {
 
           {/* List */}
           <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
-            {notifs.map((notif) => (
-              <div
-                key={notif.id}
-                onClick={() => markRead(notif.id)}
-                className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                  !notif.read ? "bg-blue-50/30" : ""
-                }`}
-              >
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${notif.iconBg}`}
-                >
-                  <notif.icon className={`w-4 h-4 ${notif.iconColor}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-800">
-                    {notif.title}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed truncate">
-                    {notif.message}
-                  </p>
-                  <span className="text-[10px] text-gray-400 mt-1 block">
-                    {notif.time}
-                  </span>
-                </div>
-                {!notif.read && (
-                  <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1" />
-                )}
+            {notifications.length === 0 ? (
+              <div className="p-10 text-center text-gray-400 text-xs font-semibold">
+                No notifications
               </div>
-            ))}
+            ) : (
+              notifications.map((notif: any) => {
+                const { icon: Icon, color, bg } = getIcon(notif.type);
+                const isExpanded = expandedId === notif.id;
+
+                return (
+                  <div
+                    key={notif.id}
+                    onClick={() => handleNotificationClick(notif)}
+                    className={`flex flex-col transition-colors cursor-pointer hover:bg-gray-50 ${
+                      !notif.isRead ? "bg-blue-50/20" : ""
+                    } ${isExpanded ? "bg-gray-50/50" : ""}`}
+                  >
+                    <div className="flex items-start gap-3 px-4 py-3">
+                      <div
+                        className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${bg}`}
+                      >
+                        <Icon className={`w-4 h-4 ${color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold text-gray-800">
+                            {notif.type || "Notification"}
+                          </p>
+                          <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                        </div>
+                        <p className={`text-xs text-gray-500 mt-0.5 leading-relaxed ${isExpanded ? "" : "truncate"}`}>
+                          {notif.message}
+                        </p>
+                        <span className="text-[10px] text-gray-400 mt-1 block">
+                          {formatDate(notif.createdAt)}
+                        </span>
+                      </div>
+                      {!notif.isRead && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1" />
+                      )}
+                    </div>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-4 pb-4 pt-1 ml-12">
+                            <div className="p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
+                              <p className="text-xs text-gray-600 leading-normal">
+                                {notif.message}
+                              </p>
+                              {notif.type === "CONTACT" && (
+                                <button className="mt-2 text-[10px] font-bold text-primary hover:underline">
+                                  View Contact Details →
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })
+            )}
           </div>
 
           {/* Footer */}

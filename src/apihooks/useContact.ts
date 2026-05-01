@@ -2,6 +2,7 @@ import {
   useGetAllContactsQuery,
   useGetContactByIdQuery,
   useDeleteContactMutation,
+  useSendFeedbackMutation,
 } from "../redux/features/contactApi/contactApi";
 
 export const useContact = (queryObj?: any) => {
@@ -13,15 +14,17 @@ export const useContact = (queryObj?: any) => {
   } = useGetAllContactsQuery(queryObj || {});
 
   const [deleteContact, { isLoading: isDeleting }] = useDeleteContactMutation();
+  const [sendFeedback, { isLoading: isSendingFeedback }] = useSendFeedbackMutation();
 
   return {
     response,
     contacts: response?.data || [],
     meta: response?.meta,
-    isLoading: isLoading || isFetching || isDeleting,
+    isLoading: isLoading || isFetching || isDeleting || isSendingFeedback,
     isFetching,
     refetch,
     deleteContact,
+    sendFeedback,
   };
 };
 

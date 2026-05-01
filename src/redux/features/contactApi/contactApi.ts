@@ -28,7 +28,17 @@ const contactApi = baseApi.injectEndpoints({
       providesTags: ["Contact"],
     }),
 
-    // Delete contact (assuming there might be a delete endpoint)
+    // Send feedback to user email
+    sendFeedback: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/contact/feedback/${id}`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Contact"],
+    }),
+
+    // Delete contact
     deleteContact: builder.mutation({
       query: (id) => ({
         url: `/contact/${id}`,
@@ -43,4 +53,5 @@ export const {
   useGetAllContactsQuery,
   useGetContactByIdQuery,
   useDeleteContactMutation,
+  useSendFeedbackMutation,
 } = contactApi;

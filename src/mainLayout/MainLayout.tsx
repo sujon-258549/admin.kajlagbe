@@ -14,15 +14,15 @@ const MainLayout = () => {
     if (socket) {
       // Listen for contact messages
       socket.on("new-contact", (data: any) => {
-        toast.info(`New contact message: ${data.firstName}`, {
-          description: data.subject || "No subject",
+        toast(`📩 নতুন মেসেজ এসেছে!`, {
+          description: `${data.firstName} একটি মেসেজ পাঠিয়েছেন: "${data.subject || "সাধারণ জিজ্ঞাসা"}"`,
           duration: 5000,
         });
       });
 
       // Listen for system notifications
       socket.on("new-notification", (data: any) => {
-        toast.message("New Notification", {
+        toast(`🔔 সিস্টেম নোটিফিকেশন`, {
           description: data.message,
           duration: 4000,
         });
