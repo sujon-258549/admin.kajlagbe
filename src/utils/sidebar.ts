@@ -10,6 +10,7 @@ import {
   faChartLine,
   faMagic,
   faNewspaper,
+  faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 import { useMyData } from "../redux/hooks";
 import { config } from "../config";
@@ -132,6 +133,12 @@ export const menuItems = [
     icon: faUsers,
     path: "/crm",
     submenu: [{ name: "User List", path: "/crm/user-list", module: "CRM" }],
+  },
+  {
+    name: "Contact Messages",
+    icon: faEnvelope,
+    path: "/contact/list",
+    module: "Contacts",
   },
 ];
 

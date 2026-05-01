@@ -47,6 +47,7 @@ const modules = [
     name: "Profile Management",
     permissions: ["View", "Update", "Edit", "Change Password"],
   },
+  { name: "Contacts", permissions: ["View", "Delete"] },
 ];
 
 const PermissionModal = ({

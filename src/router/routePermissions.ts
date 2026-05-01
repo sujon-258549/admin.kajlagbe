@@ -28,4 +28,5 @@ export const routePermissions: Record<string, { module: string; action: string }
   "/blog/edit/:id": { module: "Blog", action: "view" },
   "/blog/create": { module: "Blog", action: "view" },
   "/blog/details/:id": { module: "Blog", action: "view" },
+  "/contact/list": { module: "Contacts", action: "view" },
 };
