@@ -10,6 +10,8 @@ export interface TSubCategory {
   icon?: string;
   slug: string;
   status: boolean;
+  image?: string;
+  imageId?: string;
   category?: {
     id: string;
     name: string;

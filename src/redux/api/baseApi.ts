@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
 import { logout, setUser } from '../features/auth/authSlice'
 import { Mutex } from 'async-mutex'
+import { config } from '../../config'
 
 // Create a new mutex to prevent multiple simultaneous refresh calls
 const mutex = new Mutex()
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: 'http://localhost:4500/api',
+  baseUrl: config.apiBaseUrl,
   prepareHeaders: (headers) => {
     const token = localStorage.getItem('token')
     if (token) {

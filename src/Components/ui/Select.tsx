@@ -24,7 +24,10 @@ const CustomSelect = ({ size = "md", ...props }: CustomSelectProps) => {
           ? "middle"
           : size || "middle";
 
-  const heightClass = sizeHeightClasses[size as keyof typeof sizeHeightClasses] || "h-8";
+  const heightClass =
+    props.mode === "tags" || props.mode === "multiple"
+      ? ""
+      : sizeHeightClasses[size as keyof typeof sizeHeightClasses] || "h-8";
 
   return (
     <AntSelect

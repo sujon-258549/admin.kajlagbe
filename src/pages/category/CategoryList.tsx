@@ -142,6 +142,31 @@ const CategoryList = () => {
     {
       title: (
         <div className="flex items-center justify-between">
+          <span>IMAGE</span>
+        </div>
+      ),
+      dataIndex: "image",
+      key: "image",
+      width: 80,
+      render: (text: string) => (
+        <div className="w-10 h-10 rounded-md overflow-hidden bg-gray-100 border border-gray-200">
+          {text ? (
+            <img
+              src={text}
+              alt="category"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <FontAwesomeIcon icon={faFilter} className="text-xs" />
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: (
+        <div className="flex items-center justify-between">
           <span>CATEGORY NAME</span>
           <FontAwesomeIcon icon={faSearch} className="text-gray-300 text-xs" />
         </div>

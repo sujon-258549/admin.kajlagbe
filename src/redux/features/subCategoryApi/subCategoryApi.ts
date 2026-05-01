@@ -38,7 +38,7 @@ export const subCategoryApi = baseApi.injectEndpoints({
     >({
       query: ({ id, data }) => ({
         url: `/sub-category/${id}`,
-        method: "PATCH",
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: ["Category"],

@@ -25,14 +25,11 @@ import {
   faMoneyBillWave,
   faInfoCircle,
   faListCheck,
-  faLightbulb,
   faGraduationCap,
   faUserTie,
-  faEarthAmericas,
   faLink,
   faTag,
   faClock,
-  faUserGroup,
   faPhone,
   faEnvelope,
   faGlobe,
@@ -54,7 +51,7 @@ const CreateJob = () => {
   const [form] = Form.useForm();
   const isEditMode = !!id;
 
-  const { createJob, updateJob, useGetJobById } = useJob();
+  const { createJob, updateJob, useGetJobById, isLoading } = useJob();
   const { data: jobData, isLoading: isJobLoading } = useGetJobById(id || "", {
     skip: !isEditMode,
   });
@@ -241,7 +238,10 @@ const CreateJob = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="vacancy" label="Vacancy">
-                  <InputNumber className="w-full!" placeholder="No. of openings" />
+                  <InputNumber
+                    className="w-full!"
+                    placeholder="No. of openings"
+                  />
                 </Form.Item>
                 <Form.Item name="jobNature" label="Job Nature">
                   <CustomSelect
@@ -253,13 +253,29 @@ const CreateJob = () => {
                   />
                 </Form.Item>
                 <Form.Item name="experience" label="Experience">
-                  <CustomInput placeholder="e.g. 2-3 years" prefix={<FontAwesomeIcon icon={faUserTie} className="text-gray-400" />} />
+                  <CustomInput
+                    placeholder="e.g. 2-3 years"
+                    prefix={
+                      <FontAwesomeIcon
+                        icon={faUserTie}
+                        className="text-gray-400"
+                      />
+                    }
+                  />
                 </Form.Item>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="education" label="Education">
-                  <CustomInput placeholder="e.g. B.Sc in CSE" prefix={<FontAwesomeIcon icon={faGraduationCap} className="text-gray-400" />} />
+                  <CustomInput
+                    placeholder="e.g. B.Sc in CSE"
+                    prefix={
+                      <FontAwesomeIcon
+                        icon={faGraduationCap}
+                        className="text-gray-400"
+                      />
+                    }
+                  />
                 </Form.Item>
                 <Form.Item name="gender" label="Gender">
                   <CustomSelect
@@ -274,6 +290,21 @@ const CreateJob = () => {
                   <CustomInput placeholder="e.g. 25-35 years" />
                 </Form.Item>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <Form.Item name="skills" label="Skills (e.g. React, Node.js)">
+                  <CustomSelect mode="tags" placeholder="Add skills" />
+                </Form.Item>
+                <Form.Item name="tools" label="Tools (e.g. Docker, Git)">
+                  <CustomSelect mode="tags" placeholder="Add tools" />
+                </Form.Item>
+                <Form.Item
+                  name="languages"
+                  label="Languages (e.g. English, Bengali)"
+                >
+                  <CustomSelect mode="tags" placeholder="Add languages" />
+                </Form.Item>
+              </div>
             </Card>
 
             <Card className="border !mt-6 border-gray-200">
@@ -284,18 +315,45 @@ const CreateJob = () => {
               <Divider className="my-3" />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="email" label="Contact Email">
-                  <CustomInput prefix={<FontAwesomeIcon icon={faEnvelope} className="text-gray-400" />} placeholder="hr@company.com" />
+                  <CustomInput
+                    prefix={
+                      <FontAwesomeIcon
+                        icon={faEnvelope}
+                        className="text-gray-400"
+                      />
+                    }
+                    placeholder="hr@company.com"
+                  />
                 </Form.Item>
                 <Form.Item name="phone" label="Contact Phone">
-                  <CustomInput prefix={<FontAwesomeIcon icon={faPhone} className="text-gray-400" />} placeholder="+880..." />
+                  <CustomInput
+                    prefix={
+                      <FontAwesomeIcon
+                        icon={faPhone}
+                        className="text-gray-400"
+                      />
+                    }
+                    placeholder="+880..."
+                  />
                 </Form.Item>
                 <Form.Item name="website" label="Website">
-                  <CustomInput prefix={<FontAwesomeIcon icon={faGlobe} className="text-gray-400" />} placeholder="https://..." />
+                  <CustomInput
+                    prefix={
+                      <FontAwesomeIcon
+                        icon={faGlobe}
+                        className="text-gray-400"
+                      />
+                    }
+                    placeholder="https://..."
+                  />
                 </Form.Item>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Form.Item name="address" label="Full Address">
-                  <CustomInput.TextArea rows={2} placeholder="Full office address..." />
+                  <CustomInput.TextArea
+                    rows={2}
+                    placeholder="Full office address..."
+                  />
                 </Form.Item>
                 <Form.Item name="companySize" label="Company Size">
                   <CustomSelect
@@ -460,12 +518,28 @@ const CreateJob = () => {
               <Row gutter={8}>
                 <Col span={12}>
                   <Form.Item name="salaryMin" label="Min Salary">
-                    <InputNumber className="w-full!" placeholder="Min" />
+                    <InputNumber className="w-full!" placeholder="Min" min={0} />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="salaryMax" label="Max Salary">
-                    <InputNumber className="w-full!" placeholder="Max" />
+                  <Form.Item
+                    name="salaryMax"
+                    label="Max Salary"
+                    dependencies={["salaryMin"]}
+                    rules={[
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          if (!value || getFieldValue("salaryMin") <= value) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject(
+                            new Error("Max salary must be greater than min salary")
+                          );
+                        },
+                      }),
+                    ]}
+                  >
+                    <InputNumber className="w-full!" placeholder="Max" min={0} />
                   </Form.Item>
                 </Col>
               </Row>
@@ -537,6 +611,20 @@ const CreateJob = () => {
                   <CustomInput placeholder="e.g. 8 Hours" />
                 </Form.Item>
               </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="department" label="Department">
+                  <CustomInput placeholder="e.g. Engineering" />
+                </Form.Item>
+                <Form.Item name="reportingTo" label="Reporting To">
+                  <CustomInput placeholder="e.g. CTO" />
+                </Form.Item>
+                <Form.Item name="teamSize" label="Team Size">
+                  <InputNumber
+                    className="w-full!"
+                    placeholder="No. of team members"
+                  />
+                </Form.Item>
+              </div>
             </Card>
 
             <Card className="border !mt-6 border-gray-200">
@@ -559,14 +647,26 @@ const CreateJob = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl">
-                  <span className="text-gray-600 text-sm">Performance Bonus</span>
-                  <Form.Item name="performanceBonus" valuePropName="checked" className="!mb-0">
+                  <span className="text-gray-600 text-sm">
+                    Performance Bonus
+                  </span>
+                  <Form.Item
+                    name="performanceBonus"
+                    valuePropName="checked"
+                    className="!mb-0"
+                  >
                     <CustomSwitch />
                   </Form.Item>
                 </div>
                 <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl">
-                  <span className="text-gray-600 text-sm">Health Insurance</span>
-                  <Form.Item name="healthInsurance" valuePropName="checked" className="!mb-0">
+                  <span className="text-gray-600 text-sm">
+                    Health Insurance
+                  </span>
+                  <Form.Item
+                    name="healthInsurance"
+                    valuePropName="checked"
+                    className="!mb-0"
+                  >
                     <CustomSwitch />
                   </Form.Item>
                 </div>
@@ -574,11 +674,73 @@ const CreateJob = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Form.Item name="visaSponsorship" valuePropName="checked">
-                  <CustomSwitch checkedChildren="Visa Sponsorship" unCheckedChildren="No Visa Sponsorship" />
+                  <CustomSwitch
+                    checkedChildren="Visa Sponsorship"
+                    unCheckedChildren="No Visa Sponsorship"
+                  />
                 </Form.Item>
                 <Form.Item name="relocationAssistance" valuePropName="checked">
-                  <CustomSwitch checkedChildren="Relocation Assistance" unCheckedChildren="No Relocation Assistance" />
+                  <CustomSwitch
+                    checkedChildren="Relocation Assistance"
+                    unCheckedChildren="No Relocation Assistance"
+                  />
                 </Form.Item>
+              </div>
+            </Card>
+
+            <Card className="border !mt-6 border-gray-200">
+              <div className="flex items-center gap-2 mb-4 text-primary font-bold">
+                <FontAwesomeIcon icon={faInfoCircle} />
+                <span>Post Visibility & Deadline</span>
+              </div>
+              <Divider className="my-3" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <Form.Item name="deadline" label="Application Deadline">
+                  <DatePicker
+                    className="w-full!"
+                    format="DD-MM-YYYY"
+                    placeholder="Select Deadline"
+                  />
+                </Form.Item>
+                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl h-[48px] mt-7">
+                  <span className="text-gray-600 text-sm leading-none">
+                    Urgent Hiring
+                  </span>
+                  <Form.Item
+                    name="isUrgent"
+                    valuePropName="checked"
+                    className="!mb-0"
+                  >
+                    <CustomSwitch />
+                  </Form.Item>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl h-[48px]">
+                  <span className="text-gray-600 text-sm leading-none">
+                    Published Status
+                  </span>
+                  <Form.Item
+                    name="isPublished"
+                    valuePropName="checked"
+                    className="!mb-0"
+                  >
+                    <CustomSwitch />
+                  </Form.Item>
+                </div>
+                <div className="flex items-center justify-between gap-2 border border-gray-100 p-2 rounded-xl h-[48px]">
+                  <span className="text-gray-600 text-sm leading-none">
+                    Active Status
+                  </span>
+                  <Form.Item
+                    name="status"
+                    valuePropName="checked"
+                    className="!mb-0"
+                  >
+                    <CustomSwitch />
+                  </Form.Item>
+                </div>
               </div>
             </Card>
 
@@ -599,11 +761,25 @@ const CreateJob = () => {
               <Form.Item name="keywords" label="SEO Keywords (comma separated)">
                 <CustomSelect mode="tags" placeholder="Add keywords" />
               </Form.Item>
-              <Form.Item name="metaDescription" label="Meta Description (for Google)">
-                <CustomInput.TextArea rows={3} placeholder="SEO Meta description..." />
+              <Form.Item
+                name="metaDescription"
+                label="Meta Description (for Google)"
+              >
+                <CustomInput.TextArea
+                  rows={3}
+                  placeholder="SEO Meta description..."
+                />
               </Form.Item>
-              <Form.Item name="applicationLink" label="External Application Link (if any)">
-                <CustomInput prefix={<FontAwesomeIcon icon={faLink} className="text-gray-400" />} placeholder="https://..." />
+              <Form.Item
+                name="applicationLink"
+                label="External Application Link (if any)"
+              >
+                <CustomInput
+                  prefix={
+                    <FontAwesomeIcon icon={faLink} className="text-gray-400" />
+                  }
+                  placeholder="https://..."
+                />
               </Form.Item>
             </Card>
 
@@ -613,6 +789,7 @@ const CreateJob = () => {
                 size="lg"
                 block
                 htmlType="submit"
+                loading={isLoading}
                 icon={<FontAwesomeIcon icon={faSave} />}
               >
                 {isEditMode ? "Update Job Posting" : "Publish Job Post"}

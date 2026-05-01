@@ -15,8 +15,8 @@ const ModalHeader: React.FC<ModalHeaderProps> = ({
 }) => {
   return (
     <div
-      className={`pb-2 flex w-full items-center justify-between ${
-        center ? "flex-col text-center" : "flex-row text-left"
+      className={`pb-2 flex w-full  ${
+        center ? "flex-col " : "flex-row text-left"
       }`}
     >
       <div className="flex flex-col">

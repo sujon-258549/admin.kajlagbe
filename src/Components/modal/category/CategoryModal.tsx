@@ -8,6 +8,7 @@ import {
   useAddCategoryMutation,
   useUpdateCategoryMutation,
 } from "../../../redux/features/category/categoryApi";
+import MediaLibraryImageUploader from "../../ui/MediaLibraryImageUploader";
 
 interface CategoryModalProps {
   open: boolean;
@@ -28,6 +29,8 @@ const CategoryModal = ({
   const [updateCategory, { isLoading: updateLoading }] =
     useUpdateCategoryMutation();
 
+  const imageUrl = Form.useWatch("url", form);
+
     
   useEffect(() => {
     if (open) {
@@ -35,7 +38,9 @@ const CategoryModal = ({
         // Ensuring status is always a boolean
         const normalizedData = {
           ...editData,
-          status: Boolean(editData.status)
+          status: Boolean(editData.status),
+          url: editData.image || editData.url || "",
+          imageId: editData.imageId || ""
         };
         form.setFieldsValue(normalizedData);
       } else {
@@ -108,15 +113,35 @@ const CategoryModal = ({
       cancelButtonProps={{
         className: "!rounded-sm !font-semibold hover:!bg-primary hover:!border-primary hover:!text-white",
       }}
-      width={680}
+      width={780}
       centered
+      styles={{
+        header: { padding: "16px 24px 12px", margin: 0 },
+        body: { maxHeight: "min(78vh, calc(100vh - 220px))", overflowY: "auto", padding: "12px 24px 24px" },
+        footer: { padding: "14px 24px 18px", borderTop: "1px solid #f0f0f0" },
+      }}
     >
       <Form 
         form={form} 
         layout="vertical" 
-        className="pt-4"
+        className="pt-2"
         initialValues={{ status: true }}
       >
+        <div className="mb-6">
+          <p className="text-sm font-bold text-gray-800 mb-3">Category Image</p>
+          <Form.Item name="url" noStyle>
+            <MediaLibraryImageUploader
+              value={imageUrl}
+              onChange={(url, id) => {
+                form.setFieldsValue({ url, imageId: id });
+              }}
+            />
+          </Form.Item>
+          <Form.Item name="imageId" className="hidden">
+            <CustomInput />
+          </Form.Item>
+        </div>
+
         <Form.Item
           name="name"
           label={

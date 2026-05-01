@@ -95,7 +95,10 @@ export function useFolderListPage() {
 
   const { data: imagesResponse, isLoading: imagesLoading } = useGetImagesQuery(
     { folderId: currentFolderId ?? null },
+
   );
+
+  console.log("imagesResponse", foldersData);
 
   const libraryImages: TMediaImage[] = useMemo(
     () => (Array.isArray(imagesResponse?.data) ? imagesResponse.data : []),

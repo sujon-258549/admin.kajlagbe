@@ -21,6 +21,7 @@ interface PermissionModalProps {
 
 const modules = [
   { name: "Dashboard", permissions: ["View"] },
+  { name: "Update Content", permissions: ["update"] },
   { name: "Users", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Employees", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Departments", permissions: ["View", "Create", "Update", "Delete"] },
