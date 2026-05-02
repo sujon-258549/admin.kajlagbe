@@ -18,6 +18,7 @@ import DataTable from "../../Components/Tables/DataTable";
 import CustomSwitch from "../../Components/ui/Switch";
 import SubscriptionModal from "../../Components/modal/subscription/SubscriptionModal";
 import type { Subscription } from "../../Components/types";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 // Mock initial data
 const mockSubscriptions: Subscription[] = [
@@ -285,6 +286,17 @@ const SubscriptionList = () => {
         subTitle="Manage subscription packages and pricing tiers"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={subscriptions?.map((item: any) => ({
+                Name: item.name,
+                Price: item.price,
+                Discount: item.discount,
+                Duration: item.duration,
+                Status: item.status ? "On" : "Off",
+                CreatedAt: item.createdAt
+              }))}
+              fileName="subscription-plans"
+            />
             <CustomButton
               variant="outline"
               size="sm"

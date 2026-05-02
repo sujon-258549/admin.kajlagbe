@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import formatDate from "../../Components/utils/dateFormate";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useDepartment } from "../../apihooks/useDepartment";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const DepartmentList = () => {
   const [searchParams] = useSearchParams();
@@ -241,6 +242,15 @@ const DepartmentList = () => {
         subTitle="Manage company departments and their status"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={departments?.map((item: any) => ({
+                Name: item.name,
+                Description: item.description || "—",
+                Status: item.isActive ? "Active" : "Inactive",
+                CreatedAt: formatDate(item.createdAt)
+              }))}
+              fileName="department-list"
+            />
             <CustomButton
               variant="outline"
               size="sm"

@@ -22,6 +22,7 @@ import type { TSubCategory } from "../../Components/types";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useSubCategory } from "../../apihooks/useSubCategory";
 import { useCategory } from "../../apihooks/useCategory";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 interface TCategoryOption {
   label: string;
@@ -298,6 +299,16 @@ const SubCategoryList = () => {
         subTitle="Manage job subcategories for your platform"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={subCategories?.map((item: any) => ({
+                Name: item.name,
+                ParentCategory: item.category?.name || "N/A",
+                Slug: item.slug,
+                Status: item.status ? "Active" : "Inactive",
+                CreatedAt: formatDate(item.createdAt)
+              }))}
+              fileName="job-subcategories"
+            />
             <CustomButton
               variant="outline"
               size="sm"

@@ -23,6 +23,8 @@ import type { TJob } from "../../Components/types";
 import FilterColumn from "../../Components/FilterColumn/FilterColumn";
 import { useJob } from "../../apihooks/useJob";
 import { toast } from "sonner";
+import TakaIcon from "../../Components/ui/TakaIcon";
+import PageListPrint from "../../Components/common/PageListPrint";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 
 // Column definitions used by FilterColumn
@@ -158,7 +160,7 @@ const JobList = () => {
       dataIndex: "title",
       key: "title",
       render: (title: string, record: TJob) => (
-        <div>
+        <div className="whitespace-nowrap">
           <div className="flex items-center gap-2">
             <span className="font-bold text-gray-800 text-sm">{title}</span>
             {record.isUrgent && (
@@ -193,7 +195,7 @@ const JobList = () => {
       dataIndex: "company",
       key: "company",
       render: (company: string) => (
-        <span className="font-semibold text-gray-700 text-sm">{company || "N/A"}</span>
+        <span className="font-semibold text-gray-700 text-sm whitespace-nowrap">{company || "N/A"}</span>
       ),
     },
     {
@@ -219,7 +221,7 @@ const JobList = () => {
       dataIndex: "category",
       key: "category",
       render: (category: any, record: any) => (
-        <div>
+        <div className="whitespace-nowrap">
           <span className="font-semibold text-gray-700 text-sm">
             {category?.name || record.categoryName || "N/A"}
           </span>
@@ -239,13 +241,13 @@ const JobList = () => {
       ),
       key: "salary",
       render: (_: unknown, record: TJob) => (
-        <div>
+        <div className="whitespace-nowrap">
           <span className="font-bold text-emerald-600 text-sm">
-            ৳{Number(record.salaryMin || 0).toLocaleString()}
+            <TakaIcon />{Number(record.salaryMin || 0).toLocaleString()}
           </span>
           <span className="text-gray-400 text-xs"> – </span>
           <span className="font-bold text-emerald-600 text-sm">
-            ৳{Number(record.salaryMax || 0).toLocaleString()}
+            <TakaIcon />{Number(record.salaryMax || 0).toLocaleString()}
           </span>
         </div>
       ),
@@ -284,7 +286,7 @@ const JobList = () => {
       dataIndex: "deadline",
       key: "deadline",
       render: (deadline: string) => (
-        <span className="text-gray-600 font-medium text-sm">{deadline || "No Limit"}</span>
+        <span className="text-gray-600 font-medium text-sm whitespace-nowrap">{deadline || "No Limit"}</span>
       ),
     },
     {
@@ -320,6 +322,18 @@ const JobList = () => {
         subTitle="Manage all job posts, statuses, and applications"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={jobs?.map((job: any) => ({
+                Title: job.title,
+                Company: job.company,
+                Type: job.type,
+                Category: job.categoryName,
+                Salary: `${job.salaryMin} - ${job.salaryMax}`,
+                Deadline: job.deadline,
+                Status: job.status ? "Active" : "Inactive"
+              }))}
+              fileName="job-list"
+            />
             <CustomButton
               variant="outline"
               size="sm"

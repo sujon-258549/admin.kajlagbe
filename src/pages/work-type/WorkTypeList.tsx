@@ -19,6 +19,7 @@ import CustomSwitch from "../../Components/ui/Switch";
 import WorkTypeModal from "../../Components/modal/users/WorkTypeModal";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useWorkType } from "../../apihooks/useWorkType";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const WorkTypeList = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -222,6 +223,15 @@ const WorkTypeList = () => {
         subTitle="Manage available work types (Full-time, Part-time, etc.)"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={workTypes?.map((item: any) => ({
+                Name: item.name,
+                Description: item.description || "—",
+                Status: item.isActive ? "Active" : "Inactive",
+                CreatedAt: formatDate(item.createdAt)
+              }))}
+              fileName="work-type-list"
+            />
             <CustomButton
               variant="outline"
               size="sm"

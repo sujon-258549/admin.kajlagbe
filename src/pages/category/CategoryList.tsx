@@ -21,6 +21,7 @@ import formatDate from "../../Components/utils/dateFormate";
 import { toast } from "sonner";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useCategory } from "../../apihooks/useCategory";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const CategoryList = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -249,6 +250,15 @@ const CategoryList = () => {
         subTitle="Manage job categories for your platform"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={categories?.map((item: any) => ({
+                Name: item.name,
+                Slug: item.slug,
+                Status: item.status ? "Active" : "Inactive",
+                CreatedAt: formatDate(item.createdAt)
+              }))}
+              fileName="job-categories"
+            />
             <CustomButton
               variant="outline"
               size="sm"

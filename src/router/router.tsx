@@ -29,6 +29,7 @@ import CrmUserList from "../pages/crm/CrmUserList";
 import BlogList from "../pages/blog/BlogList";
 import CreateBlog from "../pages/blog/CreateBlog";
 import BlogDetails from "../pages/blog/BlogDetails";
+import BlogCommentList from "../pages/blog/BlogCommentList";
 import ContactList from "../pages/contact/ContactList";
 
 const router = createBrowserRouter([
@@ -136,6 +137,10 @@ const router = createBrowserRouter([
       {
         path: "blog/list",
         element: <BlogList />,
+      },
+      {
+        path: "blog/comments/:blogId",
+        element: <BlogCommentList />,
       },
       {
         path: "blog/create",

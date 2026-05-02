@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageHeader from "../../Components/common/PageHeader";
-import { Tooltip, Modal, Tag } from "antd";
+import { Tooltip, Modal, Tag, Badge } from "antd";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,6 +12,7 @@ import {
   faFilter,
   faSort,
   faEye,
+  faMessage,
 } from "@fortawesome/free-solid-svg-icons";
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
@@ -20,6 +21,7 @@ import formatDate from "../../Components/utils/dateFormate";
 import { toast } from "sonner";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useBlog } from "../../apihooks/useBlog";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const BlogList = () => {
   const navigate = useNavigate();
@@ -72,7 +74,7 @@ const BlogList = () => {
     {
       title: "ACTION",
       key: "action",
-      width: 120,
+      width: 160,
       render: (_: any, record: any) => (
         <div className="flex items-center gap-2">
           {/* View Details */}
@@ -83,6 +85,18 @@ const BlogList = () => {
                 size="icon-sm"
                 onClick={() => navigate(`/blog/details/${record.id}`)}
                 icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
+              />
+            </Tooltip>
+          )}
+
+          {/* Manage Comments */}
+          {can("view") && (
+            <Tooltip title="Manage Comments">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => navigate(`/blog/comments/${record.id}`)}
+                icon={<FontAwesomeIcon icon={faMessage} className="text-xs" />}
               />
             </Tooltip>
           )}
@@ -156,6 +170,22 @@ const BlogList = () => {
           <span className="text-[10px] text-gray-400">{record.slug}</span>
         </div>
       ),
+    },
+    {
+      title: "COMMENTS",
+      key: "commentsCount",
+      width: 100,
+      render: (_: any, record: any) => (
+        <div className="flex items-center gap-2">
+           <Badge 
+            count={record?._count?.comments || 0} 
+            showZero 
+            color={record?._count?.comments > 0 ? '#1890ff' : '#d9d9d9'}
+            style={{ fontSize: '10px' }}
+          />
+          <span className="text-xs text-gray-500">Comments</span>
+        </div>
+      )
     },
     {
       title: "CATEGORY",
@@ -244,6 +274,17 @@ const BlogList = () => {
         subTitle="Manage and publish articles on your platform"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={blogs?.map((item: any) => ({
+                Title: item.title,
+                Category: item.category,
+                Author: item.author?.profile?.name || "Unknown",
+                Comments: item?._count?.comments || 0,
+                Published: item.isPublished ? "Yes" : "No",
+                CreatedAt: formatDate(item.createdAt)
+              }))}
+              fileName="blog-list"
+            />
             <CustomButton
               variant="outline"
               size="sm"

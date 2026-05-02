@@ -25,6 +25,7 @@ import RoleModal from "../../Components/modal/users/RoleModal";
 import PermissionModal from "../../Components/modal/users/PermissionModal";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useRole } from "../../apihooks/useRole";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const RoleList = () => {
   const [roleModalOpen, setRoleModalOpen] = useState(false);
@@ -258,6 +259,15 @@ const RoleList = () => {
         subTitle="Manage system roles and their configurations"
         extra={
           <div className="flex gap-3">
+            <PageListPrint 
+              tableData={roles?.map((item: any) => ({
+                Role: item.role,
+                Description: item.description || "—",
+                Status: item.isActive ? "Active" : "Inactive",
+                CreatedAt: formatDate(item.createdAt)
+              }))}
+              fileName="role-list"
+            />
             <CustomButton
               variant="outline"
               size="sm"

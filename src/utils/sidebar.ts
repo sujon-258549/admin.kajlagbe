@@ -6,11 +6,9 @@ import {
   faBuilding,
   faCogs,
   faToolbox,
-  faIndustry,
-  faChartLine,
-  faMagic,
-  faNewspaper,
   faEnvelope,
+  faNewspaper,
+  faMagic,
 } from "@fortawesome/free-solid-svg-icons";
 import { useMyData } from "../redux/hooks";
 import { config } from "../config";
@@ -64,40 +62,7 @@ export const menuItems = [
       },
     ],
   },
-  {
-    name: "Productions",
-    icon: faIndustry,
-    path: "/productions",
-    submenu: [
-      {
-        name: "Production Plan",
-        path: "/productions/plan",
-        module: "Productions",
-      },
-      {
-        name: "Work Orders",
-        path: "/productions/work-orders",
-        module: "Productions",
-      },
-    ],
-  },
-  {
-    name: "Sales Management",
-    icon: faChartLine,
-    path: "/sales",
-    submenu: [
-      {
-        name: "Sales Summary",
-        path: "/sales/summary",
-        module: "Sales Management",
-      },
-      {
-        name: "Customer Ledger",
-        path: "/sales/ledger",
-        module: "Sales Management",
-      },
-    ],
-  },
+ 
   {
     name: "AI Agent",
     icon: faMagic,

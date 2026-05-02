@@ -25,6 +25,7 @@ import type {
 } from "../../Components/types";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useEmployee } from "../../apihooks/useEmployee";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const EmployeeList = () => {
   const [searchParams] = useSearchParams();
@@ -298,16 +299,30 @@ const EmployeeList = () => {
         title="All Employees"
         subTitle="User + Profile + WorkInfo (Prisma) via /employ API"
         extra={
-          can("create") ? (
-            <CustomButton
-              onClick={handleCreate}
-              variant="primary"
-              size="sm"
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Add Employee
-            </CustomButton>
-          ) : null
+          <div className="flex gap-3">
+            <PageListPrint 
+              tableData={employees?.map((item: any) => ({
+                Name: item.name,
+                Email: item.email,
+                Phone: item.mobile,
+                Designation: item.designation,
+                Department: item.department,
+                Role: item.role,
+                Status: item.isActive ? "Active" : "Inactive"
+              }))}
+              fileName="employee-list"
+            />
+            {can("create") ? (
+              <CustomButton
+                onClick={handleCreate}
+                variant="primary"
+                size="sm"
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Add Employee
+              </CustomButton>
+            ) : null}
+          </div>
         }
       />
 

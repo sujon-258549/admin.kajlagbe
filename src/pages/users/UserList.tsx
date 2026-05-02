@@ -23,6 +23,7 @@ import type {
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useEmployee } from "../../apihooks/useEmployee";
 import UserModal from "../../Components/modal/users/UserModal";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const UserList = () => {
   const navigate = useNavigate();
@@ -246,16 +247,28 @@ const UserList = () => {
         title="All Users"
         subTitle="Manage regular users and their details"
         extra={
-          can("create") ? (
-            <CustomButton
-              onClick={handleCreate}
-              variant="primary"
-              size="sm"
-              icon={<FontAwesomeIcon icon={faPlus} />}
-            >
-              Add New User
-            </CustomButton>
-          ) : null
+          <div className="flex gap-3">
+            <PageListPrint 
+              tableData={users?.map((item: any) => ({
+                Name: item.name,
+                Email: item.email,
+                Mobile: item.mobile,
+                Role: item.role || "USER",
+                Status: item.isActive ? "Active" : "Inactive"
+              }))}
+              fileName="user-list"
+            />
+            {can("create") ? (
+              <CustomButton
+                onClick={handleCreate}
+                variant="primary"
+                size="sm"
+                icon={<FontAwesomeIcon icon={faPlus} />}
+              >
+                Add New User
+              </CustomButton>
+            ) : null}
+          </div>
         }
       />
 

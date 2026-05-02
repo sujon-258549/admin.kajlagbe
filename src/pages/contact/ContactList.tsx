@@ -9,6 +9,7 @@ import DataTable from "../../Components/Tables/DataTable";
 import CustomButton from "../../Components/ui/Button";
 import PageHeader from "../../Components/common/PageHeader";
 import { useContact } from "../../apihooks/useContact";
+import PageListPrint from "../../Components/common/PageListPrint";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useState, useEffect, memo } from "react";
 import formatDate from "../../Components/utils/dateFormate";
@@ -300,6 +301,21 @@ const ContactList = () => {
         breadcrumb={[{ label: "Home", path: "/" }, { label: "Contact Messages" }]}
         title="Contact Messages"
         subTitle="Manage inquiries and messages from the contact form"
+        extra={
+          <div className="flex gap-3">
+            <PageListPrint 
+              tableData={contacts?.map((item: any) => ({
+                Date: formatDate(item.createdAt),
+                Name: item.name,
+                Email: item.email,
+                Phone: item.phone,
+                Subject: item.subject,
+                Message: item.message
+              }))}
+              fileName="contact-messages"
+            />
+          </div>
+        }
       />
 
       <div className="h-2" />

@@ -11,6 +11,7 @@ import { faPaperPlane, faRobot } from "@fortawesome/free-solid-svg-icons";
 import CustomButton from "../../Components/ui/Button";
 import FollowUpModal from "../../Components/modal/automation/FollowUpModal";
 import { useTriggerFollowUpEmailsMutation } from "../../redux/features/automationApi/automationApi";
+import PageListPrint from "../../Components/common/PageListPrint";
 
 const CrmUserList = () => {
   const [searchParams] = useSearchParams();
@@ -140,17 +141,29 @@ const CrmUserList = () => {
         title="CRM - User List"
         subTitle="Manage and view CRM users"
         extra={
-          can("update") && (
-            <CustomButton
-              variant="primary"
-              size="sm"
-              onClick={handleManualTrigger}
-              loading={isTriggering}
-              icon={<FontAwesomeIcon icon={faRobot} />}
-            >
-              Trigger Follow-up Automation
-            </CustomButton>
-          )
+          <div className="flex gap-3">
+            <PageListPrint 
+              tableData={users?.map((item: any) => ({
+                Name: item.name,
+                Email: item.email,
+                Mobile: item.mobile,
+                Location: item.address?.district ? `${item.address.district}, ${item.address.division}` : "—",
+                Status: item.isActive ? "Active" : "Inactive"
+              }))}
+              fileName="crm-user-list"
+            />
+            {can("update") && (
+              <CustomButton
+                variant="primary"
+                size="sm"
+                onClick={handleManualTrigger}
+                loading={isTriggering}
+                icon={<FontAwesomeIcon icon={faRobot} />}
+              >
+                Trigger Follow-up Automation
+              </CustomButton>
+            )}
+          </div>
         }
       />
 
