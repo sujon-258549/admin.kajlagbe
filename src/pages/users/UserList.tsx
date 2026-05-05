@@ -51,6 +51,12 @@ const UserList = () => {
     filterableColumns.map((c) => c.key),
   );
   const { can } = useRoutePermission();
+  const [activeTab, setActiveTab] = useState("all");
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setPage(1);
+  };
 
   const {
     employees: users,
@@ -60,7 +66,13 @@ const UserList = () => {
     createEmployee: createUser,
     updateEmployee: updateUser,
     deleteEmployee: deleteUser,
-  } = useEmployee({ page, limit, searchTerm, role: "USER" });
+  } = useEmployee({ 
+    page, 
+    limit, 
+    searchTerm, 
+    role: "USER",
+    ...(activeTab === "brand" ? { isBrandUser: true } : {})
+  });
 
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -303,12 +315,6 @@ const UserList = () => {
     visibleColumnKeys.includes(col.key as string),
   );
 
-  const [activeTab, setActiveTab] = useState("all");
-
-  const filteredUsers = activeTab === "brand" 
-    ? users?.filter((u: any) => u.tenantId) 
-    : users;
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -322,7 +328,7 @@ const UserList = () => {
         extra={
           <div className="flex gap-3">
             <PageListPrint 
-              tableData={filteredUsers?.map((item: any) => ({
+              tableData={users?.map((item: any) => ({
                 Name: item.name,
                 Email: item.email,
                 Mobile: item.mobile,
@@ -348,7 +354,7 @@ const UserList = () => {
       <div className="flex justify-between items-center mb-3">
         <div className="flex gap-4">
           <button
-            onClick={() => setActiveTab("all")}
+            onClick={() => handleTabChange("all")}
             className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
               activeTab === "all"
                 ? "bg-primary text-white shadow-md"
@@ -359,7 +365,7 @@ const UserList = () => {
           </button>
           {can("View Brand Users") && (
             <button
-              onClick={() => setActiveTab("brand")}
+              onClick={() => handleTabChange("brand")}
               className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
                 activeTab === "brand"
                   ? "bg-primary text-white shadow-md"
@@ -380,7 +386,7 @@ const UserList = () => {
       <div className="bg-white rounded-lg border border-gray-300 overflow-hidden">
         <DataTable
           selectRow={true}
-          data={filteredUsers}
+          data={users}
           columns={visibleColumns}
           rowKey="id"
           isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
