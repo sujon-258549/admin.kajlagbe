@@ -26,12 +26,27 @@ import PermissionModal from "../../Components/modal/users/PermissionModal";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useRole } from "../../apihooks/useRole";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "role", title: "Role Name" },
+  { key: "isActive", title: "Status" },
+  { key: "description", title: "Description" },
+  { key: "createdAt", title: "Created At" },
+];
 
 const RoleList = () => {
   const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [permissionModalOpen, setPermissionModalOpen] = useState(false);
   const [editData, setEditData] = useState<TRole | null>(null);
   const [selectedRole, setSelectedRole] = useState<TRole | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   const { can } = useRoutePermission();
 
@@ -44,7 +59,7 @@ const RoleList = () => {
     updateRole,
     deleteRole,
     updateRoleStatus,
-  } = useRole({});
+  } = useRole({ page, limit });
 
   const getRecordId = (record: { id?: string; _id?: string }) =>
     record.id || record._id || "";
@@ -247,6 +262,10 @@ const RoleList = () => {
     },
   ];
 
+  const visibleColumns = roleColumns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -289,16 +308,32 @@ const RoleList = () => {
           </div>
         }
       />
-
+      <div className="flex justify-end mb-3">
+        <FilterColumn
+          tableName="role_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
+      </div>
       <div className="">
         <DataTable
+          selectRow={true}
           data={roles}
           isLoading={isLoading}
-          columns={roleColumns}
+          columns={visibleColumns}
           isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey={(record: TRole) => getRecordId(record)}
-          meta={meta}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => getRecordId(row)));
+          }}
         />
       </div>
 

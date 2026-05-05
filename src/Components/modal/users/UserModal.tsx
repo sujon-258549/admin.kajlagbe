@@ -9,6 +9,7 @@ import { useGetAllDepartmentsQuery } from "../../../redux/features/departmentApi
 import { useGetAllRolesQuery } from "../../../redux/features/roleApi/roleApi";
 import { useGetAllSubCategoryQuery } from "../../../redux/features/subCategoryApi/subCategoryApi";
 import { useGetAllWorkTypesQuery } from "../../../redux/features/workTypeApi/workTypeApi";
+import { useGetAllTenantsQuery } from "../../../redux/features/tenant/tenantApi";
 import {
   BLOOD_GROUP_LABELS,
   GENDER_LABELS,
@@ -73,9 +74,12 @@ const UserModal = ({
   });
 
   const workTypes = useMemo(
-    () => (workTypesResponse || []).filter((w) => w.isActive),
+    () => (workTypesResponse || []).filter((w: any) => w.isActive),
     [workTypesResponse],
   );
+
+  const { data: tenantsResponse, isFetching: tenantsLoading } = useGetAllTenantsQuery({});
+  const tenants = tenantsResponse?.data || [];
 
   const roleSelectOptions = useMemo((): TRole[] => {
     const fromApi = (rolesResponse?.data ?? [])
@@ -144,6 +148,7 @@ const UserModal = ({
         upazila: src.address?.upazila ?? "",
         addressLine: src.address?.address ?? "",
         subCategoryIds: (src.workInfo?.subCategories ?? []).map((s: any) => s.id),
+        tenantId: src.tenantId,
       });
     }
   }, [editData, editDetail, form, open, rolesResponse?.data]);
@@ -161,6 +166,7 @@ const UserModal = ({
           departmentId: values.departmentId || undefined,
           isActive: values.isActive,
           isVerified: values.isVerified,
+          tenantId: values.tenantId,
           password: values.password || (isEdit ? undefined : "12345678"),
         },
         profile: {
@@ -258,6 +264,11 @@ const UserModal = ({
                  {roleSelectOptions.map((r) => <Option key={r.id} value={r.id}>{r.role}</Option>)}
                </CustomSelect>
             </Form.Item>
+            <Form.Item name="tenantId" label="Brand (Tenant)">
+               <CustomSelect placeholder="Select Brand" loading={tenantsLoading}>
+                 {tenants.map((t: any) => <Option key={t.id} value={t.id}>{t.name}</Option>)}
+               </CustomSelect>
+            </Form.Item>
             {!isEdit && (
               <Form.Item name="password" label="Password (Default: 12345678)">
                 <CustomInput.Password placeholder="Default: 12345678" size="md" />
@@ -320,7 +331,7 @@ const UserModal = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
             <Form.Item name="department" label="Work Type">
               <CustomSelect mode="multiple" placeholder="Select work types">
-                {workTypes.map(w => <Option key={w.id} value={w.id}>{w.name}</Option>)}
+                {workTypes.map((w: any) => <Option key={w.id} value={w.id}>{w.name}</Option>)}
               </CustomSelect>
             </Form.Item>
             <Form.Item name="workTimeRange" label="Work Time Range">

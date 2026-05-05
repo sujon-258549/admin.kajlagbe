@@ -26,11 +26,31 @@ import type {
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useEmployee } from "../../apihooks/useEmployee";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "name", title: "Name" },
+  { key: "email", title: "Email" },
+  { key: "phone", title: "Phone" },
+  { key: "designation", title: "Designation" },
+  { key: "department", title: "Department" },
+  { key: "role", title: "Role" },
+  { key: "address", title: "Address" },
+  { key: "schedule", title: "Work Schedule" },
+  { key: "status", title: "Status" },
+];
 
 const EmployeeList = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const searchTerm = searchParams.get("searchTerm") || "";
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   const { can } = useRoutePermission(); // current route → "Employees" module auto-detect
 
@@ -42,7 +62,7 @@ const EmployeeList = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-  } = useEmployee({ searchTerm });
+  } = useEmployee({ page, limit, searchTerm, role: "WORKER" });
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<Employee | null>(null);
@@ -130,7 +150,10 @@ const EmployeeList = () => {
             <CustomButton
               variant="outline"
               size="icon-sm"
-              onClick={() => navigate(`/employee/${record.id}`)}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/employee/${record.id}`);
+              }}
               icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
             />
           </Tooltip>
@@ -141,7 +164,10 @@ const EmployeeList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => handleEdit(record)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(record);
+                }}
                 icon={
                   <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
                 }
@@ -163,6 +189,7 @@ const EmployeeList = () => {
                 <CustomButton
                   variant="danger-outline"
                   size="icon-sm"
+                  onClick={(e) => e.stopPropagation()}
                   icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
                 />
               </Tooltip>
@@ -281,16 +308,22 @@ const EmployeeList = () => {
       dataIndex: "isActive",
       key: "status",
       render: (isActive: boolean, record: any) => (
-        <CustomSwitch
-          checked={isActive}
-          onChange={(checked) => handleStatusChange(record, checked)}
-          size="default"
-          checkedChildren="Active"
-          unCheckedChildren="Inactive"
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <CustomSwitch
+            checked={isActive}
+            onChange={(checked) => handleStatusChange(record, checked)}
+            size="default"
+            checkedChildren="Active"
+            unCheckedChildren="Inactive"
+          />
+        </div>
       ),
     },
   ];
+
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
 
   return (
     <div className="space-y-5">
@@ -326,17 +359,37 @@ const EmployeeList = () => {
         }
       />
 
-      {/* Filters or spacing can go here if needed */}
-      <div className="h-2" />
+      <div className="flex justify-end mb-3">
+        <FilterColumn
+          tableName="employee_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
+      </div>
 
       <div className="">
         <DataTable
+          selectRow={true}
           data={employees}
-          columns={columns}
+          columns={visibleColumns}
           rowKey="id"
-          isPaginate={meta && meta.total > (meta.limit || 10)}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           isLoading={tableLoading}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
+          onRow={(record: Employee) => ({
+            onClick: () => navigate(`/employee/${record.id}`),
+            style: { cursor: "pointer" },
+          })}
         />
       </div>
 

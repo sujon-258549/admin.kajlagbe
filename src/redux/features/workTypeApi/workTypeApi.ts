@@ -16,12 +16,12 @@ const workTypeApi = baseApi.injectEndpoints({
       invalidatesTags: ["WorkType"],
     }),
 
-    getAllWorkTypes: builder.query<TWorkType[], void>({
-      query: () => ({
+    getAllWorkTypes: builder.query<any, any>({
+      query: (params) => ({
         url: "/work-types",
         method: "GET",
+        params,
       }),
-      transformResponse: (res: any) => res.data || res,
       providesTags: ["WorkType"],
     }),
 

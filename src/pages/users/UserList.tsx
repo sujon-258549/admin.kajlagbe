@@ -7,6 +7,7 @@ import {
   faTrash,
   faPlus,
   faEye,
+  faCreditCard,
 } from "@fortawesome/free-solid-svg-icons";
 import DataTable from "../../Components/Tables/DataTable";
 import CustomButton from "../../Components/ui/Button";
@@ -23,13 +24,31 @@ import type {
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useEmployee } from "../../apihooks/useEmployee";
 import UserModal from "../../Components/modal/users/UserModal";
+import UserSubscriptionDrawer from "../../Components/modal/users/UserSubscriptionDrawer";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "user", title: "User Info" },
+  { key: "mobile", title: "Mobile" },
+  { key: "role", title: "Role" },
+  { key: "work", title: "Work Info" },
+  { key: "location", title: "Location" },
+  { key: "status", title: "Status" },
+];
 
 const UserList = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("searchTerm") || "";
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
   const { can } = useRoutePermission();
 
   const {
@@ -40,10 +59,12 @@ const UserList = () => {
     createEmployee: createUser,
     updateEmployee: updateUser,
     deleteEmployee: deleteUser,
-  } = useEmployee({ searchTerm, role: "USER" });
+  } = useEmployee({ page, limit, searchTerm, role: "USER" });
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [editData, setEditData] = useState<any | null>(null);
+  const [selectedUserForDrawer, setSelectedUserForDrawer] = useState<any | null>(null);
 
   const { data: editDetail, isFetching: editDetailLoading } =
     useGetEmployeeByIdQuery(editData?.id ?? "", {
@@ -118,7 +139,10 @@ const UserList = () => {
             <CustomButton
               variant="outline"
               size="icon-sm"
-              onClick={() => navigate(`/users/${record.id}`)}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/users/${record.id}`);
+              }}
               icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
             />
           </Tooltip>
@@ -128,7 +152,10 @@ const UserList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => handleEdit(record)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(record);
+                }}
                 icon={
                   <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
                 }
@@ -149,11 +176,26 @@ const UserList = () => {
                 <CustomButton
                   variant="danger-outline"
                   size="icon-sm"
+                  onClick={(e) => e.stopPropagation()}
                   icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
                 />
               </Tooltip>
             </Popconfirm>
           )}
+
+          <Tooltip title="Manage Subscription & Brand">
+            <CustomButton
+              variant="outline"
+              size="icon-sm"
+              className="!text-purple-600 !border-purple-200 hover:!bg-purple-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedUserForDrawer(record);
+                setDrawerOpen(true);
+              }}
+              icon={<FontAwesomeIcon icon={faCreditCard} className="text-xs" />}
+            />
+          </Tooltip>
         </div>
       ),
     },
@@ -225,16 +267,28 @@ const UserList = () => {
       dataIndex: "isActive",
       key: "status",
       render: (isActive: boolean, record: any) => (
-        <CustomSwitch
-          checked={isActive}
-          onChange={(checked) => handleStatusChange(record, checked)}
-          size="default"
-          checkedChildren="Active"
-          unCheckedChildren="Inactive"
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <CustomSwitch
+            checked={isActive}
+            onChange={(checked) => handleStatusChange(record, checked)}
+            size="default"
+            checkedChildren="Active"
+            unCheckedChildren="Inactive"
+          />
+        </div>
       ),
     },
   ];
+
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
+  const [activeTab, setActiveTab] = useState("all");
+
+  const filteredUsers = activeTab === "brand" 
+    ? users?.filter((u: any) => u.tenantId) 
+    : users;
 
   return (
     <div className="space-y-6">
@@ -249,7 +303,7 @@ const UserList = () => {
         extra={
           <div className="flex gap-3">
             <PageListPrint 
-              tableData={users?.map((item: any) => ({
+              tableData={filteredUsers?.map((item: any) => ({
                 Name: item.name,
                 Email: item.email,
                 Mobile: item.mobile,
@@ -272,13 +326,60 @@ const UserList = () => {
         }
       />
 
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex gap-4">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
+              activeTab === "all"
+                ? "bg-primary text-white shadow-md"
+                : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            All Users
+          </button>
+          {can("View Brand Users") && (
+            <button
+              onClick={() => setActiveTab("brand")}
+              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
+                activeTab === "brand"
+                  ? "bg-primary text-white shadow-md"
+                  : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              Brand Users
+            </button>
+          )}
+        </div>
+        <FilterColumn
+          tableName="user_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
+      </div>
+
       <div className="bg-white rounded-lg border border-gray-300 overflow-hidden">
         <DataTable
-          data={users}
-          columns={columns}
+          selectRow={true}
+          data={filteredUsers}
+          columns={visibleColumns}
           rowKey="id"
-          isPaginate={meta && meta.total > (meta.limit || 10)}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           isLoading={isLoading}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
+          onRow={(record: any) => ({
+            onClick: () => navigate(`/users/${record.id}`),
+            style: { cursor: "pointer" },
+          })}
         />
       </div>
 
@@ -293,6 +394,15 @@ const UserList = () => {
         editDetail={editDetail ?? null}
         detailLoading={editDetailLoading}
         submitting={isLoading}
+      />
+
+      <UserSubscriptionDrawer
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          setSelectedUserForDrawer(null);
+        }}
+        user={selectedUserForDrawer}
       />
     </div>
   );

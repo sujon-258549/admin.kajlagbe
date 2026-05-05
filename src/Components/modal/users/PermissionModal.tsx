@@ -11,6 +11,7 @@ import {
   useUpdateRolePermissionsMutation,
 } from "../../../redux/features/rolePermissionApi/rolePermissionApi";
 import { toast } from "sonner";
+import { usePermission } from "../../../utils/sidebar";
 
 interface PermissionModalProps {
   open: boolean;
@@ -22,7 +23,7 @@ interface PermissionModalProps {
 const modules = [
   { name: "Dashboard", permissions: ["View"] },
   { name: "Update Content", permissions: ["update"] },
-  { name: "Users", permissions: ["View", "Create", "Update", "Delete"] },
+  { name: "Users", permissions: ["View", "Create", "Update", "Delete", "View Brand Users"] },
   { name: "Employees", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Departments", permissions: ["View", "Create", "Update", "Delete"] },
   { name: "Designations", permissions: ["View", "Create", "Update", "Delete"] },
@@ -33,7 +34,8 @@ const modules = [
     name: "SubCategories",
     permissions: ["View", "Create", "Update", "Delete"],
   },
-  { name: "Subscription", permissions: ["View", "Create", "Update", "Delete"] },
+  { name: "Tenants", permissions: ["View", "Create", "Update", "Delete"] },
+  { name: "Subscriptions", permissions: ["View", "Create", "Update", "Delete"] },
   {
     name: "Job Management",
     permissions: ["View", "Create", "Update", "Delete"],
@@ -56,6 +58,7 @@ const PermissionModal = ({
   role,
   initialPermissions,
 }: PermissionModalProps) => {
+  const { isSuperAdmin } = usePermission();
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -165,7 +168,19 @@ const PermissionModal = ({
     setSelectedPermissions([]);
   };
 
-  const filteredModules = modules.filter((m) =>
+  const accessibleModules = modules.map(m => {
+    if (!isSuperAdmin) {
+      if (m.name === "Users") {
+        return { ...m, permissions: m.permissions.filter(p => p !== "View Brand Users") };
+      }
+      if (m.name === "Tenants" || m.name === "Subscriptions") {
+        return null;
+      }
+    }
+    return m;
+  }).filter(Boolean) as typeof modules;
+
+  const filteredModules = accessibleModules.filter((m) =>
     m.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 

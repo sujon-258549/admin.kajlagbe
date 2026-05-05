@@ -20,22 +20,39 @@ import WorkTypeModal from "../../Components/modal/users/WorkTypeModal";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useWorkType } from "../../apihooks/useWorkType";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "name", title: "Work Type Name" },
+  { key: "isActive", title: "Status" },
+  { key: "description", title: "Description" },
+  { key: "createdAt", title: "Created At" },
+];
 
 const WorkTypeList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<TWorkType | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const { can } = useRoutePermission();
 
   const {
     workTypes,
+    meta,
     isLoading,
     refetch,
     createWorkType,
     updateWorkType,
     deleteWorkType,
     updateStatus,
-  } = useWorkType();
+  } = useWorkType({ page, limit });
+
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   const getErrorMessage = (error: unknown): string => {
     if (typeof error === "object" && error !== null) {
@@ -211,6 +228,10 @@ const WorkTypeList = () => {
     },
   ];
 
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -254,12 +275,30 @@ const WorkTypeList = () => {
         }
       />
 
+      <div className="flex justify-end mb-3">
+        <FilterColumn
+          tableName="worktype_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
+      </div>
       <DataTable
+        selectRow={true}
         data={workTypes || []}
         isLoading={isLoading}
-        columns={columns}
+        columns={visibleColumns}
         showHeader={true}
         rowKey={(record: TWorkType) => record.id}
+        isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
+        limit={limit}
+        currentPage={page}
+        setCurrentPage={setPage}
+        setLimit={setLimit}
+        showSizeChanger={true}
+        clearSelectionTrigger={selectedRowIds.length === 0}
+        onSelectRowsChange={(selectedRows: any[]) => {
+          setSelectedRowIds(selectedRows.map((row) => row.id));
+        }}
       />
 
       <WorkTypeModal

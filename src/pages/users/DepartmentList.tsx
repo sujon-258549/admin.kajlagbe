@@ -25,14 +25,33 @@ import formatDate from "../../Components/utils/dateFormate";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useDepartment } from "../../apihooks/useDepartment";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "name", title: "Department Name" },
+  { key: "isActive", title: "Status" },
+  { key: "description", title: "Description" },
+  { key: "createdAt", title: "Created At" },
+];
 
 const DepartmentList = () => {
   const [searchParams] = useSearchParams();
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<TDepartment | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
   const searchText = searchParams.get("searchTerm")?.trim() || "";
 
-  const queryObj = searchText ? { searchTerm: searchText } : {};
+  const queryObj = {
+    page,
+    limit,
+    ...(searchText && { searchTerm: searchText }),
+  };
 
   const { can } = useRoutePermission();
   
@@ -230,6 +249,10 @@ const DepartmentList = () => {
     },
   ];
 
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -273,18 +296,33 @@ const DepartmentList = () => {
         }
       />
 
-      <div className="">
-        <DataTable
-          data={departments}
-          isLoading={isLoading}
-          columns={columns}
-          isPaginate={meta.total > meta.limit}
-          showHeader={true}
-          rowKey={(record: TDepartment) => getRecordId(record)}
-          meta={meta}
+      <div className="flex justify-end mb-3">
+        <FilterColumn
+          tableName="department_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
         />
       </div>
-
+        <DataTable
+          selectRow={true}
+          data={departments}
+          isLoading={isLoading}
+          columns={visibleColumns}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
+          showHeader={true}
+          rowKey={(record: TDepartment) => getRecordId(record)}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => getRecordId(row)));
+          }}
+        />
+      
       <DepartmentModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

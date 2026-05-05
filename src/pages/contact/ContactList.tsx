@@ -14,6 +14,17 @@ import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useState, useEffect, memo } from "react";
 import formatDate from "../../Components/utils/dateFormate";
 import { useSocket } from "../../context/SocketContext";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "createdAt", title: "Date" },
+  { key: "name", title: "Name" },
+  { key: "email", title: "Email" },
+  { key: "phone", title: "Phone" },
+  { key: "subject", title: "Subject" },
+  { key: "message", title: "Message" },
+];
 
 const { TextArea } = Input;
 
@@ -145,22 +156,29 @@ const ContactFeedbackModal = ({
 };
 
 // Memoized table component to prevent unnecessary updates
-const ContactTable = memo(({ contacts, columns, isLoading }: any) => (
+const ContactTable = memo(({ contacts, columns, isLoading, ...rest }: any) => (
   <DataTable
     data={contacts}
     columns={columns}
     rowKey="id"
     isLoading={isLoading}
     showHeader={true}
+    {...rest}
   />
 ));
 
 const ContactList = () => {
   const { can } = useRoutePermission();
-  const { contacts, isLoading, deleteContact, sendFeedback, refetch } = useContact();
+  const { contacts, meta, isLoading, deleteContact, sendFeedback, refetch } = useContact();
   const { socket } = useSocket();
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   useEffect(() => {
     if (socket) {
@@ -214,7 +232,10 @@ const ContactList = () => {
             <CustomButton
               variant="outline"
               size="icon-sm"
-              onClick={() => handleView(record)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleView(record);
+              }}
               icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
             />
           </Tooltip>
@@ -232,6 +253,7 @@ const ContactList = () => {
                 <CustomButton
                   variant="danger-outline"
                   size="icon-sm"
+                  onClick={(e) => e.stopPropagation()}
                   icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
                 />
               </Tooltip>
@@ -295,6 +317,10 @@ const ContactList = () => {
     },
   ];
 
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
   return (
     <div className="space-y-5">
       <PageHeader
@@ -318,10 +344,36 @@ const ContactList = () => {
         }
       />
 
-      <div className="h-2" />
+      <div className="flex justify-end mb-3">
+        <FilterColumn
+          tableName="contact_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
+      </div>
 
       <div>
-        <ContactTable contacts={contacts} columns={columns} isLoading={isLoading} />
+        <ContactTable 
+          selectRow={true}
+          contacts={contacts} 
+          columns={visibleColumns} 
+          isLoading={isLoading} 
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
+          onRow={(record: any) => ({
+            onClick: () => handleView(record),
+            style: { cursor: "pointer" },
+          })}
+        />
       </div>
 
       <ContactFeedbackModal 

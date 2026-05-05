@@ -100,6 +100,15 @@ export const menuItems = [
     submenu: [{ name: "User List", path: "/crm/user-list", module: "CRM" }],
   },
   {
+    name: "SaaS Management",
+    icon: faBuilding,
+    path: "/tenant",
+    submenu: [
+      { name: "Tenants", path: "/tenant/list", module: "Tenants" },
+      { name: "Subscriptions", path: "/subscription", module: "Subscriptions" },
+    ],
+  },
+  {
     name: "Contact Messages",
     icon: faEnvelope,
     path: "/contact/list",

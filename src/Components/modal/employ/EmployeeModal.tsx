@@ -126,7 +126,7 @@ const EmployeeModal = ({
   });
 
   const workTypes = useMemo(
-    () => (workTypesResponse || []).filter((w) => w.isActive),
+    () => (workTypesResponse || []).filter((w: any) => w.isActive),
     [workTypesResponse],
   );
 
@@ -195,7 +195,7 @@ const EmployeeModal = ({
           src.departmentId || 
           (typeof (src as any).department === "object" ? (src as any).department?.id : undefined),
         designation: src.workInfo?.experience?.trim() ?? "",
-        department: (src.workInfo?.workTypes ?? []).map((w) => w.id),
+        department: (src.workInfo?.workTypes ?? []).map((w: any) => w.id),
         workTimeRange:
           src.workInfo?.workStartTime && src.workInfo?.workTimeLimit
             ? [
@@ -308,8 +308,8 @@ const EmployeeModal = ({
           workTypeIds: values.department || [],
           workType:
             workTypes
-              .filter((w) => (values.department || []).includes(w.id))
-              .map((w) => w.name)
+              .filter((w: any) => (values.department || []).includes(w.id))
+              .map((w: any) => w.name)
               .join(", ") || undefined,
           workStartTime: values.workTimeRange?.[0]?.format("YYYY-MM-DD hh:mm A") || undefined,
           workTimeLimit: values.workTimeRange?.[1]?.format("YYYY-MM-DD hh:mm A") || undefined,
@@ -762,7 +762,7 @@ const EmployeeModal = ({
                 <CustomSelect
                   mode="multiple"
                   placeholder="Select work type(s)"
-                  options={workTypes.map((w) => ({
+                  options={workTypes.map((w: any) => ({
                     label: w.name,
                     value: w.id,
                   }))}

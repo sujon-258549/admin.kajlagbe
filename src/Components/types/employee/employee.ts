@@ -64,6 +64,9 @@ export type CreateEmployeeRequest = {
     departmentId?: string;
     isActive: boolean;
     isVerified: boolean;
+    tenantId?: string;
+    subscriptionId?: string;
+    subscriptionExpiry?: string | null;
   };
   profile: {
     name?: string;
@@ -103,6 +106,9 @@ export type UpdateEmployeeRequest = {
     departmentId?: string | null;
     isActive?: boolean;
     isVerified?: boolean;
+    tenantId?: string | null;
+    subscriptionId?: string | null;
+    subscriptionExpiry?: string | null;
   };
   profile?: {
     name?: string;
@@ -143,6 +149,9 @@ export type EmployApiUser = {
   isBlocked?: boolean;
   isVerified?: boolean;
   departmentId?: string | null;
+  tenantId?: string | null;
+  subscriptionId?: string | null;
+  subscriptionExpiry?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
   profile?: {
@@ -199,6 +208,9 @@ export type EmployeeModalSubmit = {
     departmentId?: string;
     isActive: boolean;
     isVerified: boolean;
+    tenantId?: string;
+    subscriptionId?: string;
+    subscriptionExpiry?: string | null;
   };
   profile: {
     name?: string;

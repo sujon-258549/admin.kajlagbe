@@ -22,15 +22,38 @@ import { toast } from "sonner";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useBlog } from "../../apihooks/useBlog";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "cover", title: "Cover" },
+  { key: "title", title: "Title" },
+  { key: "commentsCount", title: "Comments" },
+  { key: "category", title: "Category" },
+  { key: "author", title: "Author" },
+  { key: "tags", title: "Tags" },
+  { key: "isPublished", title: "Published" },
+  { key: "createdAt", title: "Created At" },
+];
 
 const BlogList = () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("searchTerm") || "";
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   const { can } = useRoutePermission();
-  const queryObj = searchTerm ? { searchTerm } : {};
+  const queryObj = {
+    page,
+    limit,
+    ...(searchTerm && { searchTerm }),
+  };
   
   const {
     blogs,
@@ -83,7 +106,10 @@ const BlogList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => navigate(`/blog/details/${record.id}`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/blog/details/${record.id}`);
+                }}
                 icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
               />
             </Tooltip>
@@ -95,7 +121,10 @@ const BlogList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => navigate(`/blog/comments/${record.id}`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/blog/comments/${record.id}`);
+                }}
                 icon={<FontAwesomeIcon icon={faMessage} className="text-xs" />}
               />
             </Tooltip>
@@ -107,7 +136,10 @@ const BlogList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => navigate(`/blog/edit/${record.id}`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/blog/edit/${record.id}`);
+                }}
                 icon={
                   <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
                 }
@@ -121,7 +153,8 @@ const BlogList = () => {
               <CustomButton
                 variant="danger-outline"
                 size="icon-sm"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   Modal.confirm({
                     title: "Delete Blog",
                     content: "Are you sure you want to delete this blog post?",
@@ -236,7 +269,7 @@ const BlogList = () => {
       dataIndex: "isPublished",
       key: "isPublished",
       render: (isPublished: boolean, record: any) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <CustomSwitch
             disabled={!can("update")}
             checked={isPublished}
@@ -261,6 +294,10 @@ const BlogList = () => {
       ),
     },
   ];
+
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
 
   return (
     <div className="space-y-6">
@@ -306,15 +343,36 @@ const BlogList = () => {
           </div>
         }
       />
+      <div className="flex justify-end mb-3">
+        <FilterColumn
+          tableName="blog_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
+      </div>
       <div className="">
         <DataTable
+          selectRow={true}
           data={blogs}
           isLoading={isLoading}
-          columns={columns}
+          columns={visibleColumns}
           isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey="id"
-          meta={meta}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
+          onRow={(record: any) => ({
+            onClick: () => navigate(`/blog/details/${record.id}`),
+            style: { cursor: "pointer" },
+          })}
         />
       </div>
     </div>

@@ -22,22 +22,44 @@ import { toast } from "sonner";
 import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useCategory } from "../../apihooks/useCategory";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "image", title: "Image" },
+  { key: "name", title: "Category Name" },
+  { key: "slug", title: "Slug" },
+  { key: "icon", title: "Icon" },
+  { key: "status", title: "Status" },
+  { key: "createdAt", title: "Created At" },
+];
 
 const CategoryList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
 
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [statusLoading, setStatusLoading] = useState(false);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     debounceSearch(e.target.value, 500).then((value: string) => {
       setSearchText(value);
+      setPage(1); // Reset to page 1 on search
     });
   };
 
   const { can } = useRoutePermission();
-  const queryObj = searchText ? { searchTerm: searchText } : {};
+  const queryObj = {
+    page,
+    limit,
+    ...(searchText && { searchTerm: searchText }),
+  };
   
   const {
     categories,
@@ -46,6 +68,7 @@ const CategoryList = () => {
     refetch,
     deleteCategory,
   } = useCategory(queryObj);
+
 
   const [changeStatus] = useChangeCategoryStatusMutation();
 
@@ -238,6 +261,10 @@ const CategoryList = () => {
     },
   ];
 
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -280,22 +307,37 @@ const CategoryList = () => {
           </div>
         }
       />
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         <Input
           onChange={handleSearch}
           className="max-w-md"
           placeholder="Search"
         />
+        <FilterColumn
+          tableName="category_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
       </div>
       <div className="">
         <DataTable
+          selectRow={true}
           data={categories}
           isLoading={isLoading}
-          columns={columns}
-          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
+          columns={visibleColumns}
+          isPaginate={true}
           showHeader={true}
           rowKey="id"
-          meta={meta}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
         />
       </div>
 

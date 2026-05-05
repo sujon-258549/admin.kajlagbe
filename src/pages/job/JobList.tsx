@@ -41,16 +41,23 @@ const filterableColumns = [
 ];
 
 const JobList = () => {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("searchTerm") || "";
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
     filterableColumns.map((c) => c.key),
   );
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
 
   const { can } = useRoutePermission();
   const navigate = useNavigate();
   
-  const queryObj = searchTerm ? { searchTerm } : {};
+  const queryObj = {
+    page,
+    limit,
+    ...(searchTerm && { searchTerm }),
+  };
   const {
     jobs,
     meta,
@@ -110,7 +117,10 @@ const JobList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => navigate(`/job/details/${record.id}`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/job/details/${record.id}`);
+                }}
                 icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
               />
             </Tooltip>
@@ -121,7 +131,10 @@ const JobList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
-                onClick={() => handleEdit(record.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit(record.id);
+                }}
                 icon={
                   <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
                 }
@@ -134,7 +147,8 @@ const JobList = () => {
               <CustomButton
                 variant="danger-outline"
                 size="icon-sm"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   Modal.confirm({
                     title: "Delete Job",
                     content: "Are you sure you want to delete this job posting?",
@@ -294,14 +308,16 @@ const JobList = () => {
       dataIndex: "status",
       key: "status",
       render: (status: boolean, record: TJob) => (
-        <CustomSwitch
-          disabled={!can("update")}
-          checked={status}
-          onChange={() => handleStatusChange(record.id)}
-          size="default"
-          checkedChildren="Active"
-          unCheckedChildren="Inactive"
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <CustomSwitch
+            disabled={!can("update")}
+            checked={status}
+            onChange={() => handleStatusChange(record.id)}
+            size="default"
+            checkedChildren="Active"
+            unCheckedChildren="Inactive"
+          />
+        </div>
       ),
     },
   ];
@@ -366,13 +382,28 @@ const JobList = () => {
         </div>
 
         <DataTable
+          selectRow={true}
           data={jobs}
           isLoading={isLoading}
           columns={visibleColumns}
-          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
+          isPaginate={true}
           showHeader={true}
           rowKey="id"
           meta={meta}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
+          onRow={(record: TJob) => ({
+            onClick: () => navigate(`/job/details/${record.id}`),
+            style: { cursor: "pointer" },
+          })}
         />
       </div>
     </div>

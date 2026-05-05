@@ -20,7 +20,8 @@ export const useWorkType = (queryObj?: any) => {
   const [updateStatus, { isLoading: isStatusUpdating }] = useUpdateWorkTypeStatusMutation();
 
   return {
-    workTypes: workTypes || [],
+    workTypes: workTypes?.data || [],
+    meta: workTypes?.meta,
     isLoading: isLoading || isFetching || isCreating || isUpdating || isDeleting || isStatusUpdating,
     isFetching,
     refetch,

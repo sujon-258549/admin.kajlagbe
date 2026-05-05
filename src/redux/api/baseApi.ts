@@ -96,6 +96,7 @@ export const baseApi = createApi({
     'BlogComment',
     'Contact',
     'Notification',
+    'Tenant',
   ],
   endpoints: () => ({}),
 })

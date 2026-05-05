@@ -23,6 +23,18 @@ import { useRoutePermission } from "../../utils/buttonPurmission";
 import { useSubCategory } from "../../apihooks/useSubCategory";
 import { useCategory } from "../../apihooks/useCategory";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "image", title: "Image" },
+  { key: "name", title: "SubCategory Name" },
+  { key: "categoryName", title: "Parent Category" },
+  { key: "icon", title: "Icon" },
+  { key: "slug", title: "Slug" },
+  { key: "status", title: "Status" },
+  { key: "createdAt", title: "Created At" },
+];
 
 interface TCategoryOption {
   label: string;
@@ -32,16 +44,27 @@ interface TCategoryOption {
 const SubCategoryList = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<TSubCategory | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [searchText, setSearchText] = useState("");
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     debounceSearch(e.target.value, 500).then((value: string) => {
       setSearchText(value);
+      setPage(1); // Reset to page 1 on search
     });
   };
 
   const { can } = useRoutePermission();
-  const queryObj = searchText ? { searchTerm: searchText } : {};
+  const queryObj = {
+    page,
+    limit,
+    ...(searchText && { searchTerm: searchText }),
+  };
 
   // API Queries & Mutations
   const {
@@ -54,6 +77,8 @@ const SubCategoryList = () => {
     updateStatus,
     deleteSubCategory,
   } = useSubCategory(queryObj);
+
+  console.log("meta", meta)
 
   const { response: categoriesResponse } = useCategory({});
 
@@ -287,6 +312,10 @@ const SubCategoryList = () => {
     },
   ];
 
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -331,23 +360,38 @@ const SubCategoryList = () => {
         }
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         <Input
           onChange={handleSearch}
           className="max-w-md"
           placeholder="Search"
         />
+        <FilterColumn
+          tableName="subcategory_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
       </div>
 
       <div className="">
         <DataTable
+          selectRow={true}
           data={subCategories}
           isLoading={isLoading}
-          columns={columns}
+          columns={visibleColumns}
           isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey="id"
-          meta={meta}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
         />
       </div>
 

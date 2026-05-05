@@ -19,6 +19,17 @@ import CustomSwitch from "../../Components/ui/Switch";
 import SubscriptionModal from "../../Components/modal/subscription/SubscriptionModal";
 import type { Subscription } from "../../Components/types";
 import PageListPrint from "../../Components/common/PageListPrint";
+import FilterColumn from "../../Components/FilterColumn/FilterColumn";
+
+const filterableColumns = [
+  { key: "action", title: "Action" },
+  { key: "name", title: "Plan Name" },
+  { key: "price", title: "Price" },
+  { key: "duration", title: "Duration" },
+  { key: "featured", title: "Featured" },
+  { key: "status", title: "Status" },
+  { key: "createdAt", title: "Created At" },
+];
 
 // Mock initial data
 const mockSubscriptions: Subscription[] = [
@@ -85,6 +96,12 @@ const SubscriptionList = () => {
     useState<Subscription[]>(mockSubscriptions);
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<Subscription | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
+    filterableColumns.map((c) => c.key),
+  );
 
   const handleCreate = () => {
     setEditData(null);
@@ -278,6 +295,10 @@ const SubscriptionList = () => {
     },
   ];
 
+  const visibleColumns = columns.filter((col) =>
+    visibleColumnKeys.includes(col.key as string),
+  );
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -316,13 +337,31 @@ const SubscriptionList = () => {
         }
       />
 
+      <div className="flex justify-end mb-3">
+        <FilterColumn
+          tableName="subscription_list"
+          columns={filterableColumns}
+          onChangeSelectedKeys={setVisibleColumnKeys}
+        />
+      </div>
       <div>
         <DataTable
+          selectRow={true}
           data={subscriptions}
-          columns={columns}
-          isPaginate={true}
+          columns={visibleColumns}
+          // isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           showHeader={true}
           rowKey="id"
+          // total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
+          clearSelectionTrigger={selectedRowIds.length === 0}
+          onSelectRowsChange={(selectedRows: any[]) => {
+            setSelectedRowIds(selectedRows.map((row) => row.id));
+          }}
         />
       </div>
 

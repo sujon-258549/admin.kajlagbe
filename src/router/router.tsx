@@ -31,6 +31,7 @@ import CreateBlog from "../pages/blog/CreateBlog";
 import BlogDetails from "../pages/blog/BlogDetails";
 import BlogCommentList from "../pages/blog/BlogCommentList";
 import ContactList from "../pages/contact/ContactList";
+import TenantList from "../pages/tenant/TenantList";
 
 const router = createBrowserRouter([
   {
@@ -157,6 +158,10 @@ const router = createBrowserRouter([
       {
         path: "contact/list",
         element: <ContactList />,
+      },
+      {
+        path: "tenant/list",
+        element: <TenantList />,
       },
       {
         path: "*",

@@ -157,19 +157,25 @@ export default function DataTable(props: any) {
         pagination={
           isPaginate && !isLoading
             ? {
-                pageSize: limit || 20,
-                total: total || data?.count || data?.length || 0,
-                current: currentPage,
+                pageSize: limit || props.meta?.limit || 20,
+                total: total || props.meta?.total || data?.count || data?.length || 0,
+                current: currentPage || props.meta?.page || 1,
                 onChange: (page) => {
-                  setCurrentPage(page);
+                  if (setCurrentPage) {
+                    setCurrentPage(page);
+                  }
                 },
                 showSizeChanger: showSizeChanger,
                 pageSizeOptions: [
                   "10", "25", "50", "100", "200", "500", "1000",
                 ],
                 onShowSizeChange: (_current, newSize) => {
-                  setLimit(newSize);
-                  setCurrentPage(1);
+                  if (setLimit) {
+                    setLimit(newSize);
+                  }
+                  if (setCurrentPage) {
+                    setCurrentPage(1);
+                  }
                 },
                 showQuickJumper: true,
               }
