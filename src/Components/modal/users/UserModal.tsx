@@ -1,5 +1,5 @@
-import { Modal, Form, Select, Spin, Divider, DatePicker } from "antd";
-import { useEffect, useMemo } from "react";
+import { Modal, Form, Select, Spin, Divider, DatePicker, Tabs } from "antd";
+import { useEffect, useMemo, useState } from "react";
 import CustomInput from "../../ui/Input";
 import CustomSwitch from "../../ui/Switch";
 import CustomSelect from "../../ui/Select";
@@ -23,10 +23,10 @@ import {
 } from "../../types";
 import { resolveProfileAge } from "../../utils/ageFromDob";
 import dayjs from "dayjs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser, faIdCard, faMapMarkerAlt, faBriefcase, faBuilding } from "@fortawesome/free-solid-svg-icons";
 
 const { Option } = Select;
-
-export type Employee = EmployeeRow;
 
 interface UserModalProps {
   open: boolean;
@@ -50,6 +50,7 @@ const UserModal = ({
   submitting = false,
 }: UserModalProps) => {
   const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState("general");
   const isEdit = !!editData;
   const profilePhotoUrl = Form.useWatch("profilePhotoUrl", form);
   const nidPhotoUrls = Form.useWatch("nidPhotoUrls", form);
@@ -198,6 +199,7 @@ const UserModal = ({
       };
       await onSubmit(payload);
       form.resetFields();
+      setActiveTab("general");
     } catch (err) {
       console.error(err);
     }
@@ -205,36 +207,22 @@ const UserModal = ({
 
   const handleCancel = () => {
     form.resetFields();
+    setActiveTab("general");
     onClose();
   };
 
   const showDetailSpinner = isEdit && detailLoading && !editDetail;
 
-  return (
-    <Modal
-      open={open}
-      onCancel={handleCancel}
-      onOk={handleOk}
-      confirmLoading={submitting}
-      title={
-        <ModalHeader
-          title={isEdit ? "Update User" : "Add New User"}
-          subTitle="User + Profile + Address + WorkInfo management."
-          center={false}
-        />
-      }
-      okText={isEdit ? "Update" : "Create"}
-      width={1000}
-      centered
-      destroyOnClose
-      styles={{
-        header: { padding: "16px 24px 12px", margin: 0 },
-        body: { maxHeight: "min(78vh, calc(100vh - 220px))", overflowY: "auto", padding: "12px 24px 24px" },
-        footer: { padding: "14px 24px 18px", borderTop: "1px solid #f0f0f0" },
-      }}
-    >
-      <Spin spinning={showDetailSpinner}>
-        <Form form={form} layout="vertical" className="pt-2">
+  const tabItems = [
+    {
+      key: "general",
+      label: (
+        <span className="flex items-center gap-2">
+          <FontAwesomeIcon icon={faUser} className="text-xs" /> General
+        </span>
+      ),
+      children: (
+        <div className="pt-4">
           <div className="mb-6">
             <p className="text-sm font-bold text-gray-800 mb-3">Profile Photo</p>
             <Form.Item name="profilePhotoUrl" noStyle>
@@ -264,11 +252,6 @@ const UserModal = ({
                  {roleSelectOptions.map((r) => <Option key={r.id} value={r.id}>{r.role}</Option>)}
                </CustomSelect>
             </Form.Item>
-            <Form.Item name="tenantId" label="Brand (Tenant)">
-               <CustomSelect placeholder="Select Brand" loading={tenantsLoading}>
-                 {tenants.map((t: any) => <Option key={t.id} value={t.id}>{t.name}</Option>)}
-               </CustomSelect>
-            </Form.Item>
             {!isEdit && (
               <Form.Item name="password" label="Password (Default: 12345678)">
                 <CustomInput.Password placeholder="Default: 12345678" size="md" />
@@ -284,7 +267,18 @@ const UserModal = ({
               <CustomSwitch checkedChildren="Verified" unCheckedChildren="Not Verified" />
             </Form.Item>
           </div>
-
+        </div>
+      ),
+    },
+    {
+      key: "profile",
+      label: (
+        <span className="flex items-center gap-2">
+          <FontAwesomeIcon icon={faIdCard} className="text-xs" /> Profile
+        </span>
+      ),
+      children: (
+        <div className="pt-4">
           <Divider plain className="my-6! text-sm! font-semibold! text-gray-700!">Profile Details</Divider>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
             <Form.Item name="gender" label="Gender">
@@ -318,7 +312,18 @@ const UserModal = ({
             </Form.Item>
             <Form.Item name="nidPhotoIds" className="hidden"><CustomInput /></Form.Item>
           </div>
-
+        </div>
+      ),
+    },
+    {
+      key: "address",
+      label: (
+        <span className="flex items-center gap-2">
+          <FontAwesomeIcon icon={faMapMarkerAlt} className="text-xs" /> Address
+        </span>
+      ),
+      children: (
+        <div className="pt-4">
           <Divider plain className="my-6! text-sm! font-semibold! text-gray-700!">Address Information</Divider>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
             <Form.Item name="division" label="Division"><CustomInput placeholder="Division" /></Form.Item>
@@ -326,7 +331,18 @@ const UserModal = ({
             <Form.Item name="upazila" label="Upazila"><CustomInput placeholder="Upazila" /></Form.Item>
             <Form.Item name="addressLine" label="Full Address"><CustomInput placeholder="Street, Holding etc." /></Form.Item>
           </div>
-
+        </div>
+      ),
+    },
+    {
+      key: "work",
+      label: (
+        <span className="flex items-center gap-2">
+          <FontAwesomeIcon icon={faBriefcase} className="text-xs" /> Work
+        </span>
+      ),
+      children: (
+        <div className="pt-4">
           <Divider plain className="my-6! text-sm! font-semibold! text-gray-700!">Work Information</Divider>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
             <Form.Item name="department" label="Work Type">
@@ -345,6 +361,67 @@ const UserModal = ({
             <Form.Item name="availableTimeRange" label="Available Time Range">
                <DatePicker.RangePicker showTime={{ format: "hh:mm A", use12Hours: true }} format="hh:mm A" className="w-full" />
             </Form.Item>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "brand",
+      label: (
+        <span className="flex items-center gap-2 text-primary font-bold">
+          <FontAwesomeIcon icon={faBuilding} className="text-xs" /> Brand
+        </span>
+      ),
+      children: (
+        <div className="pt-4">
+          <Divider plain className="my-6! text-sm! font-semibold! text-gray-700!">Brand Association (Tenant)</Divider>
+          <div className="p-6 bg-blue-50 border border-blue-100 rounded-xl mb-6">
+            <h4 className="text-sm font-bold text-blue-800 mb-2">Assign to Brand</h4>
+            <p className="text-xs text-blue-600 mb-6">Associating a user with a brand will scope their data access to that specific tenant.</p>
+            
+            <Form.Item name="tenantId" label="Select Brand (Tenant)" className="max-w-md">
+               <CustomSelect placeholder="Select Brand" loading={tenantsLoading} size="md">
+                 {tenants.map((t: any) => <Option key={t.id} value={t.id}>{t.name}</Option>)}
+               </CustomSelect>
+            </Form.Item>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <Modal
+      open={open}
+      onCancel={handleCancel}
+      onOk={handleOk}
+      confirmLoading={submitting}
+      title={
+        <ModalHeader
+          title={isEdit ? "Update User" : "Add New User"}
+          subTitle="User + Profile + Address + WorkInfo management."
+          center={false}
+        />
+      }
+      okText={isEdit ? "Update" : "Create"}
+      width={1000}
+      centered
+      destroyOnClose
+      styles={{
+        header: { padding: "16px 24px 12px", margin: 0 },
+        body: { maxHeight: "min(85vh, calc(100vh - 200px))", overflowY: "auto", padding: "0 24px 24px" },
+        footer: { padding: "14px 24px 18px", borderTop: "1px solid #f0f0f0" },
+      }}
+    >
+      <Spin spinning={showDetailSpinner}>
+        <Form form={form} layout="vertical">
+          <div className="mt-2">
+            <Tabs 
+              activeKey={activeTab} 
+              onChange={setActiveTab}
+              items={tabItems}
+              className="custom-tabs"
+            />
           </div>
         </Form>
       </Spin>
