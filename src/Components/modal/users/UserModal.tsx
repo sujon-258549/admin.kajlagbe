@@ -74,7 +74,7 @@ const UserModal = ({
   });
 
   const workTypes = useMemo(
-    () => (workTypesResponse || []).filter((w: any) => w.isActive),
+    () => (workTypesResponse?.data || []).filter((w: any) => w.isActive),
     [workTypesResponse],
   );
 
