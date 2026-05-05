@@ -97,6 +97,8 @@ export const baseApi = createApi({
     'Contact',
     'Notification',
     'Tenant',
+    'ActivityLog',
+    'ErrorLog',
   ],
   endpoints: () => ({}),
 })
