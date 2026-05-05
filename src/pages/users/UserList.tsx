@@ -36,6 +36,7 @@ const filterableColumns = [
   { key: "work", title: "Work Info" },
   { key: "location", title: "Location" },
   { key: "status", title: "Status" },
+  { key: "createdBy", title: "Created By" },
 ];
 
 const UserList = () => {
@@ -275,6 +276,24 @@ const UserList = () => {
             checkedChildren="Active"
             unCheckedChildren="Inactive"
           />
+        </div>
+      ),
+    },
+    {
+      title: "Created By",
+      key: "createdBy",
+      render: (_: any, record: any) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-gray-700">
+            {record.createdBy?.profile?.name || record.createdBy?.email || (
+              <span className="text-gray-400 italic">System</span>
+            )}
+          </span>
+          {record.createdBy && (
+            <Tag color="cyan" className="text-[9px] w-fit border-none uppercase font-bold">
+               Admin Created
+            </Tag>
+          )}
         </div>
       ),
     },
