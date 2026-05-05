@@ -51,12 +51,9 @@ const UserList = () => {
     filterableColumns.map((c) => c.key),
   );
   const { can } = useRoutePermission();
-  const [activeTab, setActiveTab] = useState("all");
 
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    setPage(1);
-  };
+
+
 
   const {
     employees: users,
@@ -71,7 +68,7 @@ const UserList = () => {
     limit, 
     searchTerm, 
     role: "USER",
-    ...(activeTab === "brand" ? { isBrandUser: true } : {})
+
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -352,30 +349,7 @@ const UserList = () => {
       />
 
       <div className="flex justify-between items-center mb-3">
-        <div className="flex gap-4">
-          <button
-            onClick={() => handleTabChange("all")}
-            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
-              activeTab === "all"
-                ? "bg-primary text-white shadow-md"
-                : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            All Users
-          </button>
-          {can("View Brand Users") && (
-            <button
-              onClick={() => handleTabChange("brand")}
-              className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
-                activeTab === "brand"
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              Brand Users
-            </button>
-          )}
-        </div>
+        <div />
         <FilterColumn
           tableName="user_list"
           columns={filterableColumns}
