@@ -243,11 +243,17 @@ const UserList = () => {
     {
       title: "Role",
       key: "role",
-      render: (_: any, record: any) => (
-        <Tag color="blue" className="font-bold text-[10px] uppercase rounded-md border-none px-3">
-          {record.role || "USER"}
-        </Tag>
-      ),
+      render: (_: any, record: any) => {
+        const role = record.role || "USER";
+        return (
+          <Tag
+            color={role === "WORKER" ? "orange" : "blue"}
+            className="font-bold text-[10px] uppercase rounded-md border-none px-3"
+          >
+            {role}
+          </Tag>
+        );
+      },
     },
     {
       title: "Work Info",
@@ -345,8 +351,20 @@ const UserList = () => {
         }
       />
 
-      <div className="flex justify-between items-center mb-3">
-        <div />
+      <div className="flex justify-between items-center gap-3">
+        <Tabs
+          activeKey={activeRoleTab}
+          onChange={(key) => {
+            setActiveRoleTab(key as "USER" | "WORKER");
+            setPage(1);
+            setSelectedRowIds([]);
+          }}
+          items={[
+            { key: "USER", label: "User" },
+            { key: "WORKER", label: "Worker" },
+          ]}
+          className="!mb-0 user-list-tabs"
+        />
         <FilterColumn
           tableName="user_list"
           columns={filterableColumns}
