@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Tooltip, Popconfirm, message, Tag } from "antd";
+import { Tooltip, Popconfirm, message, Tag, Tabs } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPenToSquare,
@@ -50,10 +50,8 @@ const UserList = () => {
   const [visibleColumnKeys, setVisibleColumnKeys] = useState<string[]>(
     filterableColumns.map((c) => c.key),
   );
+  const [activeRoleTab, setActiveRoleTab] = useState<"USER" | "WORKER">("USER");
   const { can } = useRoutePermission();
-
-
-
 
   const {
     employees: users,
@@ -63,12 +61,11 @@ const UserList = () => {
     createEmployee: createUser,
     updateEmployee: updateUser,
     deleteEmployee: deleteUser,
-  } = useEmployee({ 
-    page, 
-    limit, 
-    searchTerm, 
-    role: "USER",
-
+  } = useEmployee({
+    page,
+    limit,
+    searchTerm,
+    role: activeRoleTab,
   });
 
   const [modalOpen, setModalOpen] = useState(false);
