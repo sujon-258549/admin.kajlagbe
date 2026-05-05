@@ -9,6 +9,7 @@ import {
   faEnvelope,
   faNewspaper,
   faMagic,
+  faShieldHalved,
 } from "@fortawesome/free-solid-svg-icons";
 import { useMyData } from "../redux/hooks";
 import { config } from "../config";
@@ -113,6 +114,15 @@ export const menuItems = [
     icon: faEnvelope,
     path: "/contact/list",
     module: "Contacts",
+  },
+  {
+    name: "System Logs",
+    icon: faShieldHalved,
+    path: "/logs",
+    submenu: [
+      { name: "Activity Logs", path: "/logs/activity", module: "System Logs" },
+      { name: "Error Logs", path: "/logs/errors", module: "System Logs" },
+    ],
   },
 ];
 

@@ -62,7 +62,7 @@ const EmployeeList = () => {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-  } = useEmployee({ page, limit, searchTerm, role: "WORKER" });
+  } = useEmployee({ page, limit, searchTerm});
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editData, setEditData] = useState<Employee | null>(null);
