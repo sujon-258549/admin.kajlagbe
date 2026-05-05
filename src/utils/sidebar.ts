@@ -100,15 +100,15 @@ export const menuItems = [
     path: "/crm",
     submenu: [{ name: "User List", path: "/crm/user-list", module: "CRM" }],
   },
-  {
-    name: "SaaS Management",
-    icon: faBuilding,
-    path: "/tenant",
-    submenu: [
-      { name: "Tenants", path: "/tenant/list", module: "Tenants" },
-      { name: "Subscriptions", path: "/subscription", module: "Subscriptions" },
-    ],
-  },
+  // {
+  //   name: "SaaS Management",
+  //   icon: faBuilding,
+  //   path: "/tenant",
+  //   submenu: [
+  //     { name: "Tenants", path: "/tenant/list", module: "Tenants" },
+  //     { name: "Subscriptions", path: "/subscription", module: "Subscriptions" },
+  //   ],
+  // },
   {
     name: "Contact Messages",
     icon: faEnvelope,
@@ -120,8 +120,8 @@ export const menuItems = [
     icon: faShieldHalved,
     path: "/logs",
     submenu: [
-      { name: "Activity Logs", path: "/logs/activity", module: "System Logs" },
-      { name: "Error Logs", path: "/logs/errors", module: "System Logs" },
+      { name: "Activity Logs", path: "/logs/activity", module: "Activity Logs" },
+      { name: "Error Logs", path: "/logs/errors", module: "Error Logs" },
     ],
   },
 ];

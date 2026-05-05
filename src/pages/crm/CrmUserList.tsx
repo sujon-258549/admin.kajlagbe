@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { Tag } from "antd";
+import { Tag, Tabs } from "antd";
 import DataTable from "../../Components/Tables/DataTable";
 import PageHeader from "../../Components/common/PageHeader";
 import { useEmployee } from "../../apihooks/useEmployee";
@@ -23,11 +23,20 @@ const CrmUserList = () => {
   const [followUpModalOpen, setFollowUpModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
+  const [activeRoleTab, setActiveRoleTab] = useState<"USER" | "WORKER">("USER");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
   const {
     employees: users,
     meta,
     isLoading,
-  } = useEmployee({ searchTerm, role: "USER" });
+  } = useEmployee({ 
+    page, 
+    limit, 
+    searchTerm, 
+    role: activeRoleTab 
+  });
 
   const handleManualTrigger = async () => {
     try {
@@ -97,15 +106,17 @@ const CrmUserList = () => {
     },
     {
       title: "Role",
-      key: "role",
-      render: (_: any, record: any) => (
-        <Tag
-          color="blue"
-          className="font-bold text-[10px] uppercase rounded-md border-none px-3"
-        >
-          {record.role || "USER"}
-        </Tag>
-      ),
+      render: (_: any, record: any) => {
+        const role = record.role || "USER";
+        return (
+          <Tag
+            color={role === "WORKER" ? "orange" : "blue"}
+            className="font-bold text-[10px] uppercase rounded-md border-none px-3"
+          >
+            {role}
+          </Tag>
+        );
+      },
     },
     {
       title: "Location",
@@ -166,14 +177,33 @@ const CrmUserList = () => {
           </div>
         }
       />
-
+      <div className="flex justify-between items-center gap-3 mb-4">
+        <Tabs
+          activeKey={activeRoleTab}
+          onChange={(key) => {
+            setActiveRoleTab(key as "USER" | "WORKER");
+            setPage(1);
+          }}
+          items={[
+            { key: "USER", label: "User" },
+            { key: "WORKER", label: "Worker" },
+          ]}
+          className="!mb-0 user-list-tabs"
+        />
+      </div>
       <div className="bg-white rounded-lg border border-gray-300 overflow-hidden">
         <DataTable
           data={users}
           columns={columns}
           rowKey="id"
-          isPaginate={meta && meta.total > (meta.limit || 10)}
+          isPaginate={(meta?.total ?? 0) > (meta?.limit ?? 10)}
           isLoading={isLoading}
+          total={meta?.total || 0}
+          limit={limit}
+          currentPage={page}
+          setCurrentPage={setPage}
+          setLimit={setLimit}
+          showSizeChanger={true}
         />
       </div>
       <FollowUpModal

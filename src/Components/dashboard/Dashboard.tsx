@@ -18,8 +18,8 @@ import RecruitmentFunnelChart from "../charts/dashboard/RecruitmentFunnelChart";
 import SalaryBenchmarksChart from "../charts/dashboard/SalaryBenchmarksChart";
 import DateFilter from "../filter/DateFilter";
 import type { FilterType } from "../types";
+import { useState, useEffect } from "react";
 import StatCard from "../card/StatCard";
-import { useState } from "react";
 
 // New Table Components
 import RecentJobsTable from "./tables/RecentJobsTable";
@@ -27,8 +27,26 @@ import TopCandidatesTable from "./tables/TopCandidatesTable";
 import RecentActivity from "./tables/RecentActivity";
 import JobApplicationsOverview from "./tables/JobApplicationsOverview";
 
+import { useGetOnlineUsersCountQuery } from "../../redux/features/employApi/employApi";
+import { useSocket } from "../../context/SocketContext";
+
 const Dashboard = () => {
   const [globalFilter, setGlobalFilter] = useState<FilterType>("this-week");
+  const { data: onlineCount, refetch: refetchOnlineCount } = useGetOnlineUsersCountQuery();
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("user-status-change", () => {
+        refetchOnlineCount();
+      });
+    }
+    return () => {
+      if (socket) {
+        socket.off("user-status-change");
+      }
+    };
+  }, [socket, refetchOnlineCount]);
 
   const handleGlobalFilterChange = (
     type: FilterType,
@@ -55,10 +73,10 @@ const Dashboard = () => {
     },
     {
       label: "Active Users",
-      value: "2,840",
+      value: onlineCount?.toString() || "0",
       icon: faUsers,
       color: "#f59e0b", // Amber
-      trend: "+5.4%",
+      trend: "Real-time",
       trendUp: true,
     },
     {

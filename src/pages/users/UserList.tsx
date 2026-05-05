@@ -211,14 +211,19 @@ const UserList = () => {
       key: "user",
       render: (_: any, record: any) => (
         <div className="flex items-center gap-3">
-          <img
-            src={
-              record.profile?.photo ||
-              `https://i.pravatar.cc/150?u=${record.email}`
-            }
-            alt={record.name}
-            className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100"
-          />
+          <div className="relative">
+            <img
+              src={
+                record.profile?.photo ||
+                `https://i.pravatar.cc/150?u=${record.email}`
+              }
+              alt={record.name}
+              className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100"
+            />
+            {record.isOnline && (
+              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full animate-pulse shadow-sm" />
+            )}
+          </div>
           <div className="overflow-hidden">
             <div className="font-bold text-gray-800 text-sm truncate uppercase">
               {record.name || "—"}

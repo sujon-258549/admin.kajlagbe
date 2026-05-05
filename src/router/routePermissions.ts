@@ -30,6 +30,8 @@ export const routePermissions: Record<string, { module: string; action: string }
   "/blog/create": { module: "Blog", action: "view" },
   "/blog/details/:id": { module: "Blog", action: "view" },
   "/contact/list": { module: "Contacts", action: "view" },
-  "/logs/activity": { module: "System Logs", action: "view" },
-  "/logs/errors": { module: "System Logs", action: "view" },
+  // Add more routes and their corresponding permissions as needed
+  "/logs/activity": { module: "Activity Logs", action: "view" },
+  "/logs/errors": { module: "Error Logs", action: "view" },
+  
 };

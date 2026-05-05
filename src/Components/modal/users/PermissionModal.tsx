@@ -50,6 +50,16 @@ const modules = [
     permissions: ["View", "Update", "Edit", "Change Password"],
   },
   { name: "Contacts", permissions: ["View", "Delete"] },
+
+  // Add more modules and their permissions as needed
+  {
+    name:"activity Logs",
+    permissions: ["View", "Delete"]
+  },
+  {
+    name:"Error Logs",
+    permissions: ["View", "Delete"]
+  }
 ];
 
 const PermissionModal = ({

@@ -120,6 +120,11 @@ const employApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ["Employee"],
     }),
+    getOnlineUsersCount: builder.query<number, void>({
+      query: () => ({ url: "/employ/online-count", method: "GET" }),
+      transformResponse: (res: any) => res.data,
+      providesTags: ["Employee"],
+    }),
   }),
 });
 
@@ -134,4 +139,5 @@ export const {
   useBlockEmployeeMutation,
   useChangeEmployeePasswordMutation,
   useVerifyEmployeeOtpMutation,
+  useGetOnlineUsersCountQuery,
 } = employApi;
