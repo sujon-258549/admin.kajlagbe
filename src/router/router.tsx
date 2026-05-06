@@ -16,6 +16,7 @@ import SubscriptionList from "../pages/subscription/SubscriptionList";
 import JobList from "../pages/job/JobList";
 import CreateJob from "../pages/job/CreateJob";
 import JobDetails from "../pages/job/JobDetails";
+import JobApplications from "../pages/job/JobApplications";
 import FolderList from "../pages/media/FolderList";
 import WorkTypeList from "../pages/work-type/WorkTypeList";
 import EmployeeDetails from "../pages/employee/EmployeeDetails";
@@ -120,6 +121,10 @@ const router = createBrowserRouter([
       {
         path: "job/details/:id",
         element: <JobDetails />,
+      },
+      {
+        path: "job/applications/:jobId",
+        element: <JobApplications />,
       },
       {
         path: "setup/media",

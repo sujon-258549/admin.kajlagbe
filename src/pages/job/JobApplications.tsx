@@ -17,6 +17,7 @@ import DataTable from "../../Components/Tables/DataTable";
 import { useApplication } from "../../apihooks/useApplication";
 import { toast } from "sonner";
 import formatDate from "../../Components/utils/dateFormate";
+import type { TApplication } from "../../Components/types";
 
 const JobApplications = () => {
   const { jobId } = useParams();
@@ -45,7 +46,7 @@ const JobApplications = () => {
     {
       title: "APPLICANT",
       key: "applicant",
-      render: (_: any, record: any) => (
+      render: (_: any, record: TApplication) => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20">
             {record.user?.profile?.photo ? (
@@ -96,7 +97,7 @@ const JobApplications = () => {
       title: "ACTION",
       key: "action",
       width: 120,
-      render: (_: any, record: any) => (
+      render: (_: any, record: TApplication) => (
         <div className="flex items-center gap-2">
           <Tooltip title="View Details">
             <CustomButton

@@ -16,6 +16,7 @@ import {
   faMoneyBillWave,
   faEye,
   faBriefcase,
+  faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
@@ -127,6 +128,18 @@ const JobList = () => {
               />
             </Tooltip>
           )}
+
+          <Tooltip title="View Applications">
+            <CustomButton
+              variant="outline"
+              size="icon-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/job/applications/${record.id}`);
+              }}
+              icon={<FontAwesomeIcon icon={faUsers} className="text-xs" />}
+            />
+          </Tooltip>
 
           {can("update") && (
             <Tooltip title="Edit Job Post">
