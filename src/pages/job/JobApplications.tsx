@@ -5,10 +5,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
   faRotateRight,
-  faSearch,
   faEye,
   faTrash,
-  faDownload,
   faFilePdf,
 } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "../../Components/common/PageHeader";
@@ -168,7 +166,7 @@ const JobApplications = () => {
             current: meta?.page || 1,
             pageSize: meta?.limit || 10,
             total: meta?.total || 0,
-            onChange: (page, limit) => setSearchParams({ ...searchParams, page, limit }),
+            onChange: (page: number, limit: number) => setSearchParams({ ...searchParams, page, limit }),
           }}
         />
       </div>
