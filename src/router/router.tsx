@@ -17,6 +17,7 @@ import JobList from "../pages/job/JobList";
 import CreateJob from "../pages/job/CreateJob";
 import JobDetails from "../pages/job/JobDetails";
 import JobApplications from "../pages/job/JobApplications";
+import ApplicationDetails from "../pages/job/ApplicationDetails";
 import FolderList from "../pages/media/FolderList";
 import WorkTypeList from "../pages/work-type/WorkTypeList";
 import EmployeeDetails from "../pages/employee/EmployeeDetails";
@@ -129,6 +130,10 @@ const router = createBrowserRouter([
       {
         path: "job/applications/:jobId",
         element: <JobApplications />,
+      },
+      {
+        path: "job/application-details/:id",
+        element: <ApplicationDetails />,
       },
       {
         path: "setup/media",

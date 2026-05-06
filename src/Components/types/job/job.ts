@@ -20,4 +20,8 @@ export interface TJob {
   thumbnailId?: string;
   thumbnail?: TMediaImage;
   createdAt: string;
+  applicantsCount?: number;
+  _count?: {
+    applications: number;
+  };
 }

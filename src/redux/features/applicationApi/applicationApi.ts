@@ -8,7 +8,7 @@ const applicationApi = baseApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Application"],
+      invalidatesTags: ["Application", "Job"],
     }),
     getAllApplications: builder.query({
       query: (args) => {
@@ -45,7 +45,7 @@ const applicationApi = baseApi.injectEndpoints({
         url: `/application/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Application"],
+      invalidatesTags: ["Application", "Job"],
     }),
   }),
 });

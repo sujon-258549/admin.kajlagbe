@@ -5,7 +5,6 @@ import {
   faBriefcase,
   faBuilding,
   faCogs,
-  faToolbox,
   faEnvelope,
   faNewspaper,
   faMagic,

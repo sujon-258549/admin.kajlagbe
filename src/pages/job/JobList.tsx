@@ -40,6 +40,7 @@ const filterableColumns = [
   { key: "salary", title: "Salary" },
   { key: "skills", title: "Skills" },
   { key: "deadline", title: "Deadline" },
+  { key: "applicantsCount", title: "Applicants Count" },
   { key: "status", title: "Status" },
 ];
 
@@ -69,6 +70,8 @@ const JobList = () => {
     deleteJob,
     changeStatus,
   } = useJob(queryObj);
+
+  console.log("Jobs data:", jobs);
 
   const handleCreate = () => {
     navigate("/job/create");
@@ -109,17 +112,6 @@ const JobList = () => {
   };
 
   const columns = [
-    {
-      title: "APPLICANTS",
-      dataIndex: "applicantsCount",
-      key: "applicantsCount",
-      width: 100,
-      render: (count: number) => (
-        <Tag color="blue" className="m-0 rounded-full font-bold border-none bg-blue-50 text-blue-600">
-          {count || 0}
-        </Tag>
-      ),
-    },
     {
       title: "ACTION",
       key: "action",
@@ -207,6 +199,20 @@ const JobList = () => {
             <FontAwesomeIcon icon={faBriefcase} className="text-gray-300" />
           )}
         </div>
+      ),
+    },
+    {
+      title: "Applicants Count",
+      dataIndex: "applicantsCount",
+      key: "applicantsCount",
+      width: 120,
+      render: (count: number) => (
+        <Tag
+          color="blue"
+          className="m-0 rounded-full font-bold border-none bg-blue-50 text-blue-600"
+        >
+          {count || 0}
+        </Tag>
       ),
     },
     {
