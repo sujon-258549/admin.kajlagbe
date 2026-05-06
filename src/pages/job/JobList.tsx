@@ -110,6 +110,17 @@ const JobList = () => {
 
   const columns = [
     {
+      title: "APPLICANTS",
+      dataIndex: "applicantsCount",
+      key: "applicantsCount",
+      width: 100,
+      render: (count: number) => (
+        <Tag color="blue" className="m-0 rounded-full font-bold border-none bg-blue-50 text-blue-600">
+          {count || 0}
+        </Tag>
+      ),
+    },
+    {
       title: "ACTION",
       key: "action",
       width: 150,

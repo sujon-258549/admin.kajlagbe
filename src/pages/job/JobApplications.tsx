@@ -60,6 +60,13 @@ const JobApplications = () => {
         </div>
       ),
     },
+    ...(!jobId ? [{
+      title: "JOB",
+      key: "job",
+      render: (_: any, record: TApplication) => (
+        <div className="font-semibold text-gray-700">{record.job?.title || "N/A"}</div>
+      ),
+    }] : []),
     {
       title: "APPLY DATE",
       dataIndex: "createdAt",

@@ -123,6 +123,10 @@ const router = createBrowserRouter([
         element: <JobDetails />,
       },
       {
+        path: "job/applications",
+        element: <JobApplications />,
+      },
+      {
         path: "job/applications/:jobId",
         element: <JobApplications />,
       },

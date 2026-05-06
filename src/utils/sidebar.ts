@@ -48,22 +48,9 @@ export const menuItems = [
     path: "/job",
     submenu: [
       { name: "Job List", path: "/job/list", module: "Job Management" },
+      { name: "All Applications", path: "/job/applications", module: "Job Management" },
     ],
   },
-  {
-    name: "Apply Job",
-    icon: faToolbox,
-    path: "/apply-job",
-    submenu: [
-      { name: "Apply Job List", path: "/apply-job/list", module: "Apply Job" },
-      {
-        name: "Apply Job Categories",
-        path: "/apply-job/categories",
-        module: "Apply Job",
-      },
-    ],
-  },
- 
   {
     name: "AI Agent",
     icon: faMagic,
