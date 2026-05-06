@@ -33,6 +33,7 @@ import {
   faPhone,
   faEnvelope,
   faGlobe,
+  faImage,
 } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "../../Components/common/PageHeader";
 import CustomButton from "../../Components/ui/Button";
@@ -44,6 +45,8 @@ import { useJob } from "../../apihooks/useJob";
 import { useCategory } from "../../apihooks/useCategory";
 import { useSubCategory } from "../../apihooks/useSubCategory";
 import { toast } from "sonner";
+import MediaLibraryPickerModal from "../../Components/modal/media/MediaLibraryPickerModal";
+import type { TMediaImage } from "../../Components/types";
 
 const CreateJob = () => {
   const { id } = useParams();
@@ -60,6 +63,8 @@ const CreateJob = () => {
   const { subCategories } = useSubCategory();
 
   const [description, setDescription] = useState("");
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const [selectedThumbnail, setSelectedThumbnail] = useState<TMediaImage | null>(null);
 
   useEffect(() => {
     if (isEditMode && jobData?.data) {
@@ -69,6 +74,9 @@ const CreateJob = () => {
         deadline: data.deadline ? dayjs(data.deadline, "DD-MM-YYYY") : null,
       });
       setDescription(data.description || "");
+      if (data.thumbnail) {
+        setSelectedThumbnail(data.thumbnail);
+      }
     } else if (!isEditMode) {
       form.resetFields();
       form.setFieldsValue({
@@ -88,6 +96,7 @@ const CreateJob = () => {
       const payload = {
         ...values,
         description,
+        thumbnailId: selectedThumbnail?.id || null,
         deadline: values.deadline
           ? dayjs(values.deadline).format("DD-MM-YYYY")
           : null,
@@ -160,6 +169,36 @@ const CreateJob = () => {
                 <span>Basic Information</span>
               </div>
               <Divider className="my-3" />
+
+              <div
+                className="w-32 h-32 mb-6 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors overflow-hidden group"
+                onClick={() => setIsMediaModalOpen(true)}
+              >
+                {selectedThumbnail ? (
+                  <div className="relative w-full h-full">
+                    <img
+                      src={selectedThumbnail.url}
+                      alt="Thumbnail"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white text-xs font-medium text-center px-2">
+                        Change Image
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <FontAwesomeIcon
+                      icon={faImage}
+                      className="text-2xl text-gray-300 mb-2"
+                    />
+                    <span className="text-gray-400 text-xs text-center px-4">
+                      Select Thumbnail
+                    </span>
+                  </>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Form.Item
                   name="title"
@@ -798,6 +837,18 @@ const CreateJob = () => {
           </div>
         </div>
       </Form>
+
+      <MediaLibraryPickerModal
+        open={isMediaModalOpen}
+        onClose={() => setIsMediaModalOpen(false)}
+        onConfirm={(images) => {
+          if (images.length > 0) {
+            setSelectedThumbnail(images[0]);
+          }
+        }}
+        multiple={false}
+        title="Select Job Thumbnail"
+      />
     </div>
   );
 };

@@ -15,6 +15,7 @@ import {
   faLocationDot,
   faMoneyBillWave,
   faEye,
+  faBriefcase,
 } from "@fortawesome/free-solid-svg-icons";
 import CustomButton from "../../Components/ui/Button";
 import DataTable from "../../Components/Tables/DataTable";
@@ -30,6 +31,7 @@ import { useRoutePermission } from "../../utils/buttonPurmission";
 // Column definitions used by FilterColumn
 const filterableColumns = [
   { key: "action", title: "Action" },
+  { key: "thumbnail", title: "Thumbnail" },
   { key: "title", title: "Job Title" },
   { key: "company", title: "Company" },
   { key: "type", title: "Type" },
@@ -165,6 +167,25 @@ const JobList = () => {
       ),
     },
     {
+      title: "THUMBNAIL",
+      dataIndex: "thumbnail",
+      key: "thumbnail",
+      width: 80,
+      render: (thumbnail: any) => (
+        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
+          {thumbnail?.url ? (
+            <img
+              src={thumbnail.url}
+              alt="Thumbnail"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <FontAwesomeIcon icon={faBriefcase} className="text-gray-300" />
+          )}
+        </div>
+      ),
+    },
+    {
       title: (
         <div className="flex items-center justify-between">
           <span>JOB TITLE</span>
@@ -176,7 +197,11 @@ const JobList = () => {
       render: (title: string, record: TJob) => (
         <div className="whitespace-nowrap">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-gray-800 text-sm">{title}</span>
+            <Tooltip title={title}>
+              <span className="font-bold text-gray-800 text-sm line-clamp-1 truncate max-w-[150px]">
+                {title}
+              </span>
+            </Tooltip>
             {record.isUrgent && (
               <Tooltip title="Urgent Hiring">
                 <span className="inline-flex items-center gap-1 bg-red-50 text-red-500 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
@@ -191,7 +216,11 @@ const JobList = () => {
               icon={faLocationDot}
               className="text-gray-400 text-[10px]"
             />
-            <span className="text-xs text-gray-500">{record.location}</span>
+            <Tooltip title={record.location}>
+              <span className="text-xs text-gray-500 line-clamp-1 truncate max-w-[120px]">
+                {record.location}
+              </span>
+            </Tooltip>
             {record.isRemote && (
               <Tag
                 color="blue"
@@ -209,7 +238,11 @@ const JobList = () => {
       dataIndex: "company",
       key: "company",
       render: (company: string) => (
-        <span className="font-semibold text-gray-700 text-sm whitespace-nowrap">{company || "N/A"}</span>
+        <Tooltip title={company || "N/A"}>
+          <span className="font-semibold text-gray-700 text-sm whitespace-nowrap truncate max-w-[120px] block">
+            {company || "N/A"}
+          </span>
+        </Tooltip>
       ),
     },
     {
@@ -234,14 +267,24 @@ const JobList = () => {
       title: "CATEGORY",
       dataIndex: "category",
       key: "category",
-      render: (category: any, record: any) => (
-        <div className="whitespace-nowrap">
-          <span className="font-semibold text-gray-700 text-sm">
-            {category?.name || record.categoryName || "N/A"}
-          </span>
-          <p className="text-xs text-gray-400 mt-0.5">{record.subCategory?.name || "N/A"}</p>
-        </div>
-      ),
+      render: (category: any, record: any) => {
+        const catName = category?.name || record.categoryName || "N/A";
+        const subCatName = record.subCategory?.name || "N/A";
+        return (
+          <div className="whitespace-nowrap">
+            <Tooltip title={catName}>
+              <span className="font-semibold text-gray-700 text-sm block truncate max-w-[120px]">
+                {catName}
+              </span>
+            </Tooltip>
+            <Tooltip title={subCatName}>
+              <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[120px]">
+                {subCatName}
+              </p>
+            </Tooltip>
+          </div>
+        );
+      },
     },
     {
       title: (
@@ -270,25 +313,42 @@ const JobList = () => {
       title: "SKILLS",
       dataIndex: "skills",
       key: "skills",
-      render: (skills: string[]) => (
-        <div className="flex flex-wrap gap-1 max-w-[160px]">
-          {(skills || []).slice(0, 3).map((skill, i) => (
-            <span
-              key={i}
-              className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap"
-            >
-              {skill}
-            </span>
-          ))}
-          {(skills || []).length > 3 && (
-            <Tooltip title={skills.slice(3).join(", ")}>
-              <span className="bg-primary/10 text-primary text-[10px] font-semibold px-2 py-0.5 rounded-full cursor-pointer">
-                +{skills.length - 3}
-              </span>
-            </Tooltip>
-          )}
-        </div>
-      ),
+      render: (skills: string[]) => {
+        if (!skills || skills.length === 0) return <span className="text-gray-400">-</span>;
+        return (
+          <Tooltip
+            title={
+              <div className="flex flex-wrap gap-1 py-1">
+                {(skills || []).map((skill, i) => (
+                  <Tag
+                    key={i}
+                    color="blue"
+                    className="text-[10px] m-0 border-none font-medium"
+                  >
+                    {skill}
+                  </Tag>
+                ))}
+              </div>
+            }
+          >
+            <div className="flex items-center gap-1 flex-nowrap overflow-hidden max-w-[160px]">
+              {(skills || []).slice(0, 2).map((skill, i) => (
+                <span
+                  key={i}
+                  className="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0"
+                >
+                  {skill}
+                </span>
+              ))}
+              {(skills || []).length > 2 && (
+                <span className="bg-primary/10 text-primary text-[10px] font-semibold px-2 py-0.5 rounded-full cursor-pointer flex-shrink-0 border border-dashed border-primary/30">
+                  +{skills.length - 2}
+                </span>
+              )}
+            </div>
+          </Tooltip>
+        );
+      },
     },
     {
       title: (

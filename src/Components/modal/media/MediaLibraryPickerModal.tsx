@@ -403,12 +403,12 @@ export default function MediaLibraryPickerModal({
       open={open}
       onCancel={onClose}
       footer={null}
-      width={960}
+      width={1300}
       centered
-      destroyOnClose
+      destroyOnHidden
       zIndex={1100}
       styles={{
-        body: { padding: 0, maxHeight: "82vh", overflow: "hidden" },
+        body: { padding: 0, maxHeight: "89vh", overflow: "hidden" },
       }}
       title={
         <ModalHeader
