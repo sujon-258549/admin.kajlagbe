@@ -199,8 +199,16 @@ const BlogList = () => {
       key: "title",
       render: (text: string, record: any) => (
         <div className="flex flex-col">
-          <span className="font-semibold text-gray-700 line-clamp-1">{text}</span>
-          <span className="text-[10px] text-gray-400">{record.slug}</span>
+          <Tooltip title={text}>
+            <span className="font-semibold text-gray-700 line-clamp-1">
+              {text}
+            </span>
+          </Tooltip>
+          <Tooltip title={record.tagline}>
+            <span className="text-[10px] text-gray-400 line-clamp-1">
+              {record.tagline}
+            </span>
+          </Tooltip>
         </div>
       ),
     },
@@ -239,9 +247,11 @@ const BlogList = () => {
               className="w-6 h-6 rounded-full object-cover border border-gray-200"
             />
           )}
-          <span className="text-xs font-medium text-gray-600">
-            {author?.profile?.name || "Unknown"}
-          </span>
+          <Tooltip title={author?.profile?.name || "Unknown"}>
+            <span className="text-xs font-medium text-gray-600 line-clamp-1">
+              {author?.profile?.name || "Unknown"}
+            </span>
+          </Tooltip>
         </div>
       ),
     },
@@ -249,15 +259,39 @@ const BlogList = () => {
       title: "TAGS",
       dataIndex: "tags",
       key: "tags",
-      render: (tags: string[]) => (
-        <div className="flex flex-wrap gap-1 max-w-[150px]">
-          {tags?.map((tag) => (
-            <Tag key={tag} className="text-[10px] px-1 m-0">
-              {tag}
-            </Tag>
-          ))}
-        </div>
-      ),
+      render: (tags: string[]) => {
+        if (!tags || tags.length === 0) return <span className="text-gray-400">-</span>;
+        return (
+          <Tooltip
+            title={
+              <div className="flex flex-wrap gap-1 py-1">
+                {tags.map((tag) => (
+                  <Tag
+                    key={tag}
+                    color="blue"
+                    className="text-[10px] m-0 border-none"
+                  >
+                    {tag}
+                  </Tag>
+                ))}
+              </div>
+            }
+          >
+            <div className="flex items-center gap-1 flex-nowrap overflow-hidden max-w-[150px]">
+              {tags.slice(0, 2).map((tag) => (
+                <Tag key={tag} className="text-[10px] px-1 m-0 flex-shrink-0">
+                  {tag}
+                </Tag>
+              ))}
+              {tags.length > 2 && (
+                <Tag className="text-[10px] px-1 m-0 flex-shrink-0 bg-gray-50 border-dashed">
+                  +{tags.length - 2}
+                </Tag>
+              )}
+            </div>
+          </Tooltip>
+        );
+      },
     },
     {
       title: (
@@ -314,6 +348,7 @@ const BlogList = () => {
             <PageListPrint 
               tableData={blogs?.map((item: any) => ({
                 Title: item.title,
+                Tagline: item.tagline,
                 Category: item.category,
                 Author: item.author?.profile?.name || "Unknown",
                 Comments: item?._count?.comments || 0,
