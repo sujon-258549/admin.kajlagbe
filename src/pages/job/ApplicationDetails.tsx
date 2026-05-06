@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Tag, Divider, Spin, Avatar, Modal, Empty } from "antd";
+import { Tag, Spin, Avatar, Modal, Empty } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
@@ -130,15 +130,15 @@ const ApplicationDetails = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Left Column: Applicant Profile & Status */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Applicant Card */}
-          <Card className="border-none shadow-xl rounded-3xl bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-hidden relative">
+        <div className="lg:col-span-1">
+          {/* Applicant Info Panel */}
+          <div className="border border-gray-200 rounded-lg bg-gradient-to-b from-slate-900 to-slate-800 text-white overflow-hidden relative mb-6">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col items-center py-6">
+            <div className="relative z-10 flex flex-col items-center py-8">
               <Avatar
                 size={120}
-                className="border-4 border-white/10 shadow-2xl bg-white/5 mb-4"
+                className="border-4 border-white/10 bg-white/5 mb-4"
                 src={application.user?.profile?.photo}
               >
                 {application.user?.profile?.name?.charAt(0) || "U"}
@@ -158,11 +158,11 @@ const ApplicationDetails = () => {
               </Tag>
             </div>
 
-            <Divider className="border-white/5 my-0" />
+            <div className="h-px bg-white/5 w-full" />
 
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-primary">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-primary">
                   <FontAwesomeIcon icon={faEnvelope} />
                 </div>
                 <div>
@@ -175,7 +175,7 @@ const ApplicationDetails = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-emerald-400">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-emerald-400">
                   <FontAwesomeIcon icon={faPhone} />
                 </div>
                 <div>
@@ -188,7 +188,7 @@ const ApplicationDetails = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-sky-400">
+                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-sky-400">
                   <FontAwesomeIcon icon={faClock} />
                 </div>
                 <div>
@@ -201,10 +201,10 @@ const ApplicationDetails = () => {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
-          {/* Status Actions */}
-          <Card className="border-none shadow-lg rounded-3xl overflow-hidden p-0">
+          {/* Action Panel */}
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="bg-slate-50 p-4 border-b border-gray-100 text-center">
               <h4 className="m-0 font-bold text-slate-800 text-xs uppercase tracking-[0.2em]">
                 Take Action
@@ -213,7 +213,7 @@ const ApplicationDetails = () => {
             <div className="p-6 space-y-3">
               <CustomButton
                 variant="primary"
-                className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
+                className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
                 onClick={() => handleUpdateStatus("ACCEPTED")}
                 icon={<FontAwesomeIcon icon={faCheckCircle} />}
                 disabled={application.applyStatus === "ACCEPTED"}
@@ -222,7 +222,7 @@ const ApplicationDetails = () => {
               </CustomButton>
               <CustomButton
                 variant="danger-outline"
-                className="w-full h-12 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
+                className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
                 onClick={() => handleUpdateStatus("REJECTED")}
                 icon={<FontAwesomeIcon icon={faTimesCircle} />}
                 disabled={application.applyStatus === "REJECTED"}
@@ -230,16 +230,16 @@ const ApplicationDetails = () => {
                 Reject Candidate
               </CustomButton>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Right Column: Content & Details */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Main Application Content */}
-          <Card className="border-none shadow-lg rounded-3xl overflow-hidden min-h-[400px]">
+        <div className="lg:col-span-2">
+          {/* Main Application Panel */}
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden min-h-[400px] mb-6">
             <div className="p-8">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary text-xl shadow-inner">
+                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center text-primary text-xl border border-gray-200">
                   <FontAwesomeIcon icon={faBriefcase} />
                 </div>
                 <div>
@@ -261,9 +261,10 @@ const ApplicationDetails = () => {
                   <h4 className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
                     <span className="w-6 h-px bg-slate-200" /> Cover Letter
                   </h4>
-                  <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 text-slate-700 leading-relaxed text-sm whitespace-pre-line italic">
-                    {application.coverLetter || "No cover letter provided."}
-                  </div>
+                  <div 
+                    className="bg-slate-50/50 p-6 rounded-lg border border-gray-200 text-slate-700 leading-relaxed text-sm prose prose-slate max-w-none"
+                    dangerouslySetInnerHTML={{ __html: application.coverLetter || "No cover letter provided." }}
+                  />
                 </section>
 
                 {/* Apply Note Section */}
@@ -273,7 +274,7 @@ const ApplicationDetails = () => {
                       <span className="w-6 h-px bg-slate-200" /> Additional
                       Notes
                     </h4>
-                    <div className="bg-sky-50/30 p-6 rounded-2xl border border-sky-100 text-slate-700 text-sm">
+                    <div className="bg-sky-50/30 p-6 rounded-lg border border-gray-200 text-slate-700 text-sm">
                       {application.applyNote}
                     </div>
                   </section>
@@ -285,9 +286,9 @@ const ApplicationDetails = () => {
                     <span className="w-6 h-px bg-slate-200" /> Candidate Resume
                   </h4>
                   {application.resume ? (
-                    <div className="bg-rose-50/30 p-8 rounded-3xl border border-rose-100/50 flex flex-col md:flex-row items-center justify-between gap-6 group hover:bg-rose-50 transition-all duration-300">
+                    <div className="bg-rose-50/30 p-8 rounded-lg border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-6 group hover:bg-rose-50 transition-all duration-300">
                       <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center text-rose-500 text-3xl group-hover:scale-110 transition-transform">
+                        <div className="w-16 h-16 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-rose-500 text-3xl group-hover:scale-110 transition-transform">
                           <FontAwesomeIcon icon={faFilePdf} />
                         </div>
                         <div>
@@ -303,7 +304,7 @@ const ApplicationDetails = () => {
                         <CustomButton
                           variant="outline"
                           size="sm"
-                          className="rounded-xl border-slate-200 hover:border-primary font-bold"
+                          className="rounded-lg border-slate-200 hover:border-primary font-bold"
                           onClick={() =>
                             window.open(application.resume, "_blank")
                           }
@@ -314,7 +315,7 @@ const ApplicationDetails = () => {
                         <CustomButton
                           variant="primary"
                           size="sm"
-                          className="rounded-xl font-bold shadow-lg shadow-primary/20"
+                          className="rounded-lg font-bold"
                           onClick={() =>
                             window.open(application.resume, "_blank")
                           }
@@ -325,7 +326,7 @@ const ApplicationDetails = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <div className="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-gray-200">
                       <p className="text-slate-400 m-0 italic">
                         No resume document uploaded.
                       </p>
@@ -334,16 +335,16 @@ const ApplicationDetails = () => {
                 </section>
               </div>
             </div>
-          </Card>
+          </div>
 
-          {/* Job Overview Mini-Card */}
-          <Card
-            className="border-none shadow-md rounded-3xl overflow-hidden bg-slate-50/50 hover:bg-white transition-colors cursor-pointer"
+          {/* Job Reference Link */}
+          <div
+            className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:bg-slate-50 transition-colors cursor-pointer"
             onClick={() => navigate(`/job/details/${application.jobId}`)}
           >
             <div className="p-6 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400">
+                <div className="w-10 h-10 rounded-lg bg-slate-50 border border-gray-200 flex items-center justify-center text-slate-400">
                   <FontAwesomeIcon icon={faBriefcase} />
                 </div>
                 <div>
@@ -360,7 +361,7 @@ const ApplicationDetails = () => {
                 className="text-slate-300 rotate-180"
               />
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>
