@@ -1,79 +1,28 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Tag } from "antd";
 import DataTable from "../../Tables/DataTable";
 import type { FilterType } from "../../types";
+import { useGetRecentJobsQuery } from "../../../redux/features/dashboardApi/dashboardApi";
+import { filterToRange } from "../../../utils/dateRange";
 
 interface RecentJobsTableProps {
   externalFilter?: FilterType;
 }
 
-const allJobData = [
-  {
-    _id: "1",
-    title: "Senior UI Designer",
-    category: "Design",
-    apps: 45,
-    status: "Active",
-    period: "this-week",
-  },
-  {
-    _id: "2",
-    title: "Full Stack Developer",
-    category: "IT",
-    apps: 120,
-    status: "Active",
-    period: "this-week",
-  },
-  {
-    _id: "3",
-    title: "Marketing Manager",
-    category: "Marketing",
-    apps: 32,
-    status: "Closed",
-    period: "this-month",
-  },
-  {
-    _id: "4",
-    title: "Data Analyst",
-    category: "Data Science",
-    apps: 88,
-    status: "Active",
-    period: "this-month",
-  },
-  {
-    _id: "5",
-    title: "Product Manager",
-    category: "Product",
-    apps: 15,
-    status: "Active",
-    period: "this-year",
-  },
-  {
-    _id: "6",
-    title: "QA Engineer",
-    category: "Testing",
-    apps: 24,
-    status: "Active",
-    period: "this-week",
-  },
-];
-
 const RecentJobsTable: React.FC<RecentJobsTableProps> = ({
   externalFilter,
 }) => {
+  const range = filterToRange(externalFilter || "this-week");
+  const { data, isLoading } = useGetRecentJobsQuery({ range, limit: 6 });
 
-
-  const filteredData = useMemo(() => {
-    if (!externalFilter || externalFilter === "this-week") {
-      return allJobData.filter((item) => item.period === "this-week");
-    }
-    if (externalFilter === "this-month") {
-      return allJobData.filter(
-        (item) => item.period === "this-month" || item.period === "this-week",
-      );
-    }
-    return allJobData; // Show all for other filters
-  }, [externalFilter]);
+  const rows =
+    data?.map((j) => ({
+      _id: j.id,
+      title: j.title,
+      category: j.category,
+      apps: j.apps,
+      status: j.status,
+    })) ?? [];
 
   const columns = [
     {
@@ -84,11 +33,7 @@ const RecentJobsTable: React.FC<RecentJobsTableProps> = ({
         <span className="font-semibold text-gray-800">{text}</span>
       ),
     },
-    {
-      title: "Category",
-      dataIndex: "category",
-      key: "category",
-    },
+    { title: "Category", dataIndex: "category", key: "category" },
     {
       title: "Applications",
       dataIndex: "apps",
@@ -121,12 +66,18 @@ const RecentJobsTable: React.FC<RecentJobsTableProps> = ({
           View All
         </button>
       </div>
-      <DataTable
-        data={filteredData}
-        columns={columns}
-        isPaginate={false}
-        showHeader={true}
-      />
+      {isLoading ? (
+        <p className="text-sm text-gray-400">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="text-sm text-gray-400">No jobs in this period.</p>
+      ) : (
+        <DataTable
+          data={rows}
+          columns={columns}
+          isPaginate={false}
+          showHeader={true}
+        />
+      )}
     </div>
   );
 };

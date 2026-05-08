@@ -5,10 +5,12 @@ import { Outlet } from "react-router";
 import { Toaster } from "sonner";
 import { useSocket } from "../context/SocketContext";
 import { toast } from "sonner";
+import usePageViewTracker from "../hooks/usePageViewTracker";
 
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { socket } = useSocket();
+  usePageViewTracker();
 
   useEffect(() => {
     if (socket) {

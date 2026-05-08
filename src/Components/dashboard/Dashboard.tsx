@@ -5,11 +5,14 @@ import {
   faFileLines,
   faArrowTrendUp,
   faBuilding,
-  faUserPlus,
   faCircleCheck,
+  faEye,
+  faGlobe,
+  faSignal,
+  faComments,
 } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 
-// Import 6 Modern Charts
 import JobApplicationsChart from "../charts/dashboard/RevenueChart";
 import HiringStatChart from "../charts/dashboard/OrdersChart";
 import JobCategoryChart from "../charts/dashboard/UserActivityChart";
@@ -18,154 +21,215 @@ import RecruitmentFunnelChart from "../charts/dashboard/RecruitmentFunnelChart";
 import SalaryBenchmarksChart from "../charts/dashboard/SalaryBenchmarksChart";
 import DateFilter from "../filter/DateFilter";
 import type { FilterType } from "../types";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import StatCard from "../card/StatCard";
 
-// New Table Components
 import RecentJobsTable from "./tables/RecentJobsTable";
 import TopCandidatesTable from "./tables/TopCandidatesTable";
 import RecentActivity from "./tables/RecentActivity";
 import JobApplicationsOverview from "./tables/JobApplicationsOverview";
 
-import { useGetOnlineUsersCountQuery } from "../../redux/features/employApi/employApi";
 import { useSocket } from "../../context/SocketContext";
+import {
+  useGetAdminKpisQuery,
+  useGetOnlineSnapshotQuery,
+} from "../../redux/features/dashboardApi/dashboardApi";
+import { useGetTrafficStatsQuery } from "../../redux/features/analyticsApi/analyticsApi";
+import { filterLabel, filterToRange } from "../../utils/dateRange";
+
+const numberFmt = (n: number | undefined) => {
+  if (n === undefined || n === null || Number.isNaN(n)) return "0";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+};
+
+const trendStr = (n: number | undefined) => {
+  if (n === undefined || n === null || Number.isNaN(n)) return "0%";
+  const sign = n > 0 ? "+" : "";
+  return `${sign}${n.toFixed(1)}%`;
+};
 
 const Dashboard = () => {
   const [globalFilter, setGlobalFilter] = useState<FilterType>("this-week");
-  const { data: onlineCount, refetch: refetchOnlineCount } = useGetOnlineUsersCountQuery();
+  const range = filterToRange(globalFilter);
+  const periodLabel = filterLabel(globalFilter);
+
+  const {
+    data: kpis,
+    isLoading: kpisLoading,
+    refetch: refetchKpis,
+  } = useGetAdminKpisQuery({ range });
+  const {
+    data: traffic,
+    isLoading: trafficLoading,
+    refetch: refetchTraffic,
+  } = useGetTrafficStatsQuery({ range, source: "admin" });
+  const { data: live, refetch: refetchLive } = useGetOnlineSnapshotQuery();
+
   const { socket } = useSocket();
 
   useEffect(() => {
-    if (socket) {
-      socket.on("user-status-change", () => {
-        refetchOnlineCount();
-      });
-    }
-    return () => {
-      if (socket) {
-        socket.off("user-status-change");
-      }
+    if (!socket) return;
+    const reload = () => {
+      refetchLive();
+      refetchKpis();
+      refetchTraffic();
     };
-  }, [socket, refetchOnlineCount]);
+    socket.on("user-status-change", reload);
+    socket.on("new-notification", reload);
+    return () => {
+      socket.off("user-status-change", reload);
+      socket.off("new-notification", reload);
+    };
+  }, [socket, refetchLive, refetchKpis, refetchTraffic]);
 
-  const handleGlobalFilterChange = (
-    type: FilterType,
-  ) => {
+  const handleGlobalFilterChange = (type: FilterType) => {
     setGlobalFilter(type);
   };
 
-  const stats = [
+  type Stat = {
+    label: string;
+    value: string;
+    icon: IconDefinition;
+    color: string;
+    trend: string;
+    trendUp: boolean;
+  };
+
+  const isLoading = kpisLoading || trafficLoading;
+
+  const stats: Stat[] = [
     {
-      label: "Total Jobs",
-      value: "4,250",
-      icon: faBriefcase,
-      color: "#6366f1", // Indigo
-      trend: "+12.5%",
+      label: "Page Views",
+      value: numberFmt(traffic?.pageViews),
+      icon: faEye,
+      color: "#0ea5e9",
+      trend: trendStr(traffic?.deltas?.pageViews),
+      trendUp: (traffic?.deltas?.pageViews ?? 0) >= 0,
+    },
+    {
+      label: "Total Traffic",
+      value: numberFmt(traffic?.sessions),
+      icon: faGlobe,
+      color: "#6366f1",
+      trend: trendStr(traffic?.deltas?.sessions),
+      trendUp: (traffic?.deltas?.sessions ?? 0) >= 0,
+    },
+    {
+      label: "Unique Visitors",
+      value: numberFmt(traffic?.uniqueUsers),
+      icon: faUsers,
+      color: "#8b5cf6",
+      trend: trendStr(traffic?.deltas?.uniqueUsers),
+      trendUp: (traffic?.deltas?.uniqueUsers ?? 0) >= 0,
+    },
+    {
+      label: "Online Now",
+      value: String(live?.onlineUsers ?? 0),
+      icon: faSignal,
+      color: "#10b981",
+      trend: `${live?.liveSessions ?? 0} live`,
       trendUp: true,
+    },
+    {
+      label: "New Users",
+      value: numberFmt(kpis?.current.users),
+      icon: faUserCheck,
+      color: "#f59e0b",
+      trend: trendStr(kpis?.deltas?.users),
+      trendUp: (kpis?.deltas?.users ?? 0) >= 0,
+    },
+    {
+      label: "Jobs Posted",
+      value: numberFmt(kpis?.current.jobs),
+      icon: faBriefcase,
+      color: "#ec4899",
+      trend: trendStr(kpis?.deltas?.jobs),
+      trendUp: (kpis?.deltas?.jobs ?? 0) >= 0,
     },
     {
       label: "Applications",
-      value: "18,245",
+      value: numberFmt(kpis?.current.applications),
       icon: faFileLines,
-      color: "#059669", // Emerald
-      trend: "+8.2%",
-      trendUp: true,
+      color: "#059669",
+      trend: trendStr(kpis?.deltas?.applications),
+      trendUp: (kpis?.deltas?.applications ?? 0) >= 0,
     },
     {
-      label: "Active Users",
-      value: onlineCount?.toString() || "0",
-      icon: faUsers,
-      color: "#f59e0b", // Amber
-      trend: "Real-time",
-      trendUp: true,
-    },
-    {
-      label: "Shortlisted",
-      value: "1,250",
-      icon: faUserCheck,
-      color: "#8b5cf6", // Violet
-      trend: "+4.1%",
-      trendUp: true,
-    },
-    {
-      label: "Remote Jobs",
-      value: "854",
-      icon: faBuilding,
-      color: "#0ea5e9", // Sky
-      trend: "+10.2%",
-      trendUp: true,
-    },
-    {
-      label: "Hired Cases",
-      value: "420",
+      label: "Hired",
+      value: numberFmt(kpis?.current.acceptedApplications),
       icon: faCircleCheck,
-      color: "#f43f5e", // Rose
-      trend: "+14.3%",
-      trendUp: true,
+      color: "#f43f5e",
+      trend: trendStr(kpis?.deltas?.acceptedApplications),
+      trendUp: (kpis?.deltas?.acceptedApplications ?? 0) >= 0,
     },
     {
-      label: "New Talents",
-      value: "125",
-      icon: faUserPlus,
-      color: "#2dd4bf", // Teal
-      trend: "+15.7%",
-      trendUp: true,
+      label: "Active Jobs",
+      value: numberFmt(kpis?.current.activeJobs),
+      icon: faBuilding,
+      color: "#2dd4bf",
+      trend: trendStr(kpis?.deltas?.activeJobs),
+      trendUp: (kpis?.deltas?.activeJobs ?? 0) >= 0,
     },
     {
-      label: "Growth",
-      value: "88%",
+      label: "Blogs",
+      value: numberFmt(kpis?.current.blogs),
       icon: faArrowTrendUp,
-      color: "#ec4899", // Pink
-      trend: "+2.5%",
+      color: "#a855f7",
+      trend: trendStr(kpis?.deltas?.blogs),
+      trendUp: (kpis?.deltas?.blogs ?? 0) >= 0,
+    },
+    {
+      label: "Contacts",
+      value: numberFmt(kpis?.current.contacts),
+      icon: faComments,
+      color: "#fb923c",
+      trend: trendStr(kpis?.deltas?.contacts),
+      trendUp: (kpis?.deltas?.contacts ?? 0) >= 0,
+    },
+    {
+      label: "Total Users",
+      value: numberFmt(kpis?.totals?.totalUsers),
+      icon: faUsers,
+      color: "#475569",
+      trend: "All time",
       trendUp: true,
     },
   ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-            Job Portal Analytics
+            Admin Dashboard
           </h2>
           <p className="text-base text-gray-500 mt-1">
-            Comprehensive recruitment life-cycle monitoring.
+            Real-time platform analytics, traffic, and recruitment insights.
           </p>
         </div>
-        <div className=" ">
-          <DateFilter
-            onFilterChange={handleGlobalFilterChange}
-            activeFilter={globalFilter}
-          />
-        </div>
+        <DateFilter
+          onFilterChange={handleGlobalFilterChange}
+          activeFilter={globalFilter}
+        />
       </div>
 
-      {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
           <StatCard
             key={index}
             title={stat.label}
-            value={stat.value}
+            value={isLoading ? "…" : stat.value}
             icon={stat.icon}
             trend={stat.trend}
             trendUp={stat.trendUp}
             color={stat.color}
-            period={
-              globalFilter === "this-week"
-                ? "This Week"
-                : globalFilter === "this-month"
-                  ? "This Month"
-                  : globalFilter === "this-year"
-                    ? "This Year"
-                    : "This Period"
-            }
+            period={periodLabel}
           />
         ))}
       </div>
 
-      {/* Charts Section - 6 Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
         <div className="md:col-span-2">
           <JobApplicationsChart externalFilter={globalFilter} />
@@ -187,19 +251,17 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Tables Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 -mt-11">
         <RecentJobsTable externalFilter={globalFilter} />
         <TopCandidatesTable externalFilter={globalFilter} />
       </div>
 
-      {/* Bottom Widgets Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pb-20">
         <div className="lg:col-span-1">
           <RecentActivity />
         </div>
         <div className="lg:col-span-2">
-          <JobApplicationsOverview />
+          <JobApplicationsOverview externalFilter={globalFilter} />
         </div>
       </div>
     </div>

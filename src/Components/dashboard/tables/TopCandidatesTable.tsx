@@ -1,113 +1,46 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Tag, Avatar } from "antd";
 import DataTable from "../../Tables/DataTable";
 import type { FilterType } from "../../types";
+import { useGetTopCandidatesQuery } from "../../../redux/features/dashboardApi/dashboardApi";
+import { filterToRange } from "../../../utils/dateRange";
 
 interface TopCandidatesTableProps {
   externalFilter?: FilterType;
 }
 
-const allCandidateData = [
-  {
-    _id: "1",
-    name: "Sujon Ahmed",
-    job: "UI Designer",
-    score: 95,
-    stage: "Interview",
-    period: "this-week",
-  },
-  {
-    _id: "2",
-    name: "Jane Doe",
-    job: "Full Stack",
-    score: 88,
-    stage: "Shortlisted",
-    period: "this-week",
-  },
-  {
-    _id: "3",
-    name: "Alex Hunter",
-    job: "Developer",
-    score: 92,
-    stage: "Assessment",
-    period: "this-month",
-  },
-  {
-    _id: "4",
-    name: "Michael Ross",
-    job: "Lawyer",
-    score: 85,
-    stage: "Initial Call",
-    period: "this-month",
-  },
-  {
-    _id: "5",
-    name: "Sarah Connor",
-    job: "Data Scientist",
-    score: 98,
-    stage: "Offer",
-    period: "this-year",
-  },
-  {
-    _id: "6",
-    name: "John Wick",
-    job: "Security",
-    score: 100,
-    stage: "Hired",
-    period: "this-week",
-  },
-];
-
 const TopCandidatesTable: React.FC<TopCandidatesTableProps> = ({
   externalFilter,
 }) => {
+  const range = filterToRange(externalFilter || "this-week");
+  const { data, isLoading } = useGetTopCandidatesQuery({ range, limit: 6 });
 
-
-  const filteredData = useMemo(() => {
-    if (!externalFilter || externalFilter === "this-week") {
-      return allCandidateData.filter((item) => item.period === "this-week");
-    }
-    if (externalFilter === "this-month") {
-      return allCandidateData.filter(
-        (item) => item.period === "this-month" || item.period === "this-week",
-      );
-    }
-    return allCandidateData;
-  }, [externalFilter]);
+  const rows =
+    data?.map((c) => ({
+      _id: c.id,
+      name: c.name,
+      photo: c.photo,
+      job: c.job,
+      stage: c.stage,
+    })) ?? [];
 
   const columns = [
     {
       title: "Candidate",
       dataIndex: "name",
       key: "name",
-      render: (text: string) => (
+      render: (text: string, row: any) => (
         <div className="flex items-center gap-3">
           <Avatar
             size="small"
-            src={`https://i.pravatar.cc/150?u=${text}`}
+            src={row.photo || `https://i.pravatar.cc/150?u=${text}`}
             alt={text}
           />
           <span className="font-semibold text-gray-800">{text}</span>
         </div>
       ),
     },
-    {
-      title: "Applied Job",
-      dataIndex: "job",
-      key: "job",
-    },
-    {
-      title: "Score",
-      dataIndex: "score",
-      key: "score",
-      render: (val: number) => (
-        <span
-          className={`font-bold ${val > 90 ? "text-emerald-500" : "text-amber-500"}`}
-        >
-          {val}%
-        </span>
-      ),
-    },
+    { title: "Applied Job", dataIndex: "job", key: "job" },
     {
       title: "Stage",
       dataIndex: "stage",
@@ -130,12 +63,18 @@ const TopCandidatesTable: React.FC<TopCandidatesTableProps> = ({
           View CRM
         </button>
       </div>
-      <DataTable
-        data={filteredData}
-        columns={columns}
-        isPaginate={false}
-        showHeader={true}
-      />
+      {isLoading ? (
+        <p className="text-sm text-gray-400">Loading…</p>
+      ) : rows.length === 0 ? (
+        <p className="text-sm text-gray-400">No candidates in this period.</p>
+      ) : (
+        <DataTable
+          data={rows}
+          columns={columns}
+          isPaginate={false}
+          showHeader={true}
+        />
+      )}
     </div>
   );
 };
