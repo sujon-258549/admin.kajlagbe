@@ -15,7 +15,12 @@ import { config } from "../config";
 
 export const menuItems = [
   { name: "Dashboard", icon: faTableColumns, path: "/", module: "Dashboard" },
-
+  {
+    name: "AI Agent",
+    icon: faMagic,
+    path: "/agent/generate",
+    module: "AI Agent",
+  },
   {
     name: "User Management",
     icon: faUsers,
@@ -47,15 +52,14 @@ export const menuItems = [
     path: "/job",
     submenu: [
       { name: "Job List", path: "/job/list", module: "Job Management" },
-      { name: "All Applications", path: "/job/applications", module: "Job Management" },
+      {
+        name: "All Applications",
+        path: "/job/applications",
+        module: "Job Management",
+      },
     ],
   },
-  {
-    name: "AI Agent",
-    icon: faMagic,
-    path: "/agent/generate",
-    module: "AI Agent",
-  },
+
   {
     name: "Setup Menu",
     icon: faCogs,
@@ -106,7 +110,11 @@ export const menuItems = [
     icon: faShieldHalved,
     path: "/logs",
     submenu: [
-      { name: "Activity Logs", path: "/logs/activity", module: "Activity Logs" },
+      {
+        name: "Activity Logs",
+        path: "/logs/activity",
+        module: "Activity Logs",
+      },
       { name: "Error Logs", path: "/logs/errors", module: "Error Logs" },
     ],
   },

@@ -14,6 +14,7 @@ const SocketContext = createContext<SocketContextType>({
   isConnected: false,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -64,6 +65,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsConnected(false);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   return (
