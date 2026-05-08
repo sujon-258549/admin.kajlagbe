@@ -106,6 +106,7 @@ const BlogList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
+                className="rounded-lg!"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/blog/details/${record.id}`);
@@ -121,6 +122,7 @@ const BlogList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
+                className="rounded-lg!"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/blog/comments/${record.id}`);
@@ -136,6 +138,7 @@ const BlogList = () => {
               <CustomButton
                 variant="outline"
                 size="icon-sm"
+                className="rounded-lg!"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/blog/edit/${record.id}`);
@@ -153,6 +156,7 @@ const BlogList = () => {
               <CustomButton
                 variant="danger-outline"
                 size="icon-sm"
+                className="rounded-lg!"
                 onClick={(e) => {
                   e.stopPropagation();
                   Modal.confirm({
