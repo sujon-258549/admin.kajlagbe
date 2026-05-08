@@ -100,6 +100,8 @@ export const baseApi = createApi({
     'ActivityLog',
     'ErrorLog',
     'Application',
+    'Dashboard',
+    'Analytics',
   ],
   endpoints: () => ({}),
 })
