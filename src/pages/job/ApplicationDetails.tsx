@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Tag, Spin, Avatar, Modal, Empty } from "antd";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -25,10 +26,15 @@ const ApplicationDetails = () => {
   const navigate = useNavigate();
   const { useGetApplicationById, updateApplication, deleteApplication } =
     useApplication();
-  const { data: response, isLoading } = useGetApplicationById(id || "");
+  const { data: response, isLoading, refetch } = useGetApplicationById(
+    id || "",
+    { refetchOnMountOrArgChange: true },
+  );
   const application = response?.data;
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   const handleUpdateStatus = async (status: string) => {
+    setLoadingAction(status);
     try {
       const res: any = await updateApplication({
         id: id,
@@ -36,9 +42,12 @@ const ApplicationDetails = () => {
       }).unwrap();
       if (res?.success) {
         toast.success(`Application marked as ${status.toLowerCase()}`);
+        refetch();
       }
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to update status");
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -204,33 +213,66 @@ const ApplicationDetails = () => {
           </div>
 
           {/* Action Panel */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <div className="bg-slate-50 p-4 border-b border-gray-100 text-center">
-              <h4 className="m-0 font-bold text-slate-800 text-xs uppercase tracking-[0.2em]">
-                Take Action
-              </h4>
-            </div>
-            <div className="p-6 space-y-3">
-              <CustomButton
-                variant="primary"
-                className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
-                onClick={() => handleUpdateStatus("ACCEPTED")}
-                icon={<FontAwesomeIcon icon={faCheckCircle} />}
-                disabled={application.applyStatus === "ACCEPTED"}
-              >
-                Accept Candidate
-              </CustomButton>
-              <CustomButton
-                variant="danger-outline"
-                className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
-                onClick={() => handleUpdateStatus("REJECTED")}
-                icon={<FontAwesomeIcon icon={faTimesCircle} />}
-                disabled={application.applyStatus === "REJECTED"}
-              >
-                Reject Candidate
-              </CustomButton>
-            </div>
-          </div>
+          {(() => {
+            const status = (application.applyStatus || "PENDING").toUpperCase();
+            const isDecided = status === "ACCEPTED" || status === "REJECTED";
+            return (
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-slate-50 p-4 border-b border-gray-100 text-center">
+                  <h4 className="m-0 font-bold text-slate-800 text-xs uppercase tracking-[0.2em]">
+                    Take Action
+                  </h4>
+                </div>
+                <div className="p-6">
+                  {isDecided ? (
+                    <div
+                      className={`flex flex-col items-center text-center gap-2 py-2 ${
+                        status === "ACCEPTED"
+                          ? "text-emerald-700"
+                          : "text-red-600"
+                      }`}
+                    >
+                      <FontAwesomeIcon
+                        icon={
+                          status === "ACCEPTED" ? faCheckCircle : faTimesCircle
+                        }
+                        className="text-3xl"
+                      />
+                      <p className="font-bold uppercase tracking-widest text-xs m-0">
+                        Application {status.toLowerCase()}
+                      </p>
+                      <p className="text-[11px] text-slate-500 m-0">
+                        This decision is final and cannot be changed.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <CustomButton
+                        variant="primary"
+                        className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
+                        onClick={() => handleUpdateStatus("ACCEPTED")}
+                        icon={<FontAwesomeIcon icon={faCheckCircle} />}
+                        loading={loadingAction === "ACCEPTED"}
+                        disabled={!!loadingAction}
+                      >
+                        Accept Candidate
+                      </CustomButton>
+                      <CustomButton
+                        variant="danger-outline"
+                        className="w-full h-12 rounded-lg flex items-center justify-center gap-2 font-bold uppercase tracking-widest text-xs"
+                        onClick={() => handleUpdateStatus("REJECTED")}
+                        icon={<FontAwesomeIcon icon={faTimesCircle} />}
+                        loading={loadingAction === "REJECTED"}
+                        disabled={!!loadingAction}
+                      >
+                        Reject Candidate
+                      </CustomButton>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Right Column: Content & Details */}

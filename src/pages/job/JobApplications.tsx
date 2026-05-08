@@ -8,6 +8,8 @@ import {
   faEye,
   faTrash,
   faFilePdf,
+  faCheckCircle,
+  faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import PageHeader from "../../Components/common/PageHeader";
 import CustomButton from "../../Components/ui/Button";
@@ -26,7 +28,11 @@ const JobApplications = () => {
     jobId: jobId,
   });
 
-  const { applications, meta, isLoading, refetch, deleteApplication } = useApplication(searchParams);
+  const { applications, meta, isLoading, refetch, deleteApplication, updateApplication } = useApplication(searchParams);
+  const [decisionLoading, setDecisionLoading] = useState<{
+    id: string;
+    status: string;
+  } | null>(null);
 
   const handleDelete = async (id: string) => {
     try {
@@ -37,6 +43,24 @@ const JobApplications = () => {
       }
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to delete application");
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: "ACCEPTED" | "REJECTED") => {
+    setDecisionLoading({ id, status });
+    try {
+      const res: any = await updateApplication({
+        id,
+        data: { applyStatus: status },
+      }).unwrap();
+      if (res?.success) {
+        toast.success(`Application ${status.toLowerCase()}`);
+        refetch();
+      }
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to update status");
+    } finally {
+      setDecisionLoading(null);
     }
   };
 
@@ -101,35 +125,79 @@ const JobApplications = () => {
     {
       title: "ACTION",
       key: "action",
-      width: 120,
-      render: (_: any, record: TApplication) => (
-        <div className="flex items-center gap-2">
-          <Tooltip title="View Details">
-            <CustomButton
-              variant="outline"
-              size="icon-sm"
-              onClick={() => navigate(`/job/application-details/${record.id}`)}
-              icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
-            />
-          </Tooltip>
-          <Tooltip title="Delete">
-            <CustomButton
-              variant="danger-outline"
-              size="icon-sm"
-              onClick={() => {
-                Modal.confirm({
-                  title: "Delete Application",
-                  content: "Are you sure you want to delete this application?",
-                  okText: "Delete",
-                  okType: "danger",
-                  onOk: () => handleDelete(record.id),
-                });
-              }}
-              icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
-            />
-          </Tooltip>
-        </div>
-      ),
+      width: 220,
+      render: (_: any, record: TApplication) => {
+        const status = (record.applyStatus || "PENDING").toUpperCase();
+        const isDecided = status === "ACCEPTED" || status === "REJECTED";
+        const isLoadingThis = decisionLoading?.id === record.id;
+        return (
+          <div className="flex items-center gap-2">
+            <Tooltip title="View Details">
+              <CustomButton
+                variant="outline"
+                size="icon-sm"
+                onClick={() => navigate(`/job/application-details/${record.id}`)}
+                icon={<FontAwesomeIcon icon={faEye} className="text-xs" />}
+              />
+            </Tooltip>
+            {!isDecided && (
+              <>
+                <Tooltip title="Accept">
+                  <CustomButton
+                    variant="primary"
+                    size="icon-sm"
+                    loading={
+                      isLoadingThis && decisionLoading?.status === "ACCEPTED"
+                    }
+                    disabled={!!decisionLoading}
+                    onClick={() => handleUpdateStatus(record.id, "ACCEPTED")}
+                    icon={
+                      <FontAwesomeIcon
+                        icon={faCheckCircle}
+                        className="text-xs"
+                      />
+                    }
+                  />
+                </Tooltip>
+                <Tooltip title="Reject">
+                  <CustomButton
+                    variant="danger-outline"
+                    size="icon-sm"
+                    loading={
+                      isLoadingThis && decisionLoading?.status === "REJECTED"
+                    }
+                    disabled={!!decisionLoading}
+                    onClick={() => handleUpdateStatus(record.id, "REJECTED")}
+                    icon={
+                      <FontAwesomeIcon
+                        icon={faTimesCircle}
+                        className="text-xs"
+                      />
+                    }
+                  />
+                </Tooltip>
+              </>
+            )}
+            <Tooltip title="Delete">
+              <CustomButton
+                variant="danger-outline"
+                size="icon-sm"
+                onClick={() => {
+                  Modal.confirm({
+                    title: "Delete Application",
+                    content:
+                      "Are you sure you want to delete this application?",
+                    okText: "Delete",
+                    okType: "danger",
+                    onOk: () => handleDelete(record.id),
+                  });
+                }}
+                icon={<FontAwesomeIcon icon={faTrash} className="text-xs" />}
+              />
+            </Tooltip>
+          </div>
+        );
+      },
     },
   ];
 

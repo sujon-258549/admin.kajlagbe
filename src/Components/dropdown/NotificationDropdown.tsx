@@ -9,6 +9,45 @@ interface NotificationDropdownProps {
   onOpen?: () => void;
 }
 
+/**
+ * Synth a short two-tone "tun" using Web Audio API.
+ * Browsers block audio without prior user interaction — fail-soft.
+ */
+const playNotificationSound = () => {
+  try {
+    const AudioCtx =
+      typeof window !== "undefined"
+        ? window.AudioContext ||
+          (window as unknown as { webkitAudioContext?: typeof AudioContext })
+            .webkitAudioContext
+        : undefined;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    const beep = (freq: number, start: number, duration: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, now + start);
+      gain.gain.setValueAtTime(0, now + start);
+      gain.gain.linearRampToValueAtTime(0.18, now + start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + start + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + start);
+      osc.stop(now + start + duration + 0.05);
+    };
+
+    beep(880, 0, 0.12);
+    beep(660, 0.13, 0.18);
+
+    setTimeout(() => ctx.close(), 600);
+  } catch (err) {
+    console.warn("[Notification] sound play failed:", err);
+  }
+};
+
 const NotificationDropdown = ({ onOpen }: NotificationDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -20,12 +59,14 @@ const NotificationDropdown = ({ onOpen }: NotificationDropdownProps) => {
 
   useEffect(() => {
     if (socket) {
-      socket.on("new-notification", () => {
+      const onNew = () => {
         refetch();
-      });
+        playNotificationSound();
+      };
+      socket.on("new-notification", onNew);
 
       return () => {
-        socket.off("new-notification");
+        socket.off("new-notification", onNew);
       };
     }
   }, [socket, refetch]);
